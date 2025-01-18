@@ -36,7 +36,7 @@ class GoogleController extends Controller
           'name' => $googleUser->name,
           'email' => $googleUser->email,
           'google_id' => $googleUser->id,
-          'password' => bcrypt(\Illuminate\Support\Str::random(16)),
+          'password' => null,
           'email_verified_at' => now(),
         ]);
 

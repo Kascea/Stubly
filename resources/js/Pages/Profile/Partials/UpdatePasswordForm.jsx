@@ -6,7 +6,7 @@ import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
 import { useRef } from 'react';
 
-export default function UpdatePasswordForm({ className = '' }) {
+export default function UpdatePasswordForm({ className = '', hasPassword = false }) {
     const passwordInput = useRef();
     const currentPasswordInput = useRef();
 
@@ -48,39 +48,42 @@ export default function UpdatePasswordForm({ className = '' }) {
         <section className={className}>
             <header>
                 <h2 className="text-lg font-medium text-gray-900">
-                    Update Password
+                    {hasPassword ? 'Update Password' : 'Set Password'}
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-600">
-                    Ensure your account is using a long, random password to stay
-                    secure.
+                    {hasPassword 
+                        ? 'Ensure your account is using a long, random password to stay secure.'
+                        : 'You signed in with Google. Set a password to also be able to sign in with email.'}
                 </p>
             </header>
 
             <form onSubmit={updatePassword} className="mt-6 space-y-6">
-                <div>
-                    <InputLabel
-                        htmlFor="current_password"
-                        value="Current Password"
-                    />
+                {hasPassword && (
+                    <div>
+                        <InputLabel
+                            htmlFor="current_password"
+                            value="Current Password"
+                        />
 
-                    <TextInput
-                        id="current_password"
-                        ref={currentPasswordInput}
-                        value={data.current_password}
-                        onChange={(e) =>
-                            setData('current_password', e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                    />
+                        <TextInput
+                            id="current_password"
+                            ref={currentPasswordInput}
+                            value={data.current_password}
+                            onChange={(e) =>
+                                setData('current_password', e.target.value)
+                            }
+                            type="password"
+                            className="mt-1 block w-full"
+                            autoComplete="current-password"
+                        />
 
-                    <InputError
-                        message={errors.current_password}
-                        className="mt-2"
-                    />
-                </div>
+                        <InputError
+                            message={errors.current_password}
+                            className="mt-2"
+                        />
+                    </div>
+                )}
 
                 <div>
                     <InputLabel htmlFor="password" value="New Password" />
@@ -122,7 +125,9 @@ export default function UpdatePasswordForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton disabled={processing}>
+                        {hasPassword ? 'Save' : 'Set Password'}
+                    </PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
