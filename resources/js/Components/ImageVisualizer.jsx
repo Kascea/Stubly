@@ -1,99 +1,111 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { forwardRef } from 'react';
 
-const ImageVisualizer = forwardRef(({ backgroundImage, ticketInfo }, ref) => {
-    const [isZoomed, setIsZoomed] = useState(false);
+const generateBarcodePattern = () => {
+    // Generate random barcode-like pattern
+    const bars = [];
+    for (let i = 0; i < 30; i++) {
+        const width = Math.random() > 0.7 ? 3 : 1; // Occasionally make wider bars
+        bars.push(`<rect x="${i * 3}" y="0" width="${width}" height="30" fill="black" />`);
+    }
+    return `data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30" viewBox="0 0 100 30">${bars.join('')}</svg>`;
+};
 
+const ImageVisualizer = forwardRef(({ backgroundImage, ticketInfo }, ref) => {
     return (
         <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-8">
-            <div className="space-y-6 relative">
-                <div className="lg:hidden absolute top-0 left-0 right-0 text-center bg-sky-900/90 text-white py-2 rounded-lg backdrop-blur-sm text-sm">
-                    Scroll down to customize your ticket
-                </div>
+            <div className="relative">
                 <div 
                     ref={ref}
-                    onClick={() => setIsZoomed(!isZoomed)}
-                    className={`relative mx-auto rounded-xl overflow-hidden shadow-2xl transition-all duration-300 cursor-pointer w-96
-                        ${isZoomed ? 'scale-150 translate-y-20' : 'hover:shadow-sky-200/50'}`}
-                    style={{ aspectRatio: '9/16' }}
+                    className="relative mx-auto rounded-lg overflow-hidden bg-white shadow-lg w-96 border border-gray-200"
+                    style={{ aspectRatio: '2/3' }}
                 >
+                    {/* Event Image Section */}
                     <div 
-                        className="h-1/2 relative"
+                        className="h-2/5 relative"
                         style={{
                             background: backgroundImage 
                                 ? `url(${backgroundImage}) center/cover no-repeat`
-                                : 'linear-gradient(to br, #0c4a6e, #0369a1)'
+                                : 'linear-gradient(45deg, #0ea5e9, #0284c7)'
                         }}
                     >
-                        <div className="absolute inset-0 bg-gradient-to-b from-sky-900/20 to-sky-900/60" />
-                        
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-sky-900/90">
-                            <h1 className="text-white text-xl font-bold tracking-wide text-center">
-                                {ticketInfo?.eventName || 'EVENT NAME'}
-                            </h1>
+                        <div className="absolute inset-0 bg-black/30" />
+                    </div>
+
+                    {/* Event Info Section */}
+                    <div className="p-6 space-y-6">
+                        {/* Event Name */}
+                        <h1 className="text-2xl font-bold text-center text-gray-900">
+                            {ticketInfo?.eventName || 'EVENT NAME'}
+                        </h1>
+
+                        {/* Date & Time */}
+                        <div className="flex justify-center space-x-8 text-center">
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase">Date</p>
+                                <p className="font-mono text-lg">
+                                    {ticketInfo?.date 
+                                        ? new Date(ticketInfo.date).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        })
+                                        : 'TBD'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase">Time</p>
+                                <p className="font-mono text-lg">
+                                    {ticketInfo?.time 
+                                        ? new Date(`2000-01-01T${ticketInfo.time}`).toLocaleTimeString('en-US', {
+                                            hour: 'numeric',
+                                            minute: '2-digit'
+                                        })
+                                        : 'TBD'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Seat Info */}
+                        <div className="flex justify-center space-x-8 text-center">
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase">Section</p>
+                                <p className="font-mono text-lg">{ticketInfo?.section || 'A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase">Row</p>
+                                <p className="font-mono text-lg">{ticketInfo?.row || '1'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase">Seat</p>
+                                <p className="font-mono text-lg">{ticketInfo?.seat || '1'}</p>
+                            </div>
+                        </div>
+
+                        {/* Barcode */}
+                        <div className="flex flex-col items-center space-y-2">
+                            <img 
+                                src={generateBarcodePattern()} 
+                                alt="Barcode"
+                                className="h-8 w-48"
+                            />
+                            <p className="font-mono text-xs text-gray-500">
+                                {Math.random().toString(36).substr(2, 12).toUpperCase()}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="h-1/2 bg-white p-4 flex flex-col justify-between">
-                        <div className="space-y-3 border-b border-sky-100 pb-3">
-                            <div className="flex justify-between text-sm">
-                                <div>
-                                    <p className="text-sky-800 font-medium">DATE</p>
-                                    <p className="font-semibold text-sky-950">
-                                        {ticketInfo?.date 
-                                            ? new Date(ticketInfo.date).toLocaleDateString()
-                                            : 'TBD'}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sky-800 font-medium">TIME</p>
-                                    <p className="font-semibold text-sky-950">
-                                        {ticketInfo?.time || 'TBD'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-sky-800 font-medium">SECTION</span>
-                                <span className="font-semibold text-sky-950">{ticketInfo?.section || 'A'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-sky-800 font-medium">ROW</span>
-                                <span className="font-semibold text-sky-950">{ticketInfo?.row || '1'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-sky-800 font-medium">SEAT</span>
-                                <span className="font-semibold text-sky-950">{ticketInfo?.seat || '1'}</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-3 border-t border-sky-100 pt-3">
-                            <div className="w-full h-10 border border-sky-200 rounded-lg bg-sky-50 flex items-center justify-center">
-                                <div className="text-[10px] font-mono text-sky-400 tracking-widest">
-                                    ||||| |||| ||||| ||||
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="absolute top-1/2 left-0 right-0 h-[2px] flex">
-                        {[...Array(32)].map((_, i) => (
+                    {/* Perforation */}
+                    <div className="absolute top-2/5 left-0 right-0 flex">
+                        {[...Array(40)].map((_, i) => (
                             <div 
                                 key={i} 
-                                className="w-2 h-[2px]" 
-                                style={{
-                                    backgroundColor: i % 2 === 0 ? '#e0f2fe' : '#fff'
-                                }}
+                                className="h-3 border-l border-dashed border-gray-300"
+                                style={{ width: '2.5%' }}
                             />
                         ))}
                     </div>
                 </div>
-
-                <p className="text-center text-sm text-sky-600 font-medium">
-                    Click ticket to {isZoomed ? 'shrink' : 'zoom'}
-                </p>
             </div>
         </div>
     );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, ticketRef }) {
@@ -51,73 +51,67 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                 </div>
 
                 <div>
-                    <Label htmlFor="eventName" className="text-sky-900">Event Name</Label>
+                    <Label htmlFor="eventName">Event Name</Label>
                     <Input
                         id="eventName"
                         name="eventName"
                         value={ticketInfo.eventName}
                         onChange={handleChange}
-                        className="mt-1 border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                         placeholder="Enter event name"
                     />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <Label htmlFor="date" className="text-sky-900">Date</Label>
+                        <Label htmlFor="date">Date</Label>
                         <Input
                             id="date"
                             name="date"
                             type="date"
                             value={ticketInfo.date}
                             onChange={handleChange}
-                            className="mt-1 border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                         />
                     </div>
                     <div>
-                        <Label htmlFor="time" className="text-sky-900">Time</Label>
+                        <Label htmlFor="time">Time</Label>
                         <Input
                             id="time"
                             name="time"
                             type="time"
                             value={ticketInfo.time}
                             onChange={handleChange}
-                            className="mt-1 border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                         />
                     </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                     <div>
-                        <Label htmlFor="section" className="text-sky-900">Section</Label>
+                        <Label htmlFor="section">Section</Label>
                         <Input
                             id="section"
                             name="section"
                             value={ticketInfo.section}
                             onChange={handleChange}
-                            className="mt-1 border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                             placeholder="Section"
                         />
                     </div>
                     <div>
-                        <Label htmlFor="row" className="text-sky-900">Row</Label>
+                        <Label htmlFor="row">Row</Label>
                         <Input
                             id="row"
                             name="row"
                             value={ticketInfo.row}
                             onChange={handleChange}
-                            className="mt-1 border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                             placeholder="Row"
                         />
                     </div>
                     <div>
-                        <Label htmlFor="seat" className="text-sky-900">Seat</Label>
+                        <Label htmlFor="seat">Seat</Label>
                         <Input
                             id="seat"
                             name="seat"
                             value={ticketInfo.seat}
                             onChange={handleChange}
-                            className="mt-1 border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                             placeholder="Seat"
                         />
                     </div>
@@ -125,8 +119,9 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                 
                 <Button 
                     onClick={generateTicket}
-                    className="w-full bg-orange-400 hover:bg-orange-500 text-white font-medium py-3 rounded-lg transition-colors"
+                    className="w-full bg-sky-900 hover:bg-sky-800 text-white"
                 >
+                    <Download className="mr-2 h-4 w-4" />
                     Download Ticket
                 </Button>
             </div>

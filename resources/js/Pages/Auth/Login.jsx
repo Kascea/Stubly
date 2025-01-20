@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
+import { Input } from "@/Components/ui/input";
 import InputError from '@/Components/InputError';
-import TextInput from '@/Components/TextInput';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -18,7 +18,6 @@ export default function Login({ status, canResetPassword }) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-sky-50 to-orange-50">
             <Head title="Log in" />
-            
             <div className="flex min-h-screen flex-col items-center pt-16 sm:pt-32">
                 <Link href="/">
                     <img src="/images/CustomTicketsLogo.png" alt="CustomTickets" className="h-12 w-auto mb-8" />
@@ -35,26 +34,25 @@ export default function Login({ status, canResetPassword }) {
 
                     <form onSubmit={submit} className="space-y-6">
                         <div>
-                            <TextInput
+                            <Input
                                 id="email"
                                 type="email"
                                 placeholder="Email address"
                                 value={data.email}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                className="w-full"
                                 autoComplete="username"
-                                isFocused={true}
                                 onChange={(e) => setData('email', e.target.value)}
                             />
                             <InputError message={errors.email} className="mt-2" />
                         </div>
 
                         <div>
-                            <TextInput
+                            <Input
                                 id="password"
                                 type="password"
                                 placeholder="Password"
                                 value={data.password}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                className="w-full"
                                 autoComplete="current-password"
                                 onChange={(e) => setData('password', e.target.value)}
                             />

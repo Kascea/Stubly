@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
+import { Input } from "@/Components/ui/input";
 import InputError from '@/Components/InputError';
-import TextInput from '@/Components/TextInput';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -30,25 +30,24 @@ export default function Register() {
 
                     <form onSubmit={submit} className="space-y-6">
                         <div>
-                            <TextInput
+                            <Input
                                 id="name"
                                 placeholder="Full name"
                                 value={data.name}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                className="w-full"
                                 autoComplete="name"
-                                isFocused={true}
                                 onChange={(e) => setData('name', e.target.value)}
                             />
                             <InputError message={errors.name} className="mt-2" />
                         </div>
 
                         <div>
-                            <TextInput
+                            <Input
                                 id="email"
                                 type="email"
                                 placeholder="Email address"
                                 value={data.email}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                className="w-full"
                                 autoComplete="username"
                                 onChange={(e) => setData('email', e.target.value)}
                             />
@@ -56,12 +55,12 @@ export default function Register() {
                         </div>
 
                         <div>
-                            <TextInput
+                            <Input
                                 id="password"
                                 type="password"
                                 placeholder="Password"
                                 value={data.password}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                className="w-full"
                                 autoComplete="new-password"
                                 onChange={(e) => setData('password', e.target.value)}
                             />
@@ -69,12 +68,12 @@ export default function Register() {
                         </div>
 
                         <div>
-                            <TextInput
+                            <Input
                                 id="password_confirmation"
                                 type="password"
                                 placeholder="Confirm password"
                                 value={data.password_confirmation}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                className="w-full"
                                 autoComplete="new-password"
                                 onChange={(e) => setData('password_confirmation', e.target.value)}
                             />
