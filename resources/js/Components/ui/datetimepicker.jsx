@@ -47,12 +47,13 @@ export function DateTimePicker({ onDateChange, onTimeChange }) {
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground"
+            "w-full justify-start text-left font-normal border border-slate-200 bg-white hover:bg-slate-50",
+            "focus-visible:ring-1 focus-visible:ring-orange-400 focus-visible:border-orange-400",
+            !date && "text-slate-500"
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "MM/dd/yyyy hh:mm aa") : <span>MM/DD/YYYY hh:mm aa</span>}
+          {date ? format(date, "MM/dd/yyyy hh:mm aa") : <span>Select date and time</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
@@ -63,7 +64,7 @@ export function DateTimePicker({ onDateChange, onTimeChange }) {
             onSelect={handleDateSelect}
             initialFocus
           />
-          <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x">
+          <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x border-l border-slate-200">
             <ScrollArea className="w-64 sm:w-auto">
               <div className="flex sm:flex-col p-2">
                 {hours.reverse().map((hour) => (
@@ -71,7 +72,10 @@ export function DateTimePicker({ onDateChange, onTimeChange }) {
                     key={hour}
                     size="icon"
                     variant={date && date.getHours() % 12 === hour % 12 ? "default" : "ghost"}
-                    className="sm:w-full shrink-0 aspect-square"
+                    className={cn(
+                      "sm:w-full shrink-0 aspect-square",
+                      date && date.getHours() % 12 === hour % 12 && "bg-sky-900 text-white hover:bg-sky-800"
+                    )}
                     onClick={() => handleTimeChange("hour", hour.toString())}
                   >
                     {hour}
@@ -87,10 +91,13 @@ export function DateTimePicker({ onDateChange, onTimeChange }) {
                     key={minute}
                     size="icon"
                     variant={date && date.getMinutes() === minute ? "default" : "ghost"}
-                    className="sm:w-full shrink-0 aspect-square"
+                    className={cn(
+                      "sm:w-full shrink-0 aspect-square",
+                      date && date.getMinutes() === minute && "bg-sky-900 text-white hover:bg-sky-800"
+                    )}
                     onClick={() => handleTimeChange("minute", minute.toString())}
                   >
-                    {minute}
+                    {minute.toString().padStart(2, '0')}
                   </Button>
                 ))}
               </div>
@@ -103,7 +110,10 @@ export function DateTimePicker({ onDateChange, onTimeChange }) {
                     key={ampm}
                     size="icon"
                     variant={date && ((ampm === "AM" && date.getHours() < 12) || (ampm === "PM" && date.getHours() >= 12)) ? "default" : "ghost"}
-                    className="sm:w-full shrink-0 aspect-square"
+                    className={cn(
+                      "sm:w-full shrink-0 aspect-square",
+                      date && ((ampm === "AM" && date.getHours() < 12) || (ampm === "PM" && date.getHours() >= 12)) && "bg-sky-900 text-white hover:bg-sky-800"
+                    )}
                     onClick={() => handleTimeChange("ampm", ampm)}
                   >
                     {ampm}
