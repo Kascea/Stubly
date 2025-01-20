@@ -11,15 +11,17 @@ use Laravel\Socialite\Facades\Socialite;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class GoogleController extends Controller
 {
   public function redirect()
   {
     $redirectUrl = Socialite::driver('google')
-      ->stateless()  // Add this line
+      ->stateless()
       ->redirect()
-      ->getTargetUrl();  // Add this line
+      ->getTargetUrl();
 
     return Inertia::location($redirectUrl);
   }
@@ -28,30 +30,31 @@ class GoogleController extends Controller
   {
     try {
       $googleUser = Socialite::driver('google')->stateless()->user();
-
       $user = User::where('email', $googleUser->email)->first();
 
       if (!$user) {
         $user = User::create([
           'name' => $googleUser->name,
           'email' => $googleUser->email,
-          'google_id' => $googleUser->id,
-          'password' => null,
+          'password' => Hash::make(Str::random(32)),
           'email_verified_at' => now(),
         ]);
 
         event(new Registered($user));
-      } else if (!$user->google_id) {
-        $user->google_id = $googleUser->id;
-        $user->save();
       }
 
-      Auth::login($user);
+      // Create or update social auth record
+      $user->socialAuth()->updateOrCreate(
+        [
+          'provider' => 'google',
+          'provider_id' => $googleUser->id,
+        ]
+      );
 
+      Auth::login($user);
       return Inertia::location(url: '/');
 
     } catch (Exception $e) {
-      // More detailed error logging
       Log::error('Google callback error details:', [
         'message' => $e->getMessage(),
         'code' => $e->getCode(),
@@ -60,7 +63,6 @@ class GoogleController extends Controller
         'trace' => $e->getTraceAsString()
       ]);
 
-      // You might also want to dump these details in development
       if (app()->environment('local')) {
         dd([
           'error_message' => $e->getMessage(),

@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@/Components/ui/alert";
 import InputError from '@/Components/InputError';
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
@@ -7,6 +8,24 @@ import { useForm } from '@inertiajs/react';
 import { useRef } from 'react';
 
 export default function UpdatePasswordForm({ className = '', hasPassword = false }) {
+    if (!hasPassword) {
+        return (
+            <section className={className}>
+                <header>
+                    <h2 className="text-lg font-medium text-gray-900">Password</h2>
+                </header>
+
+                <div className="mt-6">
+                    <Alert>
+                        <AlertDescription>
+                            You're signed in with Google. To manage your login credentials, please visit your Google Account settings.
+                        </AlertDescription>
+                    </Alert>
+                </div>
+            </section>
+        );
+    }
+
     const passwordInput = useRef();
     const currentPasswordInput = useRef();
 

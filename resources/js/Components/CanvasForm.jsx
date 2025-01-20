@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
@@ -7,9 +7,12 @@ import { ArrowDown, Download, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, ticketRef }) {
+    const [filename, setFilename] = useState('');
+
     const handleImageUpload = (e) => {
         const file = e.target.files?.[0];
         if (file) {
+            setFilename(file.name);
             const reader = new FileReader();
             reader.onloadend = () => onImageUpload(reader.result);
             reader.readAsDataURL(file);
@@ -60,6 +63,9 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                                     <Check className="h-5 w-5 text-sky-600" />
                                 </div>
                                 <span className="text-sm text-sky-700">Image uploaded</span>
+                                <span className="text-xs text-sky-600 mt-1 truncate max-w-[200px]">
+                                    {filename}
+                                </span>
                                 <span className="text-xs text-sky-500 mt-1">Click to change</span>
                             </div>
                         ) : (
@@ -139,7 +145,7 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                     className="w-full bg-sky-900 hover:bg-sky-800 text-white"
                 >
                     <Download className="mr-2 h-4 w-4" />
-                    Download Ticket
+                    Generate Ticket
                 </Button>
             </div>
         </div>

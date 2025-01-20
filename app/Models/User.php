@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\SocialAuth;
 
 class User extends Authenticatable
 {
@@ -21,7 +22,6 @@ class User extends Authenticatable
     'name',
     'email',
     'password',
-    'google_id',
   ];
 
   /**
@@ -45,5 +45,20 @@ class User extends Authenticatable
       'email_verified_at' => 'datetime',
       'password' => 'hashed',
     ];
+  }
+
+  // Relationship to social authentications
+  public function socialAuth()
+  {
+    return $this->hasMany(SocialAuth::class);
+
+  }
+
+  // Helper method to check if user has a real password set
+  public function hasRealPassword(): bool
+  {
+    // You could store a flag in the database, or use a specific pattern
+    // in the hashed password to identify auto-generated ones
+    return !$this->socialAuth()->exists();
   }
 }

@@ -25,7 +25,7 @@ class ProfileController extends Controller
       'status' => session('status'),
       'auth' => [
         'user' => array_merge($user->toArray(), [
-          'has_password' => !empty($user->password),
+          'has_password' => $user->hasRealPassword(),
         ]),
       ],
     ]);
