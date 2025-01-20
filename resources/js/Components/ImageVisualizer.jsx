@@ -1,109 +1,97 @@
-import React, { useRef, forwardRef, useState } from 'react';
+import React, { useState } from 'react';
+import { forwardRef } from 'react';
 
 const ImageVisualizer = forwardRef(({ backgroundImage, ticketInfo }, ref) => {
     const [isZoomed, setIsZoomed] = useState(false);
 
-    const toggleZoom = () => {
-        setIsZoomed(!isZoomed);
-    };
-
     return (
-        <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
-            <div className="space-y-6">
-                {/* Ticket Preview Container */}
+        <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-8">
+            <div className="space-y-6 relative">
+                <div className="lg:hidden absolute top-0 left-0 right-0 text-center bg-sky-900/90 text-white py-2 rounded-lg backdrop-blur-sm text-sm">
+                    Scroll down to customize your ticket
+                </div>
                 <div 
                     ref={ref}
-                    onClick={toggleZoom}
-                    className={`relative mx-auto rounded-lg overflow-hidden shadow-lg border border-gray-700 transition-all duration-300 cursor-pointer w-96
-                        ${isZoomed ? 'scale-150 translate-y-20' : ''}`}
-                    style={{
-                        aspectRatio: '9/16',
-                    }}
+                    onClick={() => setIsZoomed(!isZoomed)}
+                    className={`relative mx-auto rounded-xl overflow-hidden shadow-2xl transition-all duration-300 cursor-pointer w-96
+                        ${isZoomed ? 'scale-150 translate-y-20' : 'hover:shadow-sky-200/50'}`}
+                    style={{ aspectRatio: '9/16' }}
                 >
-                    {/* Image Section (Upper Half) */}
                     <div 
                         className="h-1/2 relative"
                         style={{
                             background: backgroundImage 
                                 ? `url(${backgroundImage}) center/cover no-repeat`
-                                : 'linear-gradient(to bottom, #3b82f6, #8b5cf6)'
+                                : 'linear-gradient(to br, #0c4a6e, #0369a1)'
                         }}
                     >
-                        {/* Overlay for better text readability */}
-                        <div className="absolute inset-0 bg-black/20" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-sky-900/20 to-sky-900/60" />
                         
-                        {/* Event name overlay on image */}
-                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70">
-                            <h1 className="text-white text-lg font-bold tracking-wide text-center">
+                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-sky-900/90">
+                            <h1 className="text-white text-xl font-bold tracking-wide text-center">
                                 {ticketInfo?.eventName || 'EVENT NAME'}
                             </h1>
                         </div>
                     </div>
 
-                    {/* Ticket Info Section (Lower Half) */}
-                    <div className="h-1/2 bg-white p-3 flex flex-col justify-between">
-                        {/* Date and Time */}
-                        <div className="space-y-2 border-b border-gray-200 pb-2">
-                            <div className="flex justify-between text-xs">
+                    <div className="h-1/2 bg-white p-4 flex flex-col justify-between">
+                        <div className="space-y-3 border-b border-sky-100 pb-3">
+                            <div className="flex justify-between text-sm">
                                 <div>
-                                    <p className="text-gray-500">DATE</p>
-                                    <p className="font-semibold">
+                                    <p className="text-sky-800 font-medium">DATE</p>
+                                    <p className="font-semibold text-sky-950">
                                         {ticketInfo?.date 
                                             ? new Date(ticketInfo.date).toLocaleDateString()
                                             : 'TBD'}
                                     </p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-gray-500">TIME</p>
-                                    <p className="font-semibold">
+                                    <p className="text-sky-800 font-medium">TIME</p>
+                                    <p className="font-semibold text-sky-950">
                                         {ticketInfo?.time || 'TBD'}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Seat Info */}
-                        <div className="space-y-1 text-xs">
+                        <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-gray-500">SECTION</span>
-                                <span className="font-semibold">{ticketInfo?.section || 'A'}</span>
+                                <span className="text-sky-800 font-medium">SECTION</span>
+                                <span className="font-semibold text-sky-950">{ticketInfo?.section || 'A'}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">ROW</span>
-                                <span className="font-semibold">{ticketInfo?.row || '1'}</span>
+                                <span className="text-sky-800 font-medium">ROW</span>
+                                <span className="font-semibold text-sky-950">{ticketInfo?.row || '1'}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">SEAT</span>
-                                <span className="font-semibold">{ticketInfo?.seat || '1'}</span>
+                                <span className="text-sky-800 font-medium">SEAT</span>
+                                <span className="font-semibold text-sky-950">{ticketInfo?.seat || '1'}</span>
                             </div>
                         </div>
 
-                        {/* Barcode Section */}
-                        <div className="mt-2 border-t border-gray-200 pt-2">
-                            <div className="w-full h-8 border border-gray-300 rounded flex items-center justify-center">
-                                <div className="text-[8px] font-mono text-gray-400">
+                        <div className="mt-3 border-t border-sky-100 pt-3">
+                            <div className="w-full h-10 border border-sky-200 rounded-lg bg-sky-50 flex items-center justify-center">
+                                <div className="text-[10px] font-mono text-sky-400 tracking-widest">
                                     ||||| |||| ||||| ||||
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Perforation Line */}
-                    <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-gray-300 flex">
+                    <div className="absolute top-1/2 left-0 right-0 h-[2px] flex">
                         {[...Array(32)].map((_, i) => (
                             <div 
                                 key={i} 
-                                className="w-2 h-[1px]" 
+                                className="w-2 h-[2px]" 
                                 style={{
-                                    backgroundColor: i % 2 === 0 ? '#e5e7eb' : 'white'
+                                    backgroundColor: i % 2 === 0 ? '#e0f2fe' : '#fff'
                                 }}
                             />
                         ))}
                     </div>
                 </div>
 
-                {/* Zoom instruction */}
-                <p className="text-center text-sm text-gray-500">
+                <p className="text-center text-sm text-sky-600 font-medium">
                     Click ticket to {isZoomed ? 'shrink' : 'zoom'}
                 </p>
             </div>

@@ -6,34 +6,35 @@ import ImageVisualizer from '@/Components/ImageVisualizer';
 
 export default function Canvas() {
     const [ticketInfo, setTicketInfo] = useState({
-        eventName: 'Event Name',
-        date: '2025-07-15',
-        time: '20:00',
-        section: 'A',
-        row: '12',
-        seat: '45'
+        eventName: '',
+        date: '',
+        time: '',
+        section: '',
+        row: '',
+        seat: ''
     });
     const [image, setImage] = useState(null);
     const ticketRef = useRef(null);
 
     return (
         <AuthenticatedLayout>
-            <Head title="Canvas" />
+            <Head title="Design Your Ticket" />
 
-            <div className="flex h-screen">
-                <div className="w-1/3 border-r border-sky-200 p-8 bg-white">
+            <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-sky-50 to-orange-50">
+                <div className="lg:w-2/3 p-4 lg:p-8 order-1 lg:order-2">
+                    <ImageVisualizer 
+                        ref={ticketRef}
+                        backgroundImage={image}
+                        ticketInfo={ticketInfo}
+                    />
+                </div>
+                <div className="lg:w-1/3 border-t lg:border-t-0 lg:border-l border-sky-200 p-4 lg:p-8 bg-white/80 backdrop-blur-sm shadow-lg order-2 lg:order-1">
+                    <h2 className="text-2xl font-bold text-sky-900 mb-6">Customize Your Ticket</h2>
                     <CanvasForm 
                         onImageUpload={setImage}
                         ticketInfo={ticketInfo}
                         setTicketInfo={setTicketInfo}
                         ticketRef={ticketRef}
-                    />
-                </div>
-                <div className="w-2/3 p-8 bg-gradient-to-b from-sky-100 to-orange-100">
-                    <ImageVisualizer 
-                        ref={ticketRef}
-                        backgroundImage={image}
-                        ticketInfo={ticketInfo}
                     />
                 </div>
             </div>
