@@ -7,13 +7,10 @@ export default function AuthenticatedLayout({ header, children }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const navLinks = [
-        { href: route('canvas'), text: 'Canvas' },
-        { href: '#templates', text: 'Templates' },
-        { href: '#examples', text: 'Examples' },
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-sky-100 to-orange-100">
+        <div className="min-h-screen bg-gradient-to-b from-sky-50 to-orange-50">
             <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">

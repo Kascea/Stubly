@@ -20,6 +20,7 @@ const ImageVisualizer = forwardRef(({ backgroundImage, ticketInfo }, ref) => {
                     className="relative mx-auto rounded-lg overflow-hidden bg-white shadow-lg w-96 border border-gray-200"
                     style={{ aspectRatio: '2/3' }}
                 >
+
                     {/* Event Image Section */}
                     <div 
                         className="h-2/5 relative"

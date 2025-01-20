@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
-import { ArrowDown, Download } from 'lucide-react';
+import { ArrowDown, Download, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, ticketRef }) {
@@ -44,9 +44,25 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                         onChange={handleImageUpload}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
-                    <div className="bg-sky-50 border-2 border-dashed border-sky-200 rounded-lg p-6 text-center hover:border-sky-300 transition-colors">
-                        <ArrowDown className="mx-auto h-8 w-8 text-sky-500 mb-2" />
-                        <span className="text-sm text-sky-700">Upload Background Image</span>
+                    <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        ticketInfo.backgroundImage 
+                            ? 'bg-sky-50/50 border-sky-300' 
+                            : 'bg-sky-50 border-sky-200 hover:border-sky-300'
+                    }`}>
+                        {ticketInfo.backgroundImage ? (
+                            <div className="flex flex-col items-center">
+                                <div className="h-8 w-8 rounded-full bg-sky-100 flex items-center justify-center mb-2">
+                                    <Check className="h-5 w-5 text-sky-600" />
+                                </div>
+                                <span className="text-sm text-sky-700">Image uploaded</span>
+                                <span className="text-xs text-sky-500 mt-1">Click to change</span>
+                            </div>
+                        ) : (
+                            <>
+                                <ArrowDown className="mx-auto h-8 w-8 text-sky-500 mb-2" />
+                                <span className="text-sm text-sky-700">Upload Background Image</span>
+                            </>
+                        )}
                     </div>
                 </div>
 

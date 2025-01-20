@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {
     return (
-        <div className="flex min-h-screen flex-col items-center bg-gradient-to-b from-sky-100 to-orange-100 pt-6 sm:justify-center sm:pt-0">
+        <div className="flex min-h-screen flex-col items-center bg-gradient-to-b from-sky-50 to-orange-50 pt-6 sm:justify-center sm:pt-0">
             <div>
                 <Link href="/" className="flex items-center">
                   <img

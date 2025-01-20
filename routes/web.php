@@ -5,10 +5,6 @@ use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Public routes (if any)
-Route::get('/about', function () {
-  return Inertia::render('About');
-})->name('about');
 
 // Routes that require authentication
 Route::middleware(['auth', 'verified'])->group(function () {

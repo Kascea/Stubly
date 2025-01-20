@@ -2,6 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
 import { Input } from "@/Components/ui/input";
 import InputError from '@/Components/InputError';
+import { Button } from "@/Components/ui/button";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -80,13 +81,14 @@ export default function Register() {
                             <InputError message={errors.password_confirmation} className="mt-2" />
                         </div>
 
-                        <button
-                            className="w-full bg-sky-900 text-white px-4 py-3 rounded-lg font-medium hover:bg-sky-800 transition-colors flex items-center justify-center group"
+                        <Button 
+                            variant="primary-stretch"
+                            size="xl"
                             disabled={processing}
                         >
                             Create Account
                             <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        </Button>
                     </form>
 
                     <div className="mt-6">
