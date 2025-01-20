@@ -83,6 +83,17 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                 </div>
 
                 <div>
+                  <Label>Event Location</Label>
+                  <Input
+                    id="eventLocation"
+                    name="eventLocation"
+                    value={ticketInfo.eventLocation || ''}
+                    onChange={handleChange}
+                    placeholder="Enter event location"
+                  />
+                </div>
+
+                <div>
                     <Label>Date and Time</Label>
                     <DateTimePicker 
                         onDateChange={(value) => handleDateTimeChange('date', value)}

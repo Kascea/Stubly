@@ -7,6 +7,7 @@ import ImageVisualizer from '@/Components/ImageVisualizer';
 export default function Canvas() {
     const [ticketInfo, setTicketInfo] = useState({
         eventName: '',
+        eventLocation: '',
         date: '',
         time: '',
         section: '',

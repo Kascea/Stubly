@@ -40,6 +40,11 @@ const ImageVisualizer = forwardRef(({ backgroundImage, ticketInfo }, ref) => {
                             {ticketInfo?.eventName || 'EVENT NAME'}
                         </h1>
 
+                        {/* Event Location */}
+                        <h1 className="text-2xl font-bold text-center text-gray-900">
+                            {ticketInfo?.eventLocation || 'EVENT LOCATION'}
+                        </h1>
+
                         {/* Date & Time */}
                         <div className="flex justify-center space-x-8 text-center">
                             <div>
