@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
+import { DateTimePicker } from "@/Components/ui/datetimepicker";
 import { ArrowDown, Download, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
@@ -17,6 +18,10 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        setTicketInfo(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleDateTimeChange = (name, value) => {
         setTicketInfo(prev => ({ ...prev, [name]: value }));
     };
 
@@ -71,33 +76,18 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                     <Input
                         id="eventName"
                         name="eventName"
-                        value={ticketInfo.eventName}
+                        value={ticketInfo.eventName || ''}
                         onChange={handleChange}
                         placeholder="Enter event name"
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label htmlFor="date">Date</Label>
-                        <Input
-                            id="date"
-                            name="date"
-                            type="date"
-                            value={ticketInfo.date}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="time">Time</Label>
-                        <Input
-                            id="time"
-                            name="time"
-                            type="time"
-                            value={ticketInfo.time}
-                            onChange={handleChange}
-                        />
-                    </div>
+                <div>
+                    <Label>Date and Time</Label>
+                    <DateTimePicker 
+                        onDateChange={(value) => handleDateTimeChange('date', value)}
+                        onTimeChange={(value) => handleDateTimeChange('time', value)}
+                    />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
@@ -106,7 +96,7 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                         <Input
                             id="section"
                             name="section"
-                            value={ticketInfo.section}
+                            value={ticketInfo.section || ''}
                             onChange={handleChange}
                             placeholder="Section"
                         />
@@ -116,7 +106,7 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                         <Input
                             id="row"
                             name="row"
-                            value={ticketInfo.row}
+                            value={ticketInfo.row || ''}
                             onChange={handleChange}
                             placeholder="Row"
                         />
@@ -126,7 +116,7 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                         <Input
                             id="seat"
                             name="seat"
-                            value={ticketInfo.seat}
+                            value={ticketInfo.seat || ''}
                             onChange={handleChange}
                             placeholder="Seat"
                         />

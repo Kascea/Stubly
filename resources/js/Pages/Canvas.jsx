@@ -6,12 +6,12 @@ import ImageVisualizer from '@/Components/ImageVisualizer';
 
 export default function Canvas() {
     const [ticketInfo, setTicketInfo] = useState({
-        eventName: 'Event Name',
-        date: '2025-07-15',
-        time: '20:00',
-        section: 'A',
-        row: '12',
-        seat: '45',
+        eventName: '',
+        date: '',
+        time: '',
+        section: '',
+        row: '',
+        seat: '',
         backgroundImage: null
     });
     const [image, setImage] = useState(null);
