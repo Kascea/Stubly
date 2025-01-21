@@ -23,7 +23,8 @@ class TicketController extends Controller
         'row' => 'nullable|string',
         'seat' => 'nullable|string',
         'backgroundImage' => 'nullable|string',
-        'generatedTicket' => 'required|string'
+        'generatedTicket' => 'required|string',
+        'filename' => 'nullable|string'
       ]);
 
       // Convert base64 to file and store
@@ -49,6 +50,7 @@ class TicketController extends Controller
         'row' => $request->row,
         'seat' => $request->seat,
         'background_image' => $request->backgroundImage,
+        'background_filename' => $request->filename,
         'generated_ticket_path' => $imageName
       ];
 
@@ -97,7 +99,12 @@ class TicketController extends Controller
 
   public function index()
   {
-    $tickets = auth()->user()->tickets()->latest()->get();
+    $tickets = auth()->user()->tickets()->latest()
+      ->get()
+      ->map(function ($ticket) {
+        $ticket->generated_ticket_path = Storage::url($ticket->generated_ticket_path);
+        return $ticket;
+      });
 
     return inertia('Tickets/Index', [
       'tickets' => $tickets

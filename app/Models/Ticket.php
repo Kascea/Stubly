@@ -10,7 +10,6 @@ class Ticket extends Model
   use HasFactory;
 
   protected $fillable = [
-    'ticket_id',
     'user_id',
     'event_name',
     'event_location',
@@ -19,6 +18,7 @@ class Ticket extends Model
     'row',
     'seat',
     'background_image',
+    'background_filename',
     'generated_ticket_path'
   ];
 

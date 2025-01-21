@@ -1,23 +1,32 @@
-import * as React from "react";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import React, { useState, useEffect } from 'react';
 import { format } from "date-fns";
-
+import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/Components/ui/button";
+import { Calendar } from "@/Components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+} from "@/Components/ui/popover";
+import { ScrollArea, ScrollBar } from "@/Components/ui/scroll-area";
 
-export function DateTimePicker({ onDateChange, onTimeChange }) {
-  const [date, setDate] = React.useState(null);
-  const [isOpen, setIsOpen] = React.useState(false);
+export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null, initialTime = null }) {
+  const [date, setDate] = useState(initialDate);
+  const [isOpen, setIsOpen] = useState(false);
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   
+  useEffect(() => {
+    if (initialDate) {
+      setDate(initialDate);
+      onDateChange(initialDate);
+    }
+    if (initialTime) {
+      onTimeChange(initialTime);
+    }
+  }, [initialDate, initialTime]);
+
   const handleDateSelect = (selectedDate) => {
     if (selectedDate) {
       setDate(selectedDate);
@@ -34,10 +43,12 @@ export function DateTimePicker({ onDateChange, onTimeChange }) {
         newDate.setMinutes(parseInt(value));
       } else if (type === "ampm") {
         const currentHours = newDate.getHours();
-        newDate.setHours(value === "PM" ? currentHours + 12 : currentHours - 12);
+        const is24Hour = value === "PM" ? currentHours < 12 : currentHours >= 12;
+        if (is24Hour) {
+          newDate.setHours((currentHours + 12) % 24);
+        }
       }
-      setDate(newDate);
-      onTimeChange(format(newDate, 'HH:mm'));
+      onTimeChange(newDate);
     }
   };
 

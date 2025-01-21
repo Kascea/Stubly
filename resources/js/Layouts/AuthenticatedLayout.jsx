@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import Dropdown from '@/Components/Dropdown';
+import { TicketIcon, UserIcon, LogOutIcon } from 'lucide-react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
@@ -63,17 +64,26 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Dropdown.Trigger>
 
                                     <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
+                                      <Dropdown.Link href={route('profile.edit')} className="flex items-center space-x-2">
+                                          <UserIcon className="h-4 w-4" />
+                                          <span>Profile</span>
+                                      </Dropdown.Link>
+
+                                      <Dropdown.Link href={route('tickets.index')} className="flex items-center space-x-2">
+                                          <TicketIcon className="h-4 w-4" />
+                                          <span>History</span>
+                                      </Dropdown.Link>
+
+                                      <Dropdown.Link
+                                          href={route('logout')}
+                                          method="post"
+                                          as="button"
+                                          className="flex items-center space-x-2 w-full"
+                                      >
+                                          <LogOutIcon className="h-4 w-4" />
+                                          <span>Log Out</span>
+                                      </Dropdown.Link>
+                                  </Dropdown.Content>
                                 </Dropdown>
                             </div>
                         </div>
@@ -138,6 +148,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         Profile
                                     </Link>
+                                                                        <Link
+                                        href={route('tickets.index')}
+                                        className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-sky-900 hover:bg-gray-100"
+                                    >
+                                        <TicketIcon className="mr-2 h-4 w-4" />
+                                        <span>Ticket History</span>
+                                    </Link>
                                     <Link
                                         href={route('logout')}
                                         method="post"
@@ -146,6 +163,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         Log Out
                                     </Link>
+
                                 </div>
                             </div>
                         </div>

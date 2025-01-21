@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
@@ -9,17 +9,30 @@ import html2canvas from 'html2canvas';
 import axios from 'axios';
 
 export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, ticketRef }) {
-    const [filename, setFilename] = useState('');
+    const [filename, setFilename] = useState(ticketInfo.filename || '');
     const [isGenerating, setIsGenerating] = useState(false);
     const [status, setStatus] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
+
+    useEffect(() => {
+        if (ticketInfo.filename) {
+            setFilename(ticketInfo.filename);
+        }
+    }, [ticketInfo.filename]);
 
     const handleImageUpload = (e) => {
         const file = e.target.files?.[0];
         if (file) {
             setFilename(file.name);
             const reader = new FileReader();
-            reader.onloadend = () => onImageUpload(reader.result);
+            reader.onloadend = () => {
+                onImageUpload(reader.result);
+                setTicketInfo(prev => ({
+                    ...prev,
+                    backgroundImage: reader.result,
+                    filename: file.name
+                }));
+            };
             reader.readAsDataURL(file);
         }
     };
@@ -111,9 +124,11 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                                     <Check className="h-5 w-5 text-sky-600" />
                                 </div>
                                 <span className="text-sm text-sky-700">Image uploaded</span>
-                                <span className="text-xs text-sky-600 mt-1 truncate max-w-[200px]">
-                                    {filename}
-                                </span>
+                                {ticketInfo.filename && (
+                                    <span className="text-xs text-sky-600 mt-1 truncate max-w-[200px]">
+                                        {ticketInfo.filename}
+                                    </span>
+                                )}
                                 <span className="text-xs text-sky-500 mt-1">Click to change</span>
                             </div>
                         ) : (
@@ -150,6 +165,8 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                 <div>
                     <Label>Date and Time</Label>
                     <DateTimePicker 
+                        initialDate={ticketInfo.date}
+                        initialTime={ticketInfo.time}
                         onDateChange={(value) => handleDateTimeChange('date', value)}
                         onTimeChange={(value) => handleDateTimeChange('time', value)}
                     />

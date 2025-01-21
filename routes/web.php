@@ -4,13 +4,23 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Ticket;
+use Illuminate\Http\Request;
 
 
 // Routes that require authentication
 Route::middleware(['auth', 'verified'])->group(function () {
   // Main canvas page
-  Route::get('/', function () {
-    return Inertia::render('Canvas');
+  Route::get('/', function (Request $request) {
+    $ticket = null;
+    if ($request->has('ticket')) {
+      $ticket = Ticket::where('ticket_id', $request->ticket)
+        ->where('user_id', auth()->id())
+        ->first();
+    }
+    return Inertia::render('Canvas', [
+      'ticket' => $ticket
+    ]);
   })->name('canvas');
 
   // Ticket routes with additional middleware for ownership verification
