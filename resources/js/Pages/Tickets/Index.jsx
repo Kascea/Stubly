@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Link } from '@inertiajs/react';
 import { Card, CardContent } from "@/Components/ui/card";
-import { CalendarIcon, MapPinIcon, TicketIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, TicketIcon, PlusCircle } from 'lucide-react';
 
 export default function Index({ tickets }) {
     return (
@@ -61,9 +61,19 @@ export default function Index({ tickets }) {
                                 </Card>
                             </Link>
                         ))}
+
+                        <Link 
+                            href={route('canvas')}
+                            className="flex items-center justify-center h-full border-2 border-dashed border-sky-200 rounded-lg transition-all hover:border-orange-400 group"
+                        >
+                            <div className="flex flex-col items-center text-sky-600 group-hover:text-orange-500">
+                                <PlusCircle className="h-12 w-12 mb-2" />
+                                <span className="text-lg font-semibold">Create New Ticket</span>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>
         </AuthenticatedLayout>
     );
-} 
+}
