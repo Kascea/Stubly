@@ -34,4 +34,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
   });
 });
 
+Route::middleware(['auth'])->group(function () {
+  Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
+  Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+});
+
 require __DIR__ . '/auth.php';

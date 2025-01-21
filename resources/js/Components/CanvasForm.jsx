@@ -3,11 +3,16 @@ import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
 import { DateTimePicker } from "@/Components/ui/datetimepicker";
-import { ArrowDown, Download, Check } from 'lucide-react';
+import { ArrowDown, Download, Check, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from "@/Components/ui/alert";
 import html2canvas from 'html2canvas';
+import axios from 'axios';
 
 export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, ticketRef }) {
     const [filename, setFilename] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [status, setStatus] = useState(null);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const handleImageUpload = (e) => {
         const file = e.target.files?.[0];
@@ -30,14 +35,57 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
 
     const generateTicket = async () => {
         if (ticketRef.current) {
-            const canvas = await html2canvas(ticketRef.current, {
-                scale: 2,
-                backgroundColor: null
-            });
-            const link = document.createElement('a');
-            link.download = 'custom-ticket.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            setIsGenerating(true);
+            setStatus(null);
+            setErrorMessage('');
+            
+            try {
+                const canvas = await html2canvas(ticketRef.current, {
+                    scale: 2,
+                    backgroundColor: null
+                });
+                
+                const ticketData = {
+                    ticketId: ticketInfo.ticketId,
+                    eventName: ticketInfo.eventName,
+                    eventLocation: ticketInfo.eventLocation,
+                    date: ticketInfo.date,
+                    time: ticketInfo.time,
+                    section: ticketInfo.section,
+                    row: ticketInfo.row,
+                    seat: ticketInfo.seat,
+                    backgroundImage: ticketInfo.backgroundImage,
+                    generatedTicket: canvas.toDataURL('image/png')
+                };
+
+                const response = await axios.post(route('tickets.store'), ticketData);
+                
+                // Update ticketInfo with the new ticket_id if it was a creation
+                if (!ticketInfo.ticketId) {
+                    setTicketInfo(prev => ({
+                        ...prev,
+                        ticketId: response.data.ticket.ticket_id
+                    }));
+                }
+
+                // Download the ticket
+                const link = document.createElement('a');
+                link.download = 'custom-ticket.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                setStatus('success');
+            } catch (error) {
+                console.error('Failed to save ticket:', error);
+                setStatus('error');
+                setErrorMessage(error.response?.data?.message || error.response?.data?.error || 'Failed to save ticket');
+            } finally {
+                setIsGenerating(false);
+                setTimeout(() => {
+                    setStatus(null);
+                    setErrorMessage('');
+                }, 3000);
+            }
         }
     };
 
@@ -140,12 +188,38 @@ export default function CanvasForm({ onImageUpload, ticketInfo, setTicketInfo, t
                     </div>
                 </div>
                 
+                {status === 'success' && (
+                    <Alert variant="success">
+                        <AlertDescription variant="success">
+                            Ticket saved successfully!
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {status === 'error' && (
+                    <Alert variant="error">
+                        <AlertDescription variant="error">
+                            {errorMessage}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                
                 <Button 
                     onClick={generateTicket}
+                    disabled={isGenerating}
                     className="w-full bg-sky-900 hover:bg-sky-800 text-white"
                 >
-                    <Download className="mr-2 h-4 w-4" />
-                    Generate Ticket
+                    {isGenerating ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Generating...
+                        </>
+                    ) : (
+                        <>
+                            <Download className="mr-2 h-4 w-4" />
+                            Generate Ticket
+                        </>
+                    )}
                 </Button>
             </div>
         </div>

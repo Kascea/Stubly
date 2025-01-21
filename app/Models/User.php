@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\SocialAuth;
+use App\Models\Ticket;
 
 class User extends Authenticatable
 {
@@ -60,5 +61,11 @@ class User extends Authenticatable
     // You could store a flag in the database, or use a specific pattern
     // in the hashed password to identify auto-generated ones
     return !$this->socialAuth()->exists();
+  }
+
+  // Add this method to the User model
+  public function tickets()
+  {
+    return $this->hasMany(Ticket::class);
   }
 }
