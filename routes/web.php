@@ -7,8 +7,6 @@ use Inertia\Inertia;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 
-
-// Routes that require authentication
 Route::middleware(['auth', 'verified'])->group(function () {
   // Main canvas page
   Route::get('/', function (Request $request) {
@@ -23,12 +21,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ]);
   })->name('canvas');
 
-  // Ticket routes with additional middleware for ownership verification
+  // Ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
-    // Creating a new ticket only needs auth
+    Route::get('/', [TicketController::class, 'index'])->name('index');
     Route::post('/', [TicketController::class, 'store'])->name('store');
+    Route::delete('/{ticket:ticket_id}', [TicketController::class, 'destroy'])->name('destroy');
 
-    // These routes need both auth and ticket ownership verification
+    // Routes that need ticket ownership verification
     Route::middleware('verify.ticket.owner')->group(function () {
       Route::get('/{ticket}/download', [TicketController::class, 'download'])->name('download');
       Route::get('/{ticket}/success', [TicketController::class, 'success'])->name('success');
@@ -42,11 +41,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/', [ProfileController::class, 'update'])->name('update');
     Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
   });
-});
-
-Route::middleware(['auth'])->group(function () {
-  Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
-  Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
 });
 
 require __DIR__ . '/auth.php';

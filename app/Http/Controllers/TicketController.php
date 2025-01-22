@@ -7,9 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use DateTime;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // Add this
+
 
 class TicketController extends Controller
 {
+  use AuthorizesRequests; // Add this trait
+
   public function store(Request $request)
   {
     try {
@@ -109,5 +114,27 @@ class TicketController extends Controller
     return inertia('Tickets/Index', [
       'tickets' => $tickets
     ]);
+  }
+
+  public function destroy(Ticket $ticket)
+  {
+    try {
+      if (auth()->id() !== $ticket->user_id) {
+        abort(403, 'Unauthorized action.');
+      }
+
+      // Delete the ticket image from storage
+      if ($ticket->generated_ticket_path) {
+        Storage::disk('public')->delete($ticket->generated_ticket_path);
+      }
+
+      $ticket->delete();
+
+      return redirect()->route('tickets.index')
+        ->with('success', 'Ticket deleted successfully.');
+    } catch (\Exception $e) {
+      return redirect()->route('tickets.index')
+        ->with('error', 'Failed to delete ticket.');
+    }
   }
 }
