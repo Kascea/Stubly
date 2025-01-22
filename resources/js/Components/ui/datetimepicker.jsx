@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,44 +12,69 @@ import {
 import { ScrollArea, ScrollBar } from "@/Components/ui/scroll-area";
 
 export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null, initialTime = null }) {
-  const [date, setDate] = useState(initialDate);
+  // We'll manage both date and time in the component's state
+  const [selectedDateTime, setSelectedDateTime] = useState(initialDate || initialTime || null);
   const [isOpen, setIsOpen] = useState(false);
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
-  
-  useEffect(() => {
-    if (initialDate) {
-      setDate(initialDate);
-      onDateChange(initialDate);
-    }
-    if (initialTime) {
-      onTimeChange(initialTime);
-    }
-  }, [initialDate, initialTime]);
 
   const handleDateSelect = (selectedDate) => {
     if (selectedDate) {
-      setDate(selectedDate);
-      onDateChange(selectedDate);
+      // Preserve the existing time when setting a new date
+      const newDateTime = new Date(selectedDate);
+      if (selectedDateTime) {
+        newDateTime.setHours(selectedDateTime.getHours());
+        newDateTime.setMinutes(selectedDateTime.getMinutes());
+      }
+      setSelectedDateTime(newDateTime);
+      onDateChange(newDateTime);
+      onTimeChange(newDateTime);
     }
   };
 
   const handleTimeChange = (type, value) => {
-    if (date) {
-      const newDate = new Date(date);
-      if (type === "hour") {
-        newDate.setHours((parseInt(value) % 12) + (newDate.getHours() >= 12 ? 12 : 0));
-      } else if (type === "minute") {
-        newDate.setMinutes(parseInt(value));
-      } else if (type === "ampm") {
-        const currentHours = newDate.getHours();
-        const is24Hour = value === "PM" ? currentHours < 12 : currentHours >= 12;
-        if (is24Hour) {
-          newDate.setHours((currentHours + 12) % 24);
-        }
+    if (selectedDateTime) {
+      const newDateTime = new Date(selectedDateTime);
+      
+      switch (type) {
+        case "hour":
+          // Preserve AM/PM when setting hours
+          const currentPeriod = newDateTime.getHours() >= 12 ? 12 : 0;
+          newDateTime.setHours((parseInt(value) % 12) + currentPeriod);
+          break;
+        case "minute":
+          newDateTime.setMinutes(parseInt(value));
+          break;
+        case "ampm":
+          const currentHours = newDateTime.getHours();
+          const shouldBePM = value === "PM";
+          const isPM = currentHours >= 12;
+          
+          if (shouldBePM !== isPM) {
+            newDateTime.setHours((currentHours + 12) % 24);
+          }
+          break;
       }
-      onTimeChange(newDate);
+      
+      setSelectedDateTime(newDateTime);
+      onTimeChange(newDateTime);
     }
+  };
+
+  // Helper functions to check selected states
+  const isHourSelected = (hour) => {
+    if (!selectedDateTime) return false;
+    return selectedDateTime.getHours() % 12 === hour % 12;
+  };
+
+  const isMinuteSelected = (minute) => {
+    if (!selectedDateTime) return false;
+    return selectedDateTime.getMinutes() === minute;
+  };
+
+  const isPeriodSelected = (period) => {
+    if (!selectedDateTime) return false;
+    return period === "AM" ? selectedDateTime.getHours() < 12 : selectedDateTime.getHours() >= 12;
   };
 
   return (
@@ -60,18 +85,18 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
           className={cn(
             "w-full justify-start text-left font-normal border border-slate-200 bg-white hover:bg-slate-50",
             "focus-visible:ring-1 focus-visible:ring-orange-400 focus-visible:border-orange-400",
-            !date && "text-slate-500"
+            !selectedDateTime && "text-slate-500"
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "MM/dd/yyyy hh:mm aa") : <span>Select date and time</span>}
+          {selectedDateTime ? format(selectedDateTime, "MM/dd/yyyy hh:mm aa") : <span>Select date and time</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <div className="sm:flex">
           <Calendar
             mode="single"
-            selected={date}
+            selected={selectedDateTime}
             onSelect={handleDateSelect}
             initialFocus
           />
@@ -82,10 +107,10 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
                   <Button
                     key={hour}
                     size="icon"
-                    variant={date && date.getHours() % 12 === hour % 12 ? "default" : "ghost"}
+                    variant={isHourSelected(hour) ? "default" : "ghost"}
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
-                      date && date.getHours() % 12 === hour % 12 && "bg-sky-900 text-white hover:bg-sky-800"
+                      isHourSelected(hour) && "bg-sky-900 text-white hover:bg-sky-800"
                     )}
                     onClick={() => handleTimeChange("hour", hour.toString())}
                   >
@@ -101,10 +126,10 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
                   <Button
                     key={minute}
                     size="icon"
-                    variant={date && date.getMinutes() === minute ? "default" : "ghost"}
+                    variant={isMinuteSelected(minute) ? "default" : "ghost"}
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
-                      date && date.getMinutes() === minute && "bg-sky-900 text-white hover:bg-sky-800"
+                      isMinuteSelected(minute) && "bg-sky-900 text-white hover:bg-sky-800"
                     )}
                     onClick={() => handleTimeChange("minute", minute.toString())}
                   >
@@ -116,18 +141,18 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
             </ScrollArea>
             <ScrollArea>
               <div className="flex sm:flex-col p-2">
-                {["AM", "PM"].map((ampm) => (
+                {["AM", "PM"].map((period) => (
                   <Button
-                    key={ampm}
+                    key={period}
                     size="icon"
-                    variant={date && ((ampm === "AM" && date.getHours() < 12) || (ampm === "PM" && date.getHours() >= 12)) ? "default" : "ghost"}
+                    variant={isPeriodSelected(period) ? "default" : "ghost"}
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
-                      date && ((ampm === "AM" && date.getHours() < 12) || (ampm === "PM" && date.getHours() >= 12)) && "bg-sky-900 text-white hover:bg-sky-800"
+                      isPeriodSelected(period) && "bg-sky-900 text-white hover:bg-sky-800"
                     )}
-                    onClick={() => handleTimeChange("ampm", ampm)}
+                    onClick={() => handleTimeChange("ampm", period)}
                   >
-                    {ampm}
+                    {period}
                   </Button>
                 ))}
               </div>
