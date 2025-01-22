@@ -59,7 +59,8 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
                    row: ticketInfo.row,
                    seat: ticketInfo.seat,
                    backgroundImage: ticketInfo.backgroundImage,
-                   generatedTicket: canvas.toDataURL('image/png')
+                   generatedTicket: canvas.toDataURL('image/png'),
+                   filename: ticketInfo.filename
                };
 
                const response = await axios.post(route('tickets.store'), ticketData);
