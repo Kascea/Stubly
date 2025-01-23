@@ -7,12 +7,11 @@ export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const [isOpen, setIsOpen] = useState(false);
 
-    const navLinks = [
-    ];
+    const navLinks = [];
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-sky-50 to-orange-50">
-            <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+            <nav className="fixed top-0 left-0 right-0 bg-gradient-to-r from-sky-200/50 to-orange-200/50 backdrop-blur-md z-50 shadow-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
@@ -20,7 +19,7 @@ export default function AuthenticatedLayout({ header, children }) {
                               <img
                                 src="/images/CustomTicketsLogo.png"
                                 alt="CustomTickets"
-                                class="h-12 w-auto"
+                                className="h-12 w-auto"
                               />
                             </Link>
                         </div>
@@ -31,7 +30,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className="text-gray-600 hover:text-sky-900"
+                                    className="text-gray-700 hover:text-orange-100 transition-colors"
                                 >
                                     {link.text}
                                 </Link>
@@ -44,8 +43,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-sky-900 transition duration-150 ease-in-out hover:text-orange-400 focus:outline-none"
-                                            >
+                                                className="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 transition duration-150 ease-in-out hover:bg-orange-100 hover:text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 focus:ring-offset-sky-200 shadow-sm"                                            >
                                                 {user.name}
                                                 <svg
                                                     className="-me-0.5 ms-2 h-4 w-4"
@@ -62,28 +60,37 @@ export default function AuthenticatedLayout({ header, children }) {
                                             </button>
                                         </span>
                                     </Dropdown.Trigger>
+                                      <Dropdown.Content className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg ring-1 ring-black/5 mt-1">
+                                          <div className="p-1">
+                                              <Dropdown.Link 
+                                                  href={route('profile.edit')} 
+                                                  className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50"
+                                              >
+                                                  <UserIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                  <span>Profile</span>
+                                              </Dropdown.Link>
 
-                                    <Dropdown.Content>
-                                      <Dropdown.Link href={route('profile.edit')} className="flex items-center space-x-2">
-                                          <UserIcon className="h-4 w-4" />
-                                          <span>Profile</span>
-                                      </Dropdown.Link>
+                                              <Dropdown.Link 
+                                                  href={route('tickets.index')} 
+                                                  className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50"
+                                              >
+                                                  <TicketIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                  <span>History</span>
+                                              </Dropdown.Link>
 
-                                      <Dropdown.Link href={route('tickets.index')} className="flex items-center space-x-2">
-                                          <TicketIcon className="h-4 w-4" />
-                                          <span>History</span>
-                                      </Dropdown.Link>
+                                              <div className="h-px bg-gray-100 my-1"></div>
 
-                                      <Dropdown.Link
-                                          href={route('logout')}
-                                          method="post"
-                                          as="button"
-                                          className="flex items-center space-x-2 w-full"
-                                      >
-                                          <LogOutIcon className="h-4 w-4" />
-                                          <span>Log Out</span>
-                                      </Dropdown.Link>
-                                  </Dropdown.Content>
+                                              <Dropdown.Link
+                                                  href={route('logout')}
+                                                  method="post"
+                                                  as="button"
+                                                  className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50"
+                                              >
+                                                  <LogOutIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                  <span>Log Out</span>
+                                              </Dropdown.Link>
+                                          </div>
+                                      </Dropdown.Content>
                                 </Dropdown>
                             </div>
                         </div>
@@ -91,7 +98,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         {/* Mobile menu button */}
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-sky-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
+                            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-orange-100 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-300"
                         >
                             <span className="sr-only">Open main menu</span>
                             <svg
@@ -122,48 +129,51 @@ export default function AuthenticatedLayout({ header, children }) {
 
                     {/* Mobile menu */}
                     <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
-                        <div className="px-2 pt-2 pb-3 space-y-1">
+                        <div className="px-2 pt-2 pb-3 space-y-1 bg-white/10 backdrop-blur-md rounded-lg mt-2">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-sky-900 hover:bg-gray-100"
+                                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-white/20"
                                 >
                                     {link.text}
                                 </Link>
                             ))}
-                            <div className="border-t border-gray-200 pt-4">
+                            <div className="border-t border-white/20 pt-4">
                                 <div className="px-3">
-                                    <div className="text-base font-medium text-sky-900">
+                                    <div className="text-base font-medium text-gray-700">
                                         {user.name}
                                     </div>
-                                    <div className="text-sm font-medium text-sky-700">
+                                    <div className="text-sm font-medium text-gray-700/80">
                                         {user.email}
                                     </div>
                                 </div>
                                 <div className="mt-3 space-y-1">
                                     <Link
                                         href={route('profile.edit')}
-                                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-sky-900 hover:bg-gray-100"
+                                        className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-white/20"
                                     >
-                                        Profile
+                                        <UserIcon className="h-4 w-4" />
+                                        <span>Profile</span>
                                     </Link>
-                                                                        <Link
+                                    
+                                    <Link
                                         href={route('tickets.index')}
-                                        className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-sky-900 hover:bg-gray-100"
+                                        className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-white/20"
                                     >
-                                        <TicketIcon className="mr-2 h-4 w-4" />
+                                        <TicketIcon className="h-4 w-4" />
                                         <span>Ticket History</span>
                                     </Link>
+
                                     <Link
                                         href={route('logout')}
                                         method="post"
                                         as="button"
-                                        className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-sky-900 hover:bg-gray-100"
+                                        className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-red-400/20"
                                     >
-                                        Log Out
+                                        <LogOutIcon className="h-4 w-4" />
+                                        <span>Log Out</span>
                                     </Link>
-
                                 </div>
                             </div>
                         </div>
@@ -172,7 +182,7 @@ export default function AuthenticatedLayout({ header, children }) {
             </nav>
 
             {header && (
-                <header className="bg-white shadow mt-16">
+                <header className="bg-white/50 backdrop-blur-sm shadow-sm mt-16">
                     <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
                         {header}
                     </div>
@@ -180,7 +190,7 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             <main className="mt-16">
-              {children}
+                {children}
             </main>
         </div>
     );
