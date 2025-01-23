@@ -9,7 +9,8 @@ import {
     TicketIcon, 
     PlusCircle, 
     MoreVertical,
-    Trash2 
+    Trash2,
+    Printer
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -56,6 +57,13 @@ export default function Index({ tickets }) {
                 },
             });
         }
+    };
+
+    const handlePrint = (ticketPath) => {
+        const printWindow = window.open(ticketPath, '_blank');
+        printWindow.onload = () => {
+            printWindow.print();
+        };
     };
 
     return (
@@ -117,6 +125,13 @@ export default function Index({ tickets }) {
                                                     <MoreVertical className="h-5 w-5 text-gray-500" />
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem 
+                                                        className="text-gray-700 focus:bg-sky-50 cursor-pointer"
+                                                        onClick={() => handlePrint(ticket.generated_ticket_path)}
+                                                    >
+                                                        <Printer className="mr-2 h-4 w-4" />
+                                                        Print
+                                                    </DropdownMenuItem>
                                                     <DropdownMenuItem 
                                                         className="text-red-600 focus:text-red-600 cursor-pointer"
                                                         onClick={() => handleDeleteClick(ticket.ticket_id)}

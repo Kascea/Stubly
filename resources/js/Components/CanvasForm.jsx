@@ -3,10 +3,11 @@ import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
 import { DateTimePicker } from "@/Components/ui/datetimepicker";
-import { ArrowDown, Download, Check, Loader2 } from 'lucide-react';
+import { ArrowDown, Check, Loader2, Printer } from 'lucide-react';
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import html2canvas from 'html2canvas';
 import axios from 'axios';
+import { router } from '@inertiajs/react';
 
 export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
    const [isGenerating, setIsGenerating] = useState(false);
@@ -37,6 +38,30 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
        setTicketInfo(prev => ({ ...prev, [name]: value }));
    };
 
+   const handlePrint = async () => {
+       if (ticketRef.current) {
+           const canvas = await html2canvas(ticketRef.current, {
+               scale: 2,
+               backgroundColor: null
+           });
+           const printWindow = window.open('', '_blank');
+           printWindow.document.write(`
+               <html>
+                   <head>
+                       <title>Print Ticket</title>
+                   </head>
+                   <body style="margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+                       <img src="${canvas.toDataURL('image/png')}" style="max-width: 100%; height: auto;" />
+                   </body>
+               </html>
+           `);
+           printWindow.document.close();
+           printWindow.onload = () => {
+               printWindow.print();
+           };
+       }
+   };
+
    const generateTicket = async () => {
        if (ticketRef.current) {
            setIsGenerating(true);
@@ -65,18 +90,18 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
 
                const response = await axios.post(route('tickets.store'), ticketData);
                
-                // Update ticketInfo with the new ticket_id if it was a creation
                if (!ticketInfo.ticketId) {
+                   // If this was a new ticket, update the URL with the ticket ID
+                   router.visit(route('canvas', { ticket: response.data.ticket.ticket_id }), {
+                       preserveState: true,
+                       preserveScroll: true,
+                       replace: true
+                   });
                    setTicketInfo(prev => ({
                        ...prev,
                        ticketId: response.data.ticket.ticket_id
                    }));
                }
-                // Download the ticket
-               const link = document.createElement('a');
-               link.download = 'custom-ticket.png';
-               link.href = canvas.toDataURL('image/png');
-               link.click();
                
                setStatus('success');
            } catch (error) {
@@ -199,7 +224,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
                {status === 'success' && (
                    <Alert variant="success">
                        <AlertDescription variant="success">
-                           Ticket saved successfully!
+                           Ticket {ticketInfo.ticketId ? 'updated' : 'created'} successfully!
                        </AlertDescription>
                    </Alert>
                )}
@@ -212,23 +237,35 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
                    </Alert>
                )}
                
-               <Button 
-                   onClick={generateTicket}
-                   disabled={isGenerating}
-                   className="w-full bg-sky-900 hover:bg-sky-800 text-white"
-               >
-                   {isGenerating ? (
-                       <>
-                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                           Generating...
-                       </>
-                   ) : (
-                       <>
-                           <Download className="mr-2 h-4 w-4" />
-                           Generate Ticket
-                       </>
+               <div className="space-y-3">
+                   <Button 
+                       onClick={generateTicket}
+                       disabled={isGenerating}
+                       className="w-full bg-sky-900 hover:bg-sky-800 text-white"
+                   >
+                       {isGenerating ? (
+                           <>
+                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                               {ticketInfo.ticketId ? 'Updating...' : 'Creating...'}
+                           </>
+                       ) : (
+                           <>
+                               {ticketInfo.ticketId ? 'Update Ticket' : 'Create Ticket'}
+                           </>
+                       )}
+                   </Button>
+
+                   {ticketInfo.ticketId && (
+                       <Button
+                           onClick={handlePrint}
+                           className="w-full border-sky-900 text-sky-900 hover:bg-sky-50"
+                           variant="outline"
+                       >
+                           <Printer className="mr-2 h-4 w-4" />
+                           Print Ticket
+                       </Button>
                    )}
-               </Button>
+               </div>
            </div>
        </div>
    );

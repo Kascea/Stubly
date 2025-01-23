@@ -14,7 +14,7 @@ const ImageVisualizer = forwardRef(({ ticketInfo }, ref) => {
         <div className="min-h-screen flex items-center justify-center p-8 bg-gray-100">
             <div 
                 ref={ref}
-                className="relative w-96 rounded-lg overflow-hidden"
+                className="relative w-96 overflow-hidden"
                 style={{ aspectRatio: '2/3' }}
             >
                 {/* Background Image */}
