@@ -1,115 +1,140 @@
-// ImageVisualizer.jsx
 import React, { forwardRef } from 'react';
 
 const generateBarcodePattern = () => {
-   const bars = [];
-   for (let i = 0; i < 30; i++) {
-       const width = Math.random() > 0.7 ? 3 : 1;
-       bars.push(`<rect x="${i * 3}" y="0" width="${width}" height="30" fill="black" />`);
-   }
-   return `data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30" viewBox="0 0 100 30">${bars.join('')}</svg>`;
+    const bars = [];
+    for (let i = 0; i < 30; i++) {
+        const width = Math.random() > 0.7 ? 3 : 1;
+        bars.push(`<rect x="${i * 3}" y="0" width="${width}" height="30" fill="black" />`);
+    }
+    return `data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30" viewBox="0 0 100 30">${bars.join('')}</svg>`;
 };
 
 const ImageVisualizer = forwardRef(({ ticketInfo }, ref) => {
-   return (
-       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-8">
-           <div className="relative">
-               <div 
-                   ref={ref}
-                   className="relative mx-auto rounded-lg overflow-hidden bg-white shadow-lg w-96 border border-gray-200"
-                   style={{ aspectRatio: '2/3' }}
-               >
+    return (
+        <div className="min-h-screen flex items-center justify-center p-8 bg-gray-100">
+            <div 
+                ref={ref}
+                className="relative w-96 rounded-lg overflow-hidden"
+                style={{ aspectRatio: '2/3' }}
+            >
+                {/* Background Image */}
+                <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                        backgroundImage: ticketInfo?.backgroundImage 
+                            ? `url(${ticketInfo.backgroundImage})`
+                            : 'url(/path/to/default/image.jpg)',
+                    }}
+                >
+                    <div className="absolute inset-0 bg-black/60" />
+                </div>
 
-                {/* Event Image Section */}                
-                   <div 
-                       className="h-2/5 relative"
-                       style={{
-                           background: ticketInfo.backgroundImage 
-                               ? `url(${ticketInfo.backgroundImage}) center/cover no-repeat`
-                               : 'linear-gradient(45deg, #0ea5e9, #0284c7)'
-                       }}
-                   >
-                       <div className="absolute inset-0 bg-black/30" />
-                   </div>
-
-                    {/* Event Info Section */}
-                   <div className="p-6 space-y-6">
-                       <h1 className="text-2xl font-bold text-center text-gray-900">
-                           {ticketInfo?.eventName || 'EVENT NAME'}
-                       </h1>
-
-                       <h1 className="text-2xl font-bold text-center text-gray-900">
-                           {ticketInfo?.eventLocation || 'EVENT LOCATION'}
-                       </h1>
-
-                       <div className="flex justify-center space-x-8 text-center">
-                           <div>
-                               <p className="text-xs text-gray-500 uppercase">Date</p>
-                               <p className="font-mono text-lg">
-                                   {ticketInfo?.date 
+                {/* Content Container */}
+                <div className="relative text-white h-full flex flex-col">
+                    {/* Main Content */}
+                    <div className="flex-grow p-6 flex flex-col justify-between">
+                        {/* Header Info */}
+                        <div className="space-y-2">
+                            <p className="text-sm">
+                                {ticketInfo?.eventLocation || 'Event Location'}
+                            </p>
+                            <p className="text-sm">
+                                {ticketInfo?.date 
                                        ? new Date(ticketInfo.date).toLocaleDateString('en-US', {
                                            month: 'short',
                                            day: 'numeric',
                                            year: 'numeric'
                                        })
                                        : 'TBD'}
-                               </p>
-                           </div>
-                           <div>
-                               <p className="text-xs text-gray-500 uppercase">Time</p>
-                               <p className="font-mono text-lg">
-                                   {ticketInfo?.time 
+                            </p>
+                            <p className="text-sm">
+                                {ticketInfo?.time 
                                        ? new Date(`${ticketInfo.time}`).toLocaleTimeString('en-US', {
                                            hour: 'numeric',
                                            minute: '2-digit'
                                        })
                                        : 'TBD'}
-                               </p>
-                           </div>
-                       </div>
+                            </p>
+                        </div>
 
-                       <div className="flex justify-center space-x-8 text-center">
-                           <div>
-                               <p className="text-xs text-gray-500 uppercase">Section</p>
-                               <p className="font-mono text-lg">{ticketInfo?.section || 'A'}</p>
-                           </div>
-                           <div>
-                               <p className="text-xs text-gray-500 uppercase">Row</p>
-                               <p className="font-mono text-lg">{ticketInfo?.row || '1'}</p>
-                           </div>
-                           <div>
-                               <p className="text-xs text-gray-500 uppercase">Seat</p>
-                               <p className="font-mono text-lg">{ticketInfo?.seat || '1'}</p>
-                           </div>
-                       </div>
+                        {/* Event Title */}
+                        <div className="text-center my-8">
+                            <h1 className="text-5xl font-bold mb-2 leading-tight">
+                                {ticketInfo?.eventName || 'Event Name'}
+                            </h1>
+                            <p className="text-xl tracking-wider">
+                                {ticketInfo?.eventLocation || 'Event Location'}
+                            </p>
+                        </div>
 
-                       {/* Barcode Section */}
-                       <div className="flex flex-col items-center space-y-2">
-                           <img 
-                               src={generateBarcodePattern()} 
-                               alt="Barcode"
-                               className="h-8 w-48"
-                           />
-                           <p className="font-mono text-xs text-gray-500">
-                               {Math.random().toString(36).substr(2, 12).toUpperCase()}
-                           </p>
-                       </div>
-                   </div>
-                   
-                   {/* Perforation Section */}
-                   <div className="absolute top-2/5 left-0 right-0 flex">
-                       {[...Array(40)].map((_, i) => (
-                           <div 
-                               key={i} 
-                               className="h-3 border-l border-dashed border-gray-300"
-                               style={{ width: '2.5%' }}
-                           />
-                       ))}
-                   </div>
-               </div>
-           </div>
-       </div>
-   );
+                        {/* Ticket Details Grid */}
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <p className="text-xs text-gray-400">SEC</p>
+                                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded">
+                                    {ticketInfo?.section || 'Section'}
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400">ROW</p>
+                                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded">
+                                    {ticketInfo?.row || 'Row'}
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400">SEAT</p>
+                                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded">
+                                    {ticketInfo?.seat || 'Seat'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tear-off Section */}
+                    <div className="relative">
+                        {/* Perforation Line */}
+                        <div className="absolute -top-3 left-0 right-0 flex">
+                            {[...Array(40)].map((_, i) => (
+                                <div 
+                                    key={i} 
+                                    className="h-3 border-l border-dashed border-gray-400"
+                                    style={{ width: '2.5%' }}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Stub Content */}
+                        <div className="bg-white/10 backdrop-blur-sm p-4">
+                            <div className="grid grid-cols-3 gap-4 justify-items-center mb-4">
+                                <div>
+                                    <p className="text-xs text-gray-400 text-center">SEC</p>
+                                    <p className="text-center">{ticketInfo?.section || 'Section'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 text-center">ROW</p>
+                                    <p className="text-center">{ticketInfo?.row || 'Row'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 text-center">SEAT</p>
+                                    <p className="text-center">{ticketInfo?.seat || 'Seat'}</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <img 
+                                    src={generateBarcodePattern()} 
+                                    alt="Barcode"
+                                    className="w-48"
+                                />
+                                <p className="text-xs mt-1">
+                                    {Math.random().toString(36).substr(2, 12).toUpperCase()}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 });
 
 ImageVisualizer.displayName = 'ImageVisualizer';
