@@ -3,14 +3,7 @@ import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { DateTimePicker } from "@/Components/ui/datetimepicker";
-import {
-  ArrowDown,
-  Check,
-  Loader2,
-  Printer,
-  Save,
-  PencilLine,
-} from "lucide-react";
+import { ArrowDown, Check, Loader2, Printer } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import html2canvas from "html2canvas";
 import axios from "axios";
@@ -45,16 +38,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "template" && value === "classic") {
-      setTicketInfo((prev) => ({
-        ...prev,
-        [name]: value,
-        backgroundImage: null,
-        filename: null,
-      }));
-    } else {
-      setTicketInfo((prev) => ({ ...prev, [name]: value }));
-    }
+    setTicketInfo((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDateTimeChange = (name, value) => {
@@ -115,19 +99,17 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
         };
 
         const response = await axios.post(route("tickets.store"), ticketData);
+        const ticket = response.data.ticket;
 
-        if (!ticketInfo.ticketId) {
-          router.visit(
-            route("canvas", { ticket: response.data.ticket.ticket_id }),
-            {
-              preserveState: true,
-              preserveScroll: true,
-              replace: true,
-            }
-          );
+        if (!ticketInfo.ticketId && ticket) {
+          router.visit(route("canvas", { ticket: ticket.ticket_id }), {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+          });
           setTicketInfo((prev) => ({
             ...prev,
-            ticketId: response.data.ticket.ticket_id,
+            ticketId: ticket.ticket_id,
           }));
         }
 
@@ -136,9 +118,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
         console.error("Failed to save ticket:", error);
         setStatus("error");
         setErrorMessage(
-          error.response?.data?.message ||
-            error.response?.data?.error ||
-            "Failed to save ticket"
+          error.response?.data?.message || "Failed to save ticket"
         );
       } finally {
         setIsGenerating(false);

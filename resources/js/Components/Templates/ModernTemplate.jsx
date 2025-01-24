@@ -23,11 +23,11 @@ const ModernTemplate = forwardRef(({ ticketInfo }, ref) => {
       >
         {/* Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center bg-gradient-to-br from-sky-300 to-orange-300"
           style={{
             backgroundImage: ticketInfo?.backgroundImage
               ? `url(${ticketInfo.backgroundImage})`
-              : "url(/path/to/default/image.jpg)",
+              : undefined,
           }}
         >
           <div className="absolute inset-0 bg-black/60" />

@@ -61,17 +61,10 @@ class TicketController extends Controller
                 'generated_ticket_path' => $imageName
             ];
 
-            // Find the ticket if it exists
             if ($request->ticketId) {
                 $ticket = Ticket::where('ticket_id', $request->ticketId)
                     ->where('user_id', auth()->id())
                     ->firstOrFail();
-
-                // Delete the old ticket image if it exists
-                if ($ticket->generated_ticket_path) {
-                    Storage::disk('public')->delete($ticket->generated_ticket_path);
-                }
-
                 $ticket->update($ticketData);
             } else {
                 $ticketData['user_id'] = auth()->id();
@@ -79,18 +72,16 @@ class TicketController extends Controller
                 $ticket = Ticket::create($ticketData);
             }
 
-            return Inertia::render('Canvas', [
-                'ticket' => $ticket,
+            return response()->json([
                 'status' => 'success',
-                'message' => $request->ticketId
-                    ? 'Ticket updated successfully'
-                    : 'Ticket created successfully'
+                'message' => $request->ticketId ? 'Ticket updated successfully' : 'Ticket created successfully',
+                'ticket' => $ticket
             ]);
         } catch (\Exception $e) {
-            return Inertia::render('Canvas', [
+            return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
