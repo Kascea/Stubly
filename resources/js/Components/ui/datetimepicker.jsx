@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,9 +11,16 @@ import {
 } from "@/Components/ui/popover";
 import { ScrollArea, ScrollBar } from "@/Components/ui/scroll-area";
 
-export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null, initialTime = null }) {
+export function DateTimePicker({
+  onDateChange,
+  onTimeChange,
+  initialDate = null,
+  initialTime = null,
+}) {
   // We'll manage both date and time in the component's state
-  const [selectedDateTime, setSelectedDateTime] = useState(initialDate || initialTime || null);
+  const [selectedDateTime, setSelectedDateTime] = useState(
+    initialDate || initialTime || null
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -35,7 +42,7 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
   const handleTimeChange = (type, value) => {
     if (selectedDateTime) {
       const newDateTime = new Date(selectedDateTime);
-      
+
       switch (type) {
         case "hour":
           // Preserve AM/PM when setting hours
@@ -49,13 +56,13 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
           const currentHours = newDateTime.getHours();
           const shouldBePM = value === "PM";
           const isPM = currentHours >= 12;
-          
+
           if (shouldBePM !== isPM) {
             newDateTime.setHours((currentHours + 12) % 24);
           }
           break;
       }
-      
+
       setSelectedDateTime(newDateTime);
       onTimeChange(newDateTime);
     }
@@ -74,7 +81,9 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
 
   const isPeriodSelected = (period) => {
     if (!selectedDateTime) return false;
-    return period === "AM" ? selectedDateTime.getHours() < 12 : selectedDateTime.getHours() >= 12;
+    return period === "AM"
+      ? selectedDateTime.getHours() < 12
+      : selectedDateTime.getHours() >= 12;
   };
 
   return (
@@ -89,7 +98,11 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {selectedDateTime ? format(selectedDateTime, "MM/dd/yyyy hh:mm aa") : <span>Select date and time</span>}
+          {selectedDateTime ? (
+            format(selectedDateTime, "MM/dd/yyyy hh:mm aa")
+          ) : (
+            <span>Select date and time</span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
@@ -110,7 +123,8 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
                     variant={isHourSelected(hour) ? "default" : "ghost"}
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
-                      isHourSelected(hour) && "bg-sky-900 text-white hover:bg-sky-800"
+                      isHourSelected(hour) &&
+                        "bg-sky-900 text-white hover:bg-sky-800"
                     )}
                     onClick={() => handleTimeChange("hour", hour.toString())}
                   >
@@ -129,11 +143,14 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
                     variant={isMinuteSelected(minute) ? "default" : "ghost"}
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
-                      isMinuteSelected(minute) && "bg-sky-900 text-white hover:bg-sky-800"
+                      isMinuteSelected(minute) &&
+                        "bg-sky-900 text-white hover:bg-sky-800"
                     )}
-                    onClick={() => handleTimeChange("minute", minute.toString())}
+                    onClick={() =>
+                      handleTimeChange("minute", minute.toString())
+                    }
                   >
-                    {minute.toString().padStart(2, '0')}
+                    {minute.toString().padStart(2, "0")}
                   </Button>
                 ))}
               </div>
@@ -148,7 +165,8 @@ export function DateTimePicker({ onDateChange, onTimeChange, initialDate = null,
                     variant={isPeriodSelected(period) ? "default" : "ghost"}
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
-                      isPeriodSelected(period) && "bg-sky-900 text-white hover:bg-sky-800"
+                      isPeriodSelected(period) &&
+                        "bg-sky-900 text-white hover:bg-sky-800"
                     )}
                     onClick={() => handleTimeChange("ampm", period)}
                   >

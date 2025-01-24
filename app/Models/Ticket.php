@@ -21,6 +21,7 @@ class Ticket extends Model
     'seat',
     'background_image',
     'background_filename',
+    'template',
     'generated_ticket_path'
   ];
 
