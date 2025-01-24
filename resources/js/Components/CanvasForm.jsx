@@ -167,11 +167,12 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
             <SelectContent>
               <SelectItem value="modern">Modern</SelectItem>
               <SelectItem value="classic">Classic</SelectItem>
+              <SelectItem value="creative">Creative</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {ticketInfo.template !== "classic" && (
+        {ticketInfo.template === "modern" && (
           <div className="relative group">
             <input
               type="file"

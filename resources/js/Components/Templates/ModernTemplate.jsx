@@ -18,7 +18,7 @@ const ModernTemplate = forwardRef(({ ticketInfo }, ref) => {
     <div className="min-h-screen flex items-center justify-center p-8">
       <div
         ref={ref}
-        className="relative w-96 rounded-lg overflow-hidden bg-white shadow-lg"
+        className="relative w-96 overflow-hidden bg-white shadow-lg"
         style={{ aspectRatio: "2/3" }}
       >
         {/* Background Image */}
