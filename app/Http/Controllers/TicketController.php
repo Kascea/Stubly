@@ -119,4 +119,21 @@ class TicketController extends Controller
                 ->with('error', 'Failed to delete ticket.');
         }
     }
+
+    public function download(Ticket $ticket)
+    {
+        // Get the file path from storage
+        $path = Storage::disk('public')->path($ticket->generated_ticket_path);
+
+        if (!Storage::disk('public')->exists($ticket->generated_ticket_path)) {
+            abort(404, 'Ticket file not found.');
+        }
+
+        // Return the file as a download
+        return response()->download(
+            $path,
+            $ticket->event_name . '-' . $ticket->event_location . '.png',
+            ['Content-Type' => 'image/png']
+        );
+    }
 }

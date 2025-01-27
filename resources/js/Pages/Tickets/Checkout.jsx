@@ -1,29 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
-import { Elements } from "@stripe/react-stripe-js";
+import {
+  EmbeddedCheckoutProvider,
+  EmbeddedCheckout,
+} from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import CheckoutForm from "@/Components/CheckoutForm";
 
-const stripePromise = loadStripe(window.stripeKey);
-
-export default function Checkout({ ticket }) {
-  const [clientSecret, setClientSecret] = useState("");
-
-  useEffect(() => {
-    // Create PaymentIntent as soon as the page loads
-    fetch(route("payment.process", { ticket: ticket.ticket_id }), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((res) => res.json())
-      .then((data) => setClientSecret(data.clientSecret));
-  }, [ticket]);
+export default function Checkout({ ticket, clientSecret, publishableKey }) {
+  const stripePromise = loadStripe(publishableKey);
 
   return (
     <AuthenticatedLayout>
       <Head title="Checkout" />
-
       <div className="py-12">
         <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
           <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
@@ -34,11 +23,12 @@ export default function Checkout({ ticket }) {
               </p>
             </div>
 
-            {clientSecret && (
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <CheckoutForm ticket={ticket} />
-              </Elements>
-            )}
+            <EmbeddedCheckoutProvider
+              stripe={stripePromise}
+              options={{ clientSecret }}
+            >
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
           </div>
         </div>
       </div>

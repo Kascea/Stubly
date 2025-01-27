@@ -20,6 +20,7 @@ export default function Canvas({ ticket = null }) {
           backgroundImage: ticket.background_image,
           filename: ticket.background_filename,
           template: ticket.template,
+          isPaid: ticket.payment_status === "paid",
         }
       : {
           ticketId: null,
@@ -33,6 +34,7 @@ export default function Canvas({ ticket = null }) {
           backgroundImage: null,
           filename: null,
           template: "modern",
+          isPaid: false,
         }
   );
   const ticketRef = useRef(null);

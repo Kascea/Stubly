@@ -3,7 +3,14 @@ import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { DateTimePicker } from "@/Components/ui/datetimepicker";
-import { ArrowDown, Check, Loader2, Printer } from "lucide-react";
+import {
+  ArrowDown,
+  Check,
+  Loader2,
+  Printer,
+  Download,
+  CreditCard,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import html2canvas from "html2canvas";
 import axios from "axios";
@@ -45,30 +52,16 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
     setTicketInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePrint = async () => {
-    if (ticketRef.current) {
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 2,
-        backgroundColor: null,
-      });
-      const printWindow = window.open("", "_blank");
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Print Ticket</title>
-          </head>
-          <body style="margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
-            <img src="${canvas.toDataURL(
-              "image/png"
-            )}" style="max-width: 100%; height: auto;" />
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+  const handleDownload = () => {
+    window.location.href = route("tickets.download", {
+      ticket: ticketInfo.ticketId,
+    });
+  };
+
+  const handlePurchase = () => {
+    window.location.href = route("payment.checkout", {
+      ticket: ticketInfo.ticketId,
+    });
   };
 
   const generateTicket = async () => {
@@ -76,7 +69,6 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
       setIsGenerating(true);
       setStatus(null);
       setErrorMessage("");
-
       try {
         const canvas = await html2canvas(ticketRef.current, {
           scale: 2,
@@ -290,12 +282,21 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
 
           {ticketInfo.ticketId && (
             <Button
-              onClick={handlePrint}
+              onClick={ticketInfo.isPaid ? handleDownload : handlePurchase}
               className="w-full border-sky-900 text-sky-900 hover:bg-sky-50"
               variant="outline"
             >
-              <Printer className="mr-2 h-4 w-4" />
-              Print Ticket
+              {ticketInfo.isPaid ? (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Ticket
+                </>
+              ) : (
+                <>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Purchase Ticket
+                </>
+              )}
             </Button>
           )}
         </div>
