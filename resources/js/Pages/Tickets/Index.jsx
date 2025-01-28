@@ -11,6 +11,7 @@ import {
   MoreVertical,
   Trash2,
   Download,
+  CreditCard,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
+import { Button } from "@/Components/ui/button";
 
 export default function Index({ tickets }) {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -127,11 +129,29 @@ export default function Index({ tickets }) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            className="text-gray-700 focus:bg-sky-50 cursor-pointer"
-                            onClick={() => handleDownload(ticket.ticket_id)}
+                            onClick={() => {
+                              ticket.isPaid
+                                ? (window.location.href = route(
+                                    "tickets.download",
+                                    { ticket: ticket.ticket_id }
+                                  ))
+                                : (window.location.href = route(
+                                    "payment.checkout",
+                                    { ticket: ticket.ticket_id }
+                                  ));
+                            }}
                           >
-                            <Download className="mr-2 h-4 w-4" />
-                            Download
+                            {ticket.isPaid ? (
+                              <>
+                                <Download className="mr-2 h-4 w-4" />
+                                Download
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Purchase
+                              </>
+                            )}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600 cursor-pointer"
