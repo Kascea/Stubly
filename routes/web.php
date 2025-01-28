@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Cashier;
+use App\Models\Payment;
 
 Route::middleware(['auth', 'verified'])->group(function () {
   // Main canvas page
@@ -19,6 +20,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
       $ticket = Ticket::where('ticket_id', $request->ticket)
         ->where('user_id', auth()->id())
         ->first();
+
+      if ($ticket) {
+        $ticket->isPaid = Payment::where('ticket_id', $ticket->ticket_id)
+          ->where('payment_status', 'paid')
+          ->exists();
+      }
     }
     return Inertia::render('Canvas', [
       'ticket' => $ticket

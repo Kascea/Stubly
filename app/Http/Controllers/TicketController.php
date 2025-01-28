@@ -10,6 +10,7 @@ use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
+use App\Models\Payment;
 
 class TicketController extends Controller
 {
@@ -87,14 +88,20 @@ class TicketController extends Controller
 
     public function index()
     {
-        $tickets = auth()->user()->tickets()->latest()
+        $tickets = Ticket::where('user_id', auth()->id())
+            ->with([
+                'payments' => function ($query) {
+                    $query->where('payment_status', 'paid');
+                }
+            ])
             ->get()
             ->map(function ($ticket) {
+                $ticket->isPaid = $ticket->payments->isNotEmpty();
                 $ticket->generated_ticket_path = Storage::url($ticket->generated_ticket_path);
                 return $ticket;
             });
 
-        return inertia('Tickets/Index', [
+        return Inertia::render('Tickets/Index', [
             'tickets' => $tickets
         ]);
     }

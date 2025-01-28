@@ -12,7 +12,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
-import html2canvas from "html2canvas";
+import { domToPng } from "modern-screenshot";
 import axios from "axios";
 import { router } from "@inertiajs/react";
 import {
@@ -70,9 +70,14 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
       setStatus(null);
       setErrorMessage("");
       try {
-        const canvas = await html2canvas(ticketRef.current, {
+        const dataUrl = await domToPng(ticketRef.current, {
+          quality: 1.0,
           scale: 2,
           backgroundColor: null,
+          skipFonts: false,
+          filter: (node) => {
+            return node.nodeType === 1;
+          },
         });
 
         const ticketData = {
@@ -85,7 +90,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           row: ticketInfo.row,
           seat: ticketInfo.seat,
           backgroundImage: ticketInfo.backgroundImage,
-          generatedTicket: canvas.toDataURL("image/png"),
+          generatedTicket: dataUrl,
           filename: ticketInfo.filename,
           template: ticketInfo.template || "modern",
         };

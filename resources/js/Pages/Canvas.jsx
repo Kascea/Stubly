@@ -1,11 +1,14 @@
 import React, { useState, useRef } from "react"; // Remove useEffect import
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import CanvasForm from "@/Components/CanvasForm";
 import TicketTemplate from "@/Components/TicketTemplate";
 import { format } from "date-fns";
+import { Alert, AlertDescription } from "@/Components/ui/alert";
+import { CheckCircle2 } from "lucide-react";
 
 export default function Canvas({ ticket = null }) {
+  const { flash } = usePage().props;
   const [ticketInfo, setTicketInfo] = useState(
     ticket
       ? {
@@ -20,7 +23,7 @@ export default function Canvas({ ticket = null }) {
           backgroundImage: ticket.background_image,
           filename: ticket.background_filename,
           template: ticket.template,
-          isPaid: ticket.payment_status === "paid",
+          isPaid: ticket.isPaid,
         }
       : {
           ticketId: null,
@@ -44,6 +47,17 @@ export default function Canvas({ ticket = null }) {
       <Head title="Design Your Ticket" />
 
       <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-sky-50 to-orange-50">
+        {flash?.success && (
+          <div className="p-4">
+            <Alert className="bg-green-50 border-green-200">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-600">
+                {flash.success}
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
         <div className="lg:w-2/3 p-4 lg:p-8 order-1 lg:order-2">
           <TicketTemplate
             ref={ticketRef}

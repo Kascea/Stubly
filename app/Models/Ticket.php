@@ -66,4 +66,14 @@ class Ticket extends Model
   {
     return 'ticket_id';
   }
+
+  public function payments()
+  {
+    return $this->hasMany(Payment::class, 'ticket_id', 'ticket_id');
+  }
+
+  public function isPaid()
+  {
+    return $this->payments()->where('payment_status', 'paid')->exists();
+  }
 }
