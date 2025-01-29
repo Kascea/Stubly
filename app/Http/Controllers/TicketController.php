@@ -113,10 +113,13 @@ class TicketController extends Controller
                     $query->where('payment_status', 'paid');
                 }
             ])
+            ->latest('updated_at')
             ->get()
             ->map(function ($ticket) {
                 $ticket->isPaid = $ticket->payments->isNotEmpty();
                 $ticket->generated_ticket_path = Storage::url($ticket->generated_ticket_path);
+                $ticket->lastUpdated = $ticket->updated_at;
+                $ticket->created = $ticket->created_at;
                 return $ticket;
             });
 

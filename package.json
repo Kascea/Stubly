@@ -36,6 +36,7 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^3.6.0",
+        "dayjs": "^1.11.13",
         "html2canvas": "^1.4.1",
         "lucide-react": "^0.468.0",
         "modern-screenshot": "^4.5.5",

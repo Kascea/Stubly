@@ -23,6 +23,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import { Button } from "@/Components/ui/button";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 export default function Index({ tickets }) {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -77,7 +80,7 @@ export default function Index({ tickets }) {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {tickets.map((ticket) => (
-              <div key={ticket.id} className="relative">
+              <div key={ticket.ticket_id} className="relative">
                 <Card>
                   <CardContent className="p-6">
                     <Link
@@ -96,7 +99,7 @@ export default function Index({ tickets }) {
                         {ticket.event_name}
                       </h3>
 
-                      <div className="space-y-2 text-sm text-gray-600">
+                      <div className="space-y-2 text-sm text-gray-600 mb-12">
                         <div className="flex items-center gap-2">
                           <CalendarIcon className="h-4 w-4" />
                           {format(new Date(ticket.event_datetime), "PPp")}
@@ -118,6 +121,14 @@ export default function Index({ tickets }) {
                               .filter(Boolean)
                               .join(", ")}
                           </div>
+                        )}
+                      </div>
+
+                      <div className="text-sm text-gray-500 mt-auto">
+                        {ticket.updated_at !== ticket.created_at ? (
+                          <>Updated {dayjs(ticket.lastUpdated).fromNow()}</>
+                        ) : (
+                          <>Created {dayjs(ticket.created).fromNow()}</>
                         )}
                       </div>
                     </Link>
