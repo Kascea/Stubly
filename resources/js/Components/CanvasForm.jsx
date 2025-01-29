@@ -64,6 +64,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
     });
   };
 
+  // In your CanvasForm.jsx
   const generateTicket = async () => {
     if (ticketRef.current) {
       setIsGenerating(true);
@@ -71,12 +72,17 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
       setErrorMessage("");
       try {
         const dataUrl = await domToPng(ticketRef.current, {
-          quality: 1.0,
+          quality: 4.0,
           scale: 2,
           backgroundColor: null,
           skipFonts: false,
           filter: (node) => {
-            return node.nodeType === 1;
+            // Ensure text nodes are included
+            if (node.nodeType === 3 || node.nodeType === 1) {
+              // Text node
+              return true;
+            }
+            return false;
           },
         });
 

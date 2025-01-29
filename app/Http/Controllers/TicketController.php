@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
 
 class TicketController extends Controller
 {
