@@ -89,12 +89,11 @@ class PaymentController extends Controller
                     'paid_at' => now()
                 ]);
 
-                // Update ticket status only after payment confirmation
                 $ticket->update([
                     'status' => 'paid'
                 ]);
 
-                return redirect()->route('canvas', ['ticket' => $ticket->ticket_id])
+                return redirect()->route('tickets.preview', ['ticket' => $ticket->ticket_id])
                     ->with('success', 'Payment successful! You can now download your ticket.');
             }
 

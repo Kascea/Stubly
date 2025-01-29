@@ -11,6 +11,7 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Cashier;
 use App\Models\Payment;
+use Illuminate\Support\Str;
 
 Route::middleware(['auth', 'verified'])->group(function () {
   // Main canvas page
@@ -22,9 +23,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->first();
 
       if ($ticket) {
-        $ticket->isPaid = Payment::where('ticket_id', $ticket->ticket_id)
+        $isPaid = Payment::where('ticket_id', $ticket->ticket_id)
           ->where('payment_status', 'paid')
           ->exists();
+
+        if ($isPaid) {
+          return redirect()->route('tickets.preview', ['ticket' => $ticket->ticket_id]);
+        }
       }
     }
     return Inertia::render('Canvas', [
@@ -36,6 +41,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
   Route::prefix('tickets')->name('tickets.')->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');
     Route::post('/', [TicketController::class, 'store'])->name('store');
+    Route::get('/duplicate/{ticket:ticket_id}', [TicketController::class, 'duplicate'])->name('duplicate');
+    Route::get('/preview/{ticket:ticket_id}', [TicketController::class, 'preview'])->name('preview');
 
     //Protected routes
     Route::delete('/{ticket:ticket_id}', [TicketController::class, 'destroy'])

@@ -33,6 +33,24 @@ class TicketController extends Controller
                 'template' => 'nullable|string'
             ]);
 
+            // If updating, check if ticket is already paid
+            if ($request->ticketId) {
+                $existingTicket = Ticket::where('ticket_id', $request->ticketId)
+                    ->where('user_id', auth()->id())
+                    ->firstOrFail();
+
+                $isPaid = Payment::where('ticket_id', $existingTicket->ticket_id)
+                    ->where('payment_status', 'paid')
+                    ->exists();
+
+                if ($isPaid) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Cannot modify a ticket that has already been purchased.'
+                    ], 403);
+                }
+            }
+
             $image = str_replace(
                 ['data:image/png;base64,', ' '],
                 ['', '+'],
@@ -143,5 +161,32 @@ class TicketController extends Controller
             $ticket->event_name . '-' . $ticket->event_location . '.png',
             ['Content-Type' => 'image/png']
         );
+    }
+
+    public function duplicate(Ticket $ticket)
+    {
+        $newTicket = $ticket->replicate();
+        $newTicket->ticket_id = Str::uuid()->toString();
+        $newTicket->user_id = auth()->id();
+        $newTicket->save();
+
+        return redirect()->route('canvas', ['ticket' => $newTicket->ticket_id])
+            ->with('success', 'Ticket duplicated successfully');
+    }
+
+    public function preview(Ticket $ticket)
+    {
+        // Add isPaid and isOwner flags
+        $isPaid = Payment::where('ticket_id', $ticket->ticket_id)
+            ->where('payment_status', 'paid')
+            ->exists();
+
+        $isOwner = auth()->check() && auth()->id() === $ticket->user_id;
+
+        return Inertia::render('Tickets/Preview', [
+            'ticket' => $ticket,
+            'isPaid' => $isPaid,
+            'isOwner' => $isOwner
+        ]);
     }
 }
