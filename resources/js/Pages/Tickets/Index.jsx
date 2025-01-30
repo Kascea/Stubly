@@ -8,6 +8,8 @@ import {
   MapPinIcon,
   TicketIcon,
   PlusCircle,
+  ChevronDown,
+  ChevronUp,
   MoreVertical,
   Trash2,
   Download,
@@ -15,24 +17,27 @@ import {
   Share2,
   LinkIcon,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import TicketCard from "@/Components/TicketCard";
+import { Button } from "@/Components/ui/button";
+
 dayjs.extend(relativeTime);
 
 export default function Index({ tickets }) {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState(null);
+  const [showUnpaid, setShowUnpaid] = useState(true);
+  const [showPaid, setShowPaid] = useState(true);
   const { flash } = usePage().props;
   const { toast } = useToast();
+
+  // Separate tickets into paid and unpaid
+  const paidTickets = tickets.filter((ticket) => ticket.isPaid);
+  const unpaidTickets = tickets.filter((ticket) => !ticket.isPaid);
 
   const handleDeleteClick = (ticketId) => {
     setTicketToDelete(ticketId);
@@ -70,186 +75,122 @@ export default function Index({ tickets }) {
       <Head title="Ticket History" />
 
       <div className="py-12">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Ticket History
-          </h2>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {tickets.map((ticket) => (
-              <div key={ticket.ticket_id} className="relative">
-                <Card>
-                  <CardContent className="p-6">
-                    <Link
-                      href={route("canvas", { ticket: ticket.ticket_id })}
-                      className="block transition-transform hover:scale-[1.02]"
-                    >
-                      <div className="aspect-[16/9] relative mb-4 rounded-lg overflow-hidden bg-gray-100">
-                        <img
-                          src={ticket.generated_ticket_path}
-                          alt={ticket.event_name}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {ticket.event_name}
-                      </h3>
-
-                      <div className="space-y-2 text-sm text-gray-600 mb-12">
-                        <div className="flex items-center gap-2">
-                          <CalendarIcon className="h-4 w-4" />
-                          {format(new Date(ticket.event_datetime), "PPp")}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <MapPinIcon className="h-4 w-4" />
-                          {ticket.event_location}
-                        </div>
-
-                        {(ticket.section || ticket.row || ticket.seat) && (
-                          <div className="flex items-center gap-2">
-                            <TicketIcon className="h-4 w-4" />
-                            {[
-                              ticket.section && `Section ${ticket.section}`,
-                              ticket.row && `Row ${ticket.row}`,
-                              ticket.seat && `Seat ${ticket.seat}`,
-                            ]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="text-sm text-gray-500 mt-auto">
-                        {ticket.updated_at !== ticket.created_at ? (
-                          <>Updated {dayjs(ticket.lastUpdated).fromNow()}</>
-                        ) : (
-                          <>Created {dayjs(ticket.created).fromNow()}</>
-                        )}
-                      </div>
-                    </Link>
-
-                    <div className="absolute bottom-4 right-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100">
-                          <MoreVertical className="h-5 w-5 text-gray-500" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              ticket.isPaid
-                                ? (window.location.href = route(
-                                    "tickets.download",
-                                    {
-                                      ticket: ticket.ticket_id,
-                                    }
-                                  ))
-                                : (window.location.href = route(
-                                    "payment.checkout",
-                                    {
-                                      ticket: ticket.ticket_id,
-                                    }
-                                  ));
-                            }}
-                          >
-                            {ticket.isPaid ? (
-                              <>
-                                <Download className="mr-2 h-4 w-4" />
-                                Download
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className="mr-2 h-4 w-4" />
-                                Purchase
-                              </>
-                            )}
-                          </DropdownMenuItem>
-
-                          {ticket.isPaid && (
-                            <>
-                              <DropdownMenuItem
-                                onClick={async () => {
-                                  try {
-                                    await navigator.share({
-                                      title: `Ticket for ${ticket.event_name}`,
-                                      text: `Check out my ticket for ${ticket.event_name} at ${ticket.event_location}`,
-                                      url: route("tickets.preview", {
-                                        ticket: ticket.ticket_id,
-                                      }),
-                                    });
-                                  } catch (error) {
-                                    // Only copy link if Web Share API is not supported
-                                    if (error.name === "NotSupportedError") {
-                                      navigator.clipboard.writeText(
-                                        route("tickets.preview", {
-                                          ticket: ticket.ticket_id,
-                                        })
-                                      );
-                                      toast({
-                                        title: "Link copied!",
-                                        description:
-                                          "The ticket link has been copied to your clipboard.",
-                                        className:
-                                          "bg-green-500 border-green-600 text-white",
-                                      });
-                                    }
-                                    // Do nothing if user cancelled the share
-                                  }
-                                }}
-                              >
-                                <Share2 className="mr-2 h-4 w-4" />
-                                Share ticket
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  navigator.clipboard.writeText(
-                                    route("tickets.preview", {
-                                      ticket: ticket.ticket_id,
-                                    })
-                                  );
-                                  toast({
-                                    title: "Link copied!",
-                                    description:
-                                      "The ticket link has been copied to your clipboard.",
-                                    className:
-                                      "bg-green-500 border-green-600 text-white",
-                                  });
-                                }}
-                              >
-                                <LinkIcon className="mr-2 h-4 w-4" />
-                                Copy link
-                              </DropdownMenuItem>
-                            </>
-                          )}
-
-                          <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600 cursor-pointer"
-                            onClick={() => handleDeleteClick(ticket.ticket_id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
-                </Card>
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+          {/* Header Section */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <h1 className="text-3xl font-bold text-sky-900">
+                  Your Ticket Collection
+                </h1>
+                <p className="text-sky-900/70 text-lg">
+                  Design, customize, and share your event tickets
+                </p>
               </div>
-            ))}
-
-            <Card className="group hover:border-orange-400 border-2 border-dashed border-sky-200 bg-transparent">
-              <Link href={route("canvas")} className="block h-full">
-                <CardContent className="p-6 flex flex-col h-full">
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <PlusCircle className="h-12 w-12 mb-2 text-sky-600 group-hover:text-orange-500" />
-                    <span className="text-lg font-semibold text-sky-600 group-hover:text-orange-500">
-                      Create New Ticket
+              <Link href={route("canvas")}>
+                <Button className="bg-gradient-to-r from-orange-300 to-sky-400 hover:from-orange-400 hover:to-sky-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">
+                      Create Something Amazing
                     </span>
+                    <PlusCircle className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
                   </div>
-                </CardContent>
+                </Button>
               </Link>
-            </Card>
+            </div>
+          </div>
+
+          {/* Unpaid Tickets Section */}
+          <div className="rounded-lg shadow">
+            <button
+              onClick={() => setShowUnpaid(!showUnpaid)}
+              className="w-full flex justify-between items-center p-6 hover:bg-sky-50 transition-colors rounded-t-lg"
+            >
+              <div>
+                <h2 className="text-2xl font-bold text-sky-900">
+                  Design in Progress
+                </h2>
+                <p className="text-sm text-sky-900/70">
+                  Tickets you're currently working on
+                </p>
+              </div>
+              <div
+                className={`transform transition-transform duration-200 ${
+                  showUnpaid ? "rotate-180" : ""
+                }`}
+              >
+                <ChevronDown className="h-6 w-6 text-gray-500" />
+              </div>
+            </button>
+            <div
+              className={`transition-all duration-200 ease-in-out ${
+                showUnpaid ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+              } overflow-hidden`}
+            >
+              <div className="p-6 pt-0">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {unpaidTickets.map((ticket) => (
+                    <TicketCard
+                      key={ticket.ticket_id}
+                      ticket={ticket}
+                      onDeleteClick={handleDeleteClick}
+                      showDelete={true}
+                    />
+                  ))}
+                  {unpaidTickets.length === 0 && (
+                    <p className="text-gray-500 col-span-3 text-center py-4">
+                      No unpaid tickets
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Paid Tickets Section */}
+          <div className="rounded-lg shadow">
+            <button
+              onClick={() => setShowPaid(!showPaid)}
+              className="w-full flex justify-between items-center p-6 hover:bg-sky-50 transition-colors rounded-t-lg"
+            >
+              <div>
+                <h2 className="text-2xl font-bold text-sky-900">
+                  Ready for the Event
+                </h2>
+                <p className="text-sm text-sky-900/70">
+                  Your purchased and completed tickets
+                </p>
+              </div>
+              <div
+                className={`transform transition-transform duration-200 ${
+                  showPaid ? "rotate-180" : ""
+                }`}
+              >
+                <ChevronDown className="h-6 w-6 text-gray-500" />
+              </div>
+            </button>
+            <div
+              className={`transition-all duration-200 ease-in-out ${
+                showPaid ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+              } overflow-hidden`}
+            >
+              <div className="p-6 pt-0">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {paidTickets.map((ticket) => (
+                    <TicketCard
+                      key={ticket.ticket_id}
+                      ticket={ticket}
+                      showDelete={false}
+                    />
+                  ))}
+                  {paidTickets.length === 0 && (
+                    <p className="text-gray-500 col-span-3 text-center py-4">
+                      No purchased tickets
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

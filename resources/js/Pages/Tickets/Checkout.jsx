@@ -18,7 +18,7 @@ export default function Checkout({ ticket, clientSecret, publishableKey }) {
           <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
             <div className="mb-6">
               <h1 className="text-2xl font-semibold mb-2">Complete Purchase</h1>
-              <p className="text-gray-600">
+              <p className="text-sky-900/70">
                 Purchase your ticket for {ticket.event_name}
               </p>
             </div>

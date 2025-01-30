@@ -94,7 +94,7 @@ class TicketController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => $request->ticketId ? 'Ticket updated successfully' : 'Ticket created successfully',
+                'message' => $request->ticketId ? 'Ticket saved successfully' : 'Ticket created successfully',
                 'ticket' => $ticket
             ]);
         } catch (\Exception $e) {
@@ -133,6 +133,15 @@ class TicketController extends Controller
         try {
             if (auth()->id() !== $ticket->user_id) {
                 abort(403, 'Unauthorized action.');
+            }
+
+            // Check if ticket is paid
+            $isPaid = Payment::where('ticket_id', $ticket->ticket_id)
+                ->where('payment_status', 'paid')
+                ->exists();
+
+            if ($isPaid) {
+                abort(403, 'Cannot delete a paid ticket.');
             }
 
             if ($ticket->generated_ticket_path) {

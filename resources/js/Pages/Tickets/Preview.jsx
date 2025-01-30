@@ -62,42 +62,49 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
     <Layout>
       <Head title="View Ticket" />
 
-      <div className="py-12">
+      <div className="py-6">
         <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
-          <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Event Ticket</h2>
-              <div className="space-x-4">
+          <div className="space-y-6">
+            {/* Header Section - Redesigned to be more compact */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold text-sky-900">
+                  {ticket.event_name}
+                </h1>
+                <p className="text-sky-900/70">{ticket.event_location}</p>
+              </div>
+
+              <div className="flex items-center gap-3">
                 {isPaid && isOwner ? (
                   <Button
                     onClick={handleDownload}
-                    className="bg-sky-900 hover:bg-sky-800"
+                    className="bg-sky-900 hover:bg-sky-800 text-white"
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    Download
+                    Download Ticket
                   </Button>
                 ) : auth.user && !isOwner ? (
                   <Button
                     onClick={handleCustomize}
-                    className="bg-sky-900 hover:bg-sky-800"
+                    className="bg-sky-900 hover:bg-sky-800 text-white"
                   >
                     <Copy className="mr-2 h-4 w-4" />
-                    Customize
+                    Make It Yours
                   </Button>
                 ) : !auth.user ? (
-                  <div className="space-x-4">
+                  <>
                     <Button onClick={handleLogin} variant="outline">
                       <LogIn className="mr-2 h-4 w-4" />
                       Log in
                     </Button>
                     <Button
                       onClick={handleRegister}
-                      className="bg-sky-900 hover:bg-sky-800"
+                      className="bg-sky-900 hover:bg-sky-800 text-white"
                     >
                       <UserPlus className="mr-2 h-4 w-4" />
-                      Sign up
+                      Join Now
                     </Button>
-                  </div>
+                  </>
                 ) : null}
                 <ShareDropdown
                   title={`Ticket for ${ticket.event_name}`}
@@ -107,8 +114,11 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
               </div>
             </div>
 
-            <div className="max-w-3xl mx-auto">
-              <TicketTemplate ticketInfo={ticketInfo} />
+            {/* Ticket Preview */}
+            <div className="bg-gradient-to-b from-sky-50 to-orange-50 rounded-lg p-6">
+              <div className="max-w-3xl mx-auto">
+                <TicketTemplate ticketInfo={ticketInfo} />
+              </div>
             </div>
           </div>
         </div>

@@ -7,9 +7,8 @@ import {
   ArrowDown,
   Check,
   Loader2,
-  Printer,
-  Download,
   CreditCard,
+  TicketPlus,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { domToPng } from "modern-screenshot";
@@ -50,12 +49,6 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
 
   const handleDateTimeChange = (name, value) => {
     setTicketInfo((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleDownload = () => {
-    window.location.href = route("tickets.download", {
-      ticket: ticketInfo.ticketId,
-    });
   };
 
   const handlePurchase = () => {
@@ -136,49 +129,62 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
       <div className="space-y-6">
-        <div>
-          <Label>Template Style</Label>
+        {/* Template Selection */}
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-sky-900">
+            Choose Your Style
+          </h3>
+          <p className="text-sm text-sky-900/70 mb-4">
+            Select a template that matches your event's vibe
+          </p>
           <Select
             value={ticketInfo.template || "modern"}
             onValueChange={(value) =>
-              handleChange({ target: { name: "template", value } })
+              setTicketInfo((prev) => ({ ...prev, template: value }))
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select a template" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="modern">Modern</SelectItem>
-              <SelectItem value="classic">Classic</SelectItem>
-              <SelectItem value="creative">Creative</SelectItem>
+              <SelectItem value="modern">Modern & Clean</SelectItem>
+              <SelectItem value="classic">Classic & Elegant</SelectItem>
+              <SelectItem value="creative">Creative & Unique</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {ticketInfo.template === "modern" && (
-          <div className="relative group">
-            <input
-              type="file"
-              id="image-upload"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
+        {/* Background Image Upload */}
+        <div className="space-y-2">
+          <p className="text-sm text-sky-900/70 mb-4">
+            Add a background image to make your ticket pop
+          </p>
+          <Label htmlFor="image" className="sr-only">
+            Background Image
+          </Label>
+          <Input
+            type="file"
+            id="image"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+          <Label htmlFor="image" className="cursor-pointer block">
             <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
                 ticketInfo.backgroundImage
-                  ? "bg-sky-50/50 border-sky-300"
+                  ? "bg-sky-50/50 border-sky-300 hover:border-sky-400"
                   : "bg-sky-50 border-sky-200 hover:border-sky-300"
               }`}
             >
               {ticketInfo.backgroundImage ? (
                 <div className="flex flex-col items-center">
                   <div className="h-8 w-8 rounded-full bg-sky-100 flex items-center justify-center mb-2">
-                    <Check className="h-5 w-5 text-sky-600" />
+                    <Check className="h-5 w-5 text-sky-900/70" />
                   </div>
                   <span className="text-sm text-sky-700">Image uploaded</span>
                   {ticketInfo.filename && (
-                    <span className="text-xs text-sky-600 mt-1 truncate max-w-[200px]">
+                    <span className="text-xs text-sky-900/70 mt-1 truncate max-w-[200px]">
                       {ticketInfo.filename}
                     </span>
                   )}
@@ -195,71 +201,102 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
                 </>
               )}
             </div>
-          </div>
-        )}
-
-        <div>
-          <Label htmlFor="eventName">Event Name</Label>
-          <Input
-            id="eventName"
-            name="eventName"
-            value={ticketInfo.eventName || ""}
-            onChange={handleChange}
-            placeholder="Enter event name"
-          />
+          </Label>
         </div>
 
-        <div>
-          <Label>Event Location</Label>
-          <Input
-            id="eventLocation"
-            name="eventLocation"
-            value={ticketInfo.eventLocation || ""}
-            onChange={handleChange}
-            placeholder="Enter event location"
-          />
+        {/* Event Details */}
+        <div className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="eventName" className="text-sky-900">
+                Event Name
+              </Label>
+              <Input
+                id="eventName"
+                name="eventName"
+                value={ticketInfo.eventName || ""}
+                onChange={handleChange}
+                placeholder="What's the occasion?"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="eventLocation" className="text-sky-900">
+                Location
+              </Label>
+              <Input
+                id="eventLocation"
+                name="eventLocation"
+                value={ticketInfo.eventLocation || ""}
+                onChange={handleChange}
+                placeholder="Where's it happening?"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sky-900">Date & Time</Label>
+              <DateTimePicker
+                initialDate={ticketInfo.date}
+                initialTime={ticketInfo.time}
+                onDateChange={(value) => handleDateTimeChange("date", value)}
+                onTimeChange={(value) => handleDateTimeChange("time", value)}
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <Label>Date and Time</Label>
-          <DateTimePicker
-            initialDate={ticketInfo.date}
-            initialTime={ticketInfo.time}
-            onDateChange={(value) => handleDateTimeChange("date", value)}
-            onTimeChange={(value) => handleDateTimeChange("time", value)}
-          />
-        </div>
+        {/* Seating Details */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-sky-900">
+              Seating Details
+            </h3>
+          </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="section">Section</Label>
-            <Input
-              id="section"
-              name="section"
-              value={ticketInfo.section || ""}
-              onChange={handleChange}
-              placeholder="Section"
-            />
-          </div>
-          <div>
-            <Label htmlFor="row">Row</Label>
-            <Input
-              id="row"
-              name="row"
-              value={ticketInfo.row || ""}
-              onChange={handleChange}
-              placeholder="Row"
-            />
-          </div>
-          <div>
-            <Label htmlFor="seat">Seat</Label>
-            <Input
-              id="seat"
-              name="seat"
-              value={ticketInfo.seat || ""}
-              onChange={handleChange}
-              placeholder="Seat"
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="section" className="text-sky-900">
+                Section
+              </Label>
+              <Input
+                id="section"
+                name="section"
+                value={ticketInfo.section || ""}
+                onChange={handleChange}
+                placeholder="Section"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="row" className="text-sky-900">
+                Row
+              </Label>
+              <Input
+                id="row"
+                name="row"
+                value={ticketInfo.row || ""}
+                onChange={handleChange}
+                placeholder="Row"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="seat" className="text-sky-900">
+                Seat
+              </Label>
+              <Input
+                id="seat"
+                name="seat"
+                value={ticketInfo.seat || ""}
+                onChange={handleChange}
+                placeholder="Seat"
+                className="mt-1"
+              />
+            </div>
           </div>
         </div>
 
@@ -275,7 +312,8 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </Alert>
         )}
 
-        <div className="space-y-3">
+        {/* Action Buttons */}
+        <div className="space-y-3 pt-4">
           <Button
             onClick={generateTicket}
             disabled={isGenerating}
@@ -284,30 +322,35 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {ticketInfo.ticketId ? "Updating..." : "Creating..."}
+                {ticketInfo.ticketId
+                  ? "Saving Changes..."
+                  : "Creating Your Ticket..."}
               </>
             ) : (
-              <>{ticketInfo.ticketId ? "Update Ticket" : "Create Ticket"}</>
+              <>
+                {ticketInfo.ticketId ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                ) : (
+                  <>
+                    <TicketPlus className="mr-2 h-4 w-4" />
+                    Create Your Ticket
+                  </>
+                )}
+              </>
             )}
           </Button>
 
-          {ticketInfo.ticketId && (
+          {ticketInfo.ticketId && !ticketInfo.isPaid && (
             <Button
-              onClick={ticketInfo.isPaid ? handleDownload : handlePurchase}
+              onClick={handlePurchase}
               className="w-full border-sky-900 text-sky-900 hover:bg-sky-50"
               variant="outline"
             >
-              {ticketInfo.isPaid ? (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Ticket
-                </>
-              ) : (
-                <>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Purchase Ticket
-                </>
-              )}
+              <CreditCard className="mr-2 h-4 w-4" />
+              Purchase This Design
             </Button>
           )}
         </div>
