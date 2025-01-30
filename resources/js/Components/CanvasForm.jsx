@@ -346,8 +346,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           {ticketInfo.ticketId && !ticketInfo.isPaid && (
             <Button
               onClick={handlePurchase}
-              className="w-full border-sky-900 text-sky-900 hover:bg-sky-50"
-              variant="outline"
+              className="w-full bg-orange-400 hover:bg-orange-500 text-white"
             >
               <CreditCard className="mr-2 h-4 w-4" />
               Purchase This Design

@@ -20,17 +20,27 @@ import {
 } from "@/Components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import dayjs from "dayjs";
+import { useState } from "react";
 
 export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
   const { toast } = useToast();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <div className="relative">
-      <Card>
+    <div className="relative group">
+      <Card
+        className={`border border-gray-100 transition-all duration-300 bg-white overflow-hidden ${
+          isDropdownOpen
+            ? "border-orange-200 shadow-lg"
+            : "hover:border-orange-200 hover:shadow-lg"
+        }`}
+      >
         <CardContent className="p-6">
           <Link
             href={route("canvas", { ticket: ticket.ticket_id })}
-            className="block transition-transform hover:scale-[1.02]"
+            className={`block transition-transform ${
+              isDropdownOpen ? "scale-[1.02]" : "group-hover:scale-[1.02]"
+            }`}
           >
             <div className="aspect-[16/9] relative mb-4 rounded-lg overflow-hidden bg-gray-100">
               <img
@@ -79,7 +89,7 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
           </Link>
 
           <div className="absolute bottom-4 right-4">
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={setIsDropdownOpen}>
               <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100">
                 <MoreVertical className="h-5 w-5 text-gray-500" />
               </DropdownMenuTrigger>

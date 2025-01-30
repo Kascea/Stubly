@@ -16,6 +16,8 @@ import {
   CreditCard,
   Share2,
   LinkIcon,
+  Sparkles,
+  Ticket,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
@@ -88,19 +90,67 @@ export default function Index({ tickets }) {
                 </p>
               </div>
               <Link href={route("canvas")}>
-                <Button className="bg-gradient-to-r from-orange-300 to-sky-400 hover:from-orange-400 hover:to-sky-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">
-                      Create Something Amazing
+                <button className="bg-orange-400 text-white px-4 py-3 rounded-lg font-medium hover:bg-orange-500 transform hover:scale-105 transition-all duration-300 ease-in-out group">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="relative">
+                      <Ticket className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                    </div>
+                    <span className="text-lg font-bold">
+                      Create Your Masterpiece
                     </span>
-                    <PlusCircle className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
                   </div>
-                </Button>
+                </button>
               </Link>
             </div>
           </div>
 
-          {/* Unpaid Tickets Section */}
+          {/* Paid Tickets Section - Moved to top */}
+          <div className="rounded-lg shadow">
+            <button
+              onClick={() => setShowPaid(!showPaid)}
+              className="w-full flex justify-between items-center p-6 hover:bg-sky-50 transition-colors rounded-t-lg"
+            >
+              <div>
+                <h2 className="text-2xl font-bold text-sky-900">
+                  Ready for the Event
+                </h2>
+                <p className="text-sm text-sky-900/70">
+                  Your purchased and completed tickets
+                </p>
+              </div>
+              <div
+                className={`transform transition-transform duration-200 ${
+                  showPaid ? "rotate-180" : ""
+                }`}
+              >
+                <ChevronDown className="h-6 w-6 text-gray-500" />
+              </div>
+            </button>
+            <div
+              className={`transition-all duration-200 ease-in-out ${
+                showPaid ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+              } overflow-hidden`}
+            >
+              <div className="p-6 pt-0">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {paidTickets.map((ticket) => (
+                    <TicketCard
+                      key={ticket.ticket_id}
+                      ticket={ticket}
+                      showDelete={false}
+                    />
+                  ))}
+                  {paidTickets.length === 0 && (
+                    <p className="text-gray-500 col-span-3 text-center py-4">
+                      No purchased tickets
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Unpaid Tickets Section - Moved to bottom */}
           <div className="rounded-lg shadow">
             <button
               onClick={() => setShowUnpaid(!showUnpaid)}
@@ -140,52 +190,6 @@ export default function Index({ tickets }) {
                   {unpaidTickets.length === 0 && (
                     <p className="text-gray-500 col-span-3 text-center py-4">
                       No unpaid tickets
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Paid Tickets Section */}
-          <div className="rounded-lg shadow">
-            <button
-              onClick={() => setShowPaid(!showPaid)}
-              className="w-full flex justify-between items-center p-6 hover:bg-sky-50 transition-colors rounded-t-lg"
-            >
-              <div>
-                <h2 className="text-2xl font-bold text-sky-900">
-                  Ready for the Event
-                </h2>
-                <p className="text-sm text-sky-900/70">
-                  Your purchased and completed tickets
-                </p>
-              </div>
-              <div
-                className={`transform transition-transform duration-200 ${
-                  showPaid ? "rotate-180" : ""
-                }`}
-              >
-                <ChevronDown className="h-6 w-6 text-gray-500" />
-              </div>
-            </button>
-            <div
-              className={`transition-all duration-200 ease-in-out ${
-                showPaid ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
-              } overflow-hidden`}
-            >
-              <div className="p-6 pt-0">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {paidTickets.map((ticket) => (
-                    <TicketCard
-                      key={ticket.ticket_id}
-                      ticket={ticket}
-                      showDelete={false}
-                    />
-                  ))}
-                  {paidTickets.length === 0 && (
-                    <p className="text-gray-500 col-span-3 text-center py-4">
-                      No purchased tickets
                     </p>
                   )}
                 </div>
