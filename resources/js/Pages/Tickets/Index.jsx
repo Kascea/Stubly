@@ -12,6 +12,8 @@ import {
   Trash2,
   Download,
   CreditCard,
+  Share2,
+  LinkIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,7 +24,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
-import { Button } from "@/Components/ui/button";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
@@ -62,10 +63,6 @@ export default function Index({ tickets }) {
         },
       });
     }
-  };
-
-  const handleDownload = (ticketId) => {
-    window.location.href = route("tickets.download", { ticket: ticketId });
   };
 
   return (
@@ -144,11 +141,15 @@ export default function Index({ tickets }) {
                               ticket.isPaid
                                 ? (window.location.href = route(
                                     "tickets.download",
-                                    { ticket: ticket.ticket_id }
+                                    {
+                                      ticket: ticket.ticket_id,
+                                    }
                                   ))
                                 : (window.location.href = route(
                                     "payment.checkout",
-                                    { ticket: ticket.ticket_id }
+                                    {
+                                      ticket: ticket.ticket_id,
+                                    }
                                   ));
                             }}
                           >
@@ -164,6 +165,64 @@ export default function Index({ tickets }) {
                               </>
                             )}
                           </DropdownMenuItem>
+
+                          {ticket.isPaid && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  try {
+                                    await navigator.share({
+                                      title: `Ticket for ${ticket.event_name}`,
+                                      text: `Check out my ticket for ${ticket.event_name} at ${ticket.event_location}`,
+                                      url: route("tickets.preview", {
+                                        ticket: ticket.ticket_id,
+                                      }),
+                                    });
+                                  } catch (error) {
+                                    // Only copy link if Web Share API is not supported
+                                    if (error.name === "NotSupportedError") {
+                                      navigator.clipboard.writeText(
+                                        route("tickets.preview", {
+                                          ticket: ticket.ticket_id,
+                                        })
+                                      );
+                                      toast({
+                                        title: "Link copied!",
+                                        description:
+                                          "The ticket link has been copied to your clipboard.",
+                                        className:
+                                          "bg-green-500 border-green-600 text-white",
+                                      });
+                                    }
+                                    // Do nothing if user cancelled the share
+                                  }
+                                }}
+                              >
+                                <Share2 className="mr-2 h-4 w-4" />
+                                Share ticket
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  navigator.clipboard.writeText(
+                                    route("tickets.preview", {
+                                      ticket: ticket.ticket_id,
+                                    })
+                                  );
+                                  toast({
+                                    title: "Link copied!",
+                                    description:
+                                      "The ticket link has been copied to your clipboard.",
+                                    className:
+                                      "bg-green-500 border-green-600 text-white",
+                                  });
+                                }}
+                              >
+                                <LinkIcon className="mr-2 h-4 w-4" />
+                                Copy link
+                              </DropdownMenuItem>
+                            </>
+                          )}
+
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600 cursor-pointer"
                             onClick={() => handleDeleteClick(ticket.ticket_id)}

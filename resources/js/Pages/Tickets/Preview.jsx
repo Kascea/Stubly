@@ -4,27 +4,26 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
 import TicketTemplate from "@/Components/TicketTemplate";
 import { Button } from "@/Components/ui/button";
-import { Download, Share2, LogIn, Copy, UserPlus } from "lucide-react";
+import {
+  Download,
+  Share2,
+  Share,
+  LogIn,
+  Copy,
+  UserPlus,
+  Link as LinkIcon,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import ShareDropdown from "@/Components/ShareDropdown";
 
 export default function Preview({ ticket, isPaid, isOwner, auth }) {
+  const { toast } = useToast();
   const Layout = auth.user ? AuthenticatedLayout : GuestLayout;
 
   const handleDownload = () => {
     window.location.href = route("tickets.download", {
       ticket: ticket.ticket_id,
     });
-  };
-
-  const handleShare = async () => {
-    try {
-      await navigator.share({
-        title: `Ticket for ${ticket.event_name}`,
-        text: `Check out my ticket for ${ticket.event_name} at ${ticket.event_location}`,
-        url: window.location.href,
-      });
-    } catch (error) {
-      console.log("Sharing failed", error);
-    }
   };
 
   const handleCustomize = () => {
@@ -100,10 +99,11 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
                     </Button>
                   </div>
                 ) : null}
-                <Button onClick={handleShare} variant="outline">
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
+                <ShareDropdown
+                  title={`Ticket for ${ticket.event_name}`}
+                  text={`Check out my ticket for ${ticket.event_name} at ${ticket.event_location}`}
+                  url={window.location.href}
+                />
               </div>
             </div>
 

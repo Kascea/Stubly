@@ -94,7 +94,11 @@ class PaymentController extends Controller
                 ]);
 
                 return redirect()->route('tickets.preview', ['ticket' => $ticket->ticket_id])
-                    ->with('success', 'Payment successful! You can now download your ticket.');
+                    ->with('flash', [
+                        'type' => 'success',
+                        'title' => 'Purchase successful!',
+                        'message' => 'You can now download your ticket.'
+                    ]);
             }
 
             return redirect()->route('payment.checkout', ['ticket' => $ticket->ticket_id])
