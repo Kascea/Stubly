@@ -136,7 +136,7 @@ class TicketController extends Controller
             }
 
             // Check if ticket is paid
-            $isPaid = Payment::where('ticket_id', $ticket->ticket_id)
+            $isPaid = Payment::where('ticket_id', $ticket->id)
                 ->where('payment_status', 'paid')
                 ->exists();
 
@@ -198,7 +198,10 @@ class TicketController extends Controller
         return Inertia::render('Tickets/Preview', [
             'ticket' => $ticket,
             'isPaid' => $isPaid,
-            'isOwner' => $isOwner
+            'isOwner' => $isOwner,
+            'auth' => [
+                'user' => auth()->user()
+            ]
         ]);
     }
 }

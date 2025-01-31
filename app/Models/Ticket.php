@@ -12,9 +12,13 @@ class Ticket extends Model
   use HasFactory;
   use Billable;
 
+  protected $primaryKey = 'ticket_id';
+  public $incrementing = false;
+  protected $keyType = 'string';
+
   protected $fillable = [
-    'ticket_id',
     'user_id',
+    'ticket_id',
     'event_name',
     'event_location',
     'event_datetime',
@@ -23,8 +27,8 @@ class Ticket extends Model
     'seat',
     'background_image',
     'background_filename',
-    'template',
-    'generated_ticket_path'
+    'generated_ticket_path',
+    'template'
   ];
 
   protected $casts = [

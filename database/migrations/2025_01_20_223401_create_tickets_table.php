@@ -8,8 +8,8 @@ return new class extends Migration {
   public function up(): void
   {
     Schema::create('tickets', function (Blueprint $table) {
-      $table->id();
-      $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+      $table->uuid('ticket_id')->primary();
+      $table->uuid('user_id');
       $table->string('event_name');
       $table->string('event_location');
       $table->dateTime('event_datetime');
@@ -19,6 +19,11 @@ return new class extends Migration {
       $table->text('background_image')->nullable();
       $table->string('generated_ticket_path');
       $table->timestamps();
+
+      $table->foreign('user_id')
+        ->references('id')
+        ->on('users')
+        ->onDelete('cascade');
     });
   }
 

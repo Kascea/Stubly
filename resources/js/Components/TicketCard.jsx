@@ -37,7 +37,11 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
       >
         <CardContent className="p-6">
           <Link
-            href={route("canvas", { ticket: ticket.ticket_id })}
+            href={
+              ticket.isPaid
+                ? route("tickets.preview", { ticket: ticket.ticket_id })
+                : route("canvas", { ticket: ticket.ticket_id })
+            }
             className={`block transition-transform ${
               isDropdownOpen ? "scale-[1.02]" : "group-hover:scale-[1.02]"
             }`}
@@ -146,7 +150,6 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
                                 "bg-green-500 border-green-600 text-white",
                             });
                           }
-                          // Do nothing if user cancelled the share
                         }
                       }}
                     >

@@ -23,7 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->first();
 
       if ($ticket) {
-        $isPaid = Payment::where('ticket_id', $ticket->ticket_id)
+        $isPaid = Payment::where('ticket_id', $ticket->id)
           ->where('payment_status', 'paid')
           ->exists();
 
