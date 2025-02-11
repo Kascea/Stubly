@@ -1,18 +1,13 @@
-import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import * as React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/Components/ui/button";
 
-function Calendar({
-  className,
-  classNames,
-  showOutsideDays = true,
-  ...props
-}) {
+function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
   return (
-    (<DayPicker
+    <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -29,8 +24,7 @@ function Calendar({
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
-        head_cell:
-          "text-slate-500 rounded-md w-8 font-normal text-[0.8rem]",
+        head_cell: "text-slate-500 rounded-md w-8 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
         cell: cn(
           "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-sky-50",
@@ -45,11 +39,9 @@ function Calendar({
         day_selected:
           "bg-sky-900 text-white hover:bg-sky-800 hover:text-white focus:bg-sky-900 focus:text-white",
         day_today: "bg-sky-50 text-sky-900",
-        day_outside:
-          "text-slate-500 opacity-50",
+        day_outside: "text-slate-500 opacity-50",
         day_disabled: "text-slate-500 opacity-50",
-        day_range_middle:
-          "aria-selected:bg-sky-50 aria-selected:text-sky-900",
+        day_range_middle: "aria-selected:bg-sky-50 aria-selected:text-sky-900",
         day_hidden: "invisible",
         ...classNames,
       }}
@@ -61,9 +53,10 @@ function Calendar({
           <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
       }}
-      {...props} />)
+      {...props}
+    />
   );
 }
-Calendar.displayName = "Calendar"
+Calendar.displayName = "Calendar";
 
-export { Calendar }
+export { Calendar };
