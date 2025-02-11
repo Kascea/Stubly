@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Cashier\Cashier;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,5 +23,12 @@ class AppServiceProvider extends ServiceProvider
   public function boot(): void
   {
     Vite::prefetch(concurrency: 3);
+    if ($this->app->environment('production')) {
+      URL::forceScheme('https');
+
+      // Force secure cookies in production
+      config(['session.secure' => true]);
+      config(['session.same_site' => 'strict']);
+    }
   }
 }
