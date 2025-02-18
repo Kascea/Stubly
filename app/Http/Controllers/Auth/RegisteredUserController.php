@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Validator;
 
 class RegisteredUserController extends Controller
 {
@@ -34,6 +35,7 @@ class RegisteredUserController extends Controller
       'name' => 'required|string|max:255',
       'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
       'password' => ['required', 'confirmed', Rules\Password::defaults()],
+      'terms' => ['required', 'accepted'],
     ]);
 
     $user = User::create([
@@ -47,5 +49,15 @@ class RegisteredUserController extends Controller
     Auth::login($user);
 
     return redirect(route('canvas', absolute: false));
+  }
+
+  protected function validator(array $data)
+  {
+    return Validator::make($data, [
+      'name' => ['required', 'string', 'max:255'],
+      'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+      'password' => ['required', 'string', 'min:8', 'confirmed'],
+      'terms' => ['required', 'accepted'],
+    ]);
   }
 }

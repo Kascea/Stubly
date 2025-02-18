@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
@@ -21,26 +21,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/Components/ui/select";
+import { useDropzone } from "react-dropzone";
 
 export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTicketInfo((prev) => ({
-          ...prev,
-          backgroundImage: reader.result,
-          filename: file.name,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const onDrop = useCallback(
+    (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setTicketInfo((prev) => ({
+            ...prev,
+            backgroundImage: reader.result,
+            filename: file.name,
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    [setTicketInfo]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
+    },
+    maxFiles: 1,
+    multiple: false,
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -139,9 +152,19 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </p>
           <Select
             value={ticketInfo.template || "modern"}
-            onValueChange={(value) =>
-              setTicketInfo((prev) => ({ ...prev, template: value }))
-            }
+            onValueChange={(value) => {
+              // Clear background image if switching away from modern template
+              if (value !== "modern") {
+                setTicketInfo((prev) => ({
+                  ...prev,
+                  template: value,
+                  backgroundImage: null,
+                  filename: null,
+                }));
+              } else {
+                setTicketInfo((prev) => ({ ...prev, template: value }));
+              }
+            }}
           >
             <SelectTrigger>
               <SelectValue />
@@ -154,55 +177,54 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </Select>
         </div>
 
-        {/* Background Image Upload */}
-        <div className="space-y-2">
-          <p className="text-sm text-sky-900/70 mb-4">
-            Add a background image to make your ticket pop
-          </p>
-          <Label htmlFor="image" className="sr-only">
-            Background Image
-          </Label>
-          <Input
-            type="file"
-            id="image"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-          <Label htmlFor="image" className="cursor-pointer block">
+        {/* Background Image Upload - Only show for modern template */}
+        {ticketInfo.template === "modern" && (
+          <div className="space-y-2">
+            <p className="text-sm text-sky-900/70 mb-4">
+              Add a background image to make your ticket pop
+            </p>
             <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
-                ticketInfo.backgroundImage
-                  ? "bg-sky-50/50 border-sky-300 hover:border-sky-400"
-                  : "bg-sky-50 border-sky-200 hover:border-sky-300"
-              }`}
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer
+                ${
+                  isDragActive
+                    ? "border-sky-400 bg-sky-50"
+                    : ticketInfo.backgroundImage
+                    ? "bg-sky-50/50 border-sky-300 hover:border-sky-400"
+                    : "bg-sky-50 border-sky-200 hover:border-sky-300"
+                }`}
             >
-              {ticketInfo.backgroundImage ? (
-                <div className="flex flex-col items-center">
-                  <div className="h-8 w-8 rounded-full bg-sky-100 flex items-center justify-center mb-2">
-                    <Check className="h-5 w-5 text-sky-900/70" />
-                  </div>
-                  <span className="text-sm text-sky-700">Image uploaded</span>
-                  {ticketInfo.filename && (
-                    <span className="text-xs text-sky-900/70 mt-1 truncate max-w-[200px]">
-                      {ticketInfo.filename}
-                    </span>
-                  )}
-                  <span className="text-xs text-sky-500 mt-1">
-                    Click to change
-                  </span>
-                </div>
-              ) : (
-                <>
-                  <ArrowDown className="mx-auto h-8 w-8 text-sky-500 mb-2" />
-                  <span className="text-sm text-sky-700">
-                    Upload Background Image
-                  </span>
-                </>
-              )}
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center">
+                {isDragActive ? (
+                  <>
+                    <ArrowDown className="mx-auto h-12 w-12 text-sky-500 mb-2 animate-bounce" />
+                    <p className="text-sm text-sky-700">Drop your image here</p>
+                  </>
+                ) : (
+                  <>
+                    <ArrowDown className="mx-auto h-8 w-8 text-sky-500 mb-2" />
+                    <p className="text-sm text-sky-700">
+                      {ticketInfo.backgroundImage
+                        ? "Click or drag to change image"
+                        : "Drag and drop an image here, or click to select"}
+                    </p>
+                    {!ticketInfo.backgroundImage && (
+                      <p className="text-xs text-sky-500 mt-2">
+                        Supports: JPG, PNG, GIF, WEBP
+                      </p>
+                    )}
+                    {ticketInfo.filename && (
+                      <p className="text-xs text-sky-900/70 mt-1">
+                        Current: {ticketInfo.filename}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-          </Label>
-        </div>
+          </div>
+        )}
 
         {/* Event Details */}
         <div className="space-y-4">

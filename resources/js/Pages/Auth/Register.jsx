@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { Input } from "@/Components/ui/input";
 import InputError from "@/Components/InputError";
 import { Button } from "@/Components/ui/button";
+import { Checkbox } from "@/Components/ui/checkbox";
 
 export default function Register() {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -10,6 +11,7 @@ export default function Register() {
     email: "",
     password: "",
     password_confirmation: "",
+    terms: false,
   });
 
   const submit = (e) => {
@@ -90,6 +92,28 @@ export default function Register() {
                 message={errors.password_confirmation}
                 className="mt-2"
               />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="terms"
+                checked={data.terms}
+                onCheckedChange={(checked) => setData("terms", checked)}
+              />
+              <label
+                htmlFor="terms"
+                className="text-sm text-gray-600 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                I agree to the{" "}
+                <a
+                  href="https://customtickets.ai/terms"
+                  className="text-orange-400 hover:text-orange-500 hover:underline"
+                  target="_blank"
+                >
+                  terms of service
+                </a>
+              </label>
+              <InputError message={errors.terms} className="mt-2" />
             </div>
 
             <Button variant="primary-stretch" size="xl" disabled={processing}>
