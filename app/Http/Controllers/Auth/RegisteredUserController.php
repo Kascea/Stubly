@@ -46,9 +46,9 @@ class RegisteredUserController extends Controller
 
     event(new Registered($user));
 
-    Auth::login($user, $request->remember);
+    Auth::login($user);
 
-    return redirect(route('canvas', absolute: false));
+    return redirect()->intended('/');
   }
 
   protected function validator(array $data)
