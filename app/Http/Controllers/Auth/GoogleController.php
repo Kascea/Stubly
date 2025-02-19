@@ -53,7 +53,7 @@ class GoogleController extends Controller
       );
 
       Auth::login($user, true);
-      return Inertia::location(url: '/');
+      return redirect(route('canvas', absolute: false));
 
     } catch (Exception $e) {
       Log::error('Google callback error details:', [
