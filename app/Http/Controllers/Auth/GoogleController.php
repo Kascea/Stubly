@@ -74,7 +74,7 @@ class GoogleController extends Controller
         ]);
       }
 
-      return redirect()->route('login')
+      return redirect()->route('register')
         ->with('error', 'Something went wrong with Google login');
     }
   }
