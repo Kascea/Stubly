@@ -31,9 +31,8 @@ class GoogleController extends Controller
     Log::info('Google callback', ['request' => request()->all()]);
     try {
       $googleUser = Socialite::driver('google')->stateless()->user();
-      Log::info('Google user', ['googleUser' => $googleUser]);
       $user = User::where('email', $googleUser->email)->first();
-      Log::info('User', ['user' => $user]);
+
       if (!$user) {
         $user = User::create([
           'name' => $googleUser->name,
@@ -54,15 +53,7 @@ class GoogleController extends Controller
       );
 
       Auth::login($user, true);
-      // session(['user_id' => $user->id]);
-      // session()->save(); // Ensure session is stored
-
-      Log::info('Auth check after login:', [
-        'authenticated' => Auth::check(),
-        'auth_id' => Auth::id(),
-        'session_data' => session()->all(),
-      ]);
-      return Inertia::location(url: '/canvas');
+      return Inertia::location(url: '/');
 
     } catch (Exception $e) {
       Log::error('Google callback error details:', [
