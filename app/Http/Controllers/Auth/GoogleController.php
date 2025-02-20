@@ -53,6 +53,11 @@ class GoogleController extends Controller
       );
 
       Auth::login($user, true);
+      Log::info('Auth check after login:', [
+        'authenticated' => Auth::check(),
+        'auth_id' => Auth::id(),
+        'session_data' => session()->all(),
+      ]);
       return redirect(route('canvas', absolute: false));
 
     } catch (Exception $e) {
