@@ -25,7 +25,7 @@ class Ticket extends Model
     'section',
     'row',
     'seat',
-    'background_image',
+    'background_image_path',
     'background_filename',
     'generated_ticket_path',
     'template'
@@ -33,6 +33,11 @@ class Ticket extends Model
 
   protected $casts = [
     'event_datetime' => 'datetime'
+  ];
+
+  protected $appends = [
+    'generated_ticket_url',
+    'background_url'
   ];
 
   protected static function boot()
@@ -79,5 +84,19 @@ class Ticket extends Model
   public function isPaid()
   {
     return $this->payments()->where('payment_status', 'paid')->exists();
+  }
+
+  public function getGeneratedTicketUrlAttribute()
+  {
+    if (!$this->generated_ticket_path)
+      return null;
+    return config('filesystems.disks.r2.url') . '/' . $this->generated_ticket_path;
+  }
+
+  public function getBackgroundUrlAttribute()
+  {
+    if (!$this->background_image_path)
+      return null;
+    return config('filesystems.disks.r2.url') . '/' . $this->background_image_path;
   }
 }

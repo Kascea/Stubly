@@ -17,92 +17,172 @@ class TicketController extends Controller
 {
     public function store(Request $request)
     {
+        return $request->ticketId ?
+            $this->update($request, $request->ticketId) :
+            $this->create($request);
+    }
+
+    protected function create(Request $request)
+    {
         try {
-            $request->validate([
-                'ticketId' => 'nullable|string',
-                'eventName' => 'required|string',
-                'eventLocation' => 'required|string',
-                'date' => 'required|date',
-                'time' => 'required',
-                'section' => 'nullable|string',
-                'row' => 'nullable|string',
-                'seat' => 'nullable|string',
-                'backgroundImage' => 'nullable|string',
-                'generatedTicket' => 'required|string',
-                'filename' => 'nullable|string',
-                'template' => 'nullable|string'
-            ]);
+            $this->validateTicket($request);
 
-            // If updating, check if ticket is already paid
-            if ($request->ticketId) {
-                $existingTicket = Ticket::where('ticket_id', $request->ticketId)
-                    ->where('user_id', auth()->id())
-                    ->firstOrFail();
+            $ticketData = $this->prepareTicketData($request);
+            $ticketData['user_id'] = auth()->id();
+            $ticketData['ticket_id'] = Str::uuid()->toString();
 
-                $isPaid = Payment::where('ticket_id', $existingTicket->ticket_id)
-                    ->where('payment_status', 'paid')
-                    ->exists();
+            // Upload images to R2
+            $ticketData = $this->handleImageUploads($request, $ticketData);
 
-                if ($isPaid) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Cannot modify a ticket that has already been purchased.'
-                    ], 403);
-                }
-            }
-
-            $image = str_replace(
-                ['data:image/png;base64,', ' '],
-                ['', '+'],
-                $request->generatedTicket
-            );
-
-            if (!$decodedImage = base64_decode($image)) {
-                throw new \Exception('Invalid image data provided');
-            }
-
-            $imageName = 'tickets/' . uniqid() . '.png';
-
-            if (!Storage::disk('public')->put($imageName, $decodedImage)) {
-                throw new \Exception('Failed to save the ticket image');
-            }
-
-            $ticketData = [
-                'event_name' => $request->eventName,
-                'event_location' => $request->eventLocation,
-                'event_datetime' => (new DateTime($request->date))->format('Y-m-d') . ' ' .
-                    (new DateTime($request->time))->format('H:i:s'),
-                'section' => $request->section,
-                'row' => $request->row,
-                'seat' => $request->seat,
-                'template' => $request->template ?? 'modern',
-                'background_image' => $request->backgroundImage,
-                'background_filename' => $request->filename,
-                'generated_ticket_path' => $imageName
-            ];
-
-            if ($request->ticketId) {
-                $ticket = Ticket::where('ticket_id', $request->ticketId)
-                    ->where('user_id', auth()->id())
-                    ->firstOrFail();
-                $ticket->update($ticketData);
-            } else {
-                $ticketData['user_id'] = auth()->id();
-                $ticketData['ticket_id'] = Str::uuid()->toString();
-                $ticket = Ticket::create($ticketData);
-            }
+            $ticket = Ticket::create($ticketData);
 
             return response()->json([
                 'status' => 'success',
-                'message' => $request->ticketId ? 'Ticket saved successfully' : 'Ticket created successfully',
+                'message' => 'Ticket created successfully',
                 'ticket' => $ticket
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->handleError($e);
         }
+    }
+
+    protected function update(Request $request, string $ticketId)
+    {
+        try {
+            $this->validateTicket($request);
+
+            $ticket = Ticket::where('ticket_id', $ticketId)
+                ->where('user_id', auth()->id())
+                ->firstOrFail();
+
+            if ($ticket->isPaid()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot modify a paid ticket.'
+                ], 403);
+            }
+
+            $ticketData = $this->prepareTicketData($request);
+
+            // Delete existing images from R2
+            if ($ticket->generated_ticket_path) {
+                Storage::disk('r2')->delete($ticket->generated_ticket_path);
+            }
+            if ($ticket->background_image) {
+                Storage::disk('r2')->delete($ticket->background_image);
+            }
+
+            // Upload new images to R2
+            $ticketData = $this->handleImageUploads($request, $ticketData);
+
+            $ticket->update($ticketData);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Ticket updated successfully',
+                'ticket' => $ticket
+            ]);
+        } catch (\Exception $e) {
+            return $this->handleError($e);
+        }
+    }
+
+    protected function handleImageUploads(Request $request, array $ticketData): array
+    {
+        // Handle background image
+        if ($request->backgroundImage) {
+            $backgroundImage = $request->backgroundImage;
+            // Extract format from data URI
+            preg_match('/data:image\/(.*?);base64,/', $backgroundImage, $matches);
+            $imageFormat = $matches[1] ?? 'png';
+
+            $backgroundImage = $this->cleanBase64Data($backgroundImage);
+            if ($decodedBackground = base64_decode($backgroundImage)) {
+                $backgroundPath = 'backgrounds/' . uniqid() . '.' . $imageFormat;
+                if (!Storage::disk('r2')->put($backgroundPath, $decodedBackground)) {
+                    throw new \Exception('Failed to save the background image');
+                }
+                $ticketData['background_image_path'] = $backgroundPath;
+            }
+        }
+
+        // Handle generated ticket
+        $image = $request->generatedTicket;
+        preg_match('/data:image\/(.*?);base64,/', $image, $matches);
+        $imageFormat = $matches[1] ?? 'png';
+
+        $image = $this->cleanBase64Data($image);
+        if ($decodedImage = base64_decode($image)) {
+            $imageName = 'tickets/' . uniqid() . '.' . $imageFormat;
+            if (!Storage::disk('r2')->put($imageName, $decodedImage)) {
+                throw new \Exception('Failed to save the ticket image');
+            }
+            $ticketData['generated_ticket_path'] = $imageName;
+        }
+
+        return $ticketData;
+    }
+
+    protected function cleanBase64Data(string $data): string
+    {
+        // Remove data URI prefixes and convert spaces to + for proper base64 decoding
+        return str_replace(
+            [
+                'data:image/png;base64,',
+                'data:image/jpeg;base64,',
+                'data:image/jpg;base64,',
+                'data:image/webp;base64,',  // Add WebP support
+                ' '
+            ],
+            ['', '', '', '', '+'],
+            $data
+        );
+    }
+
+    protected function validateTicket(Request $request): void
+    {
+        $request->validate([
+            'ticketId' => 'nullable|string',
+            'eventName' => 'required|string',
+            'eventLocation' => 'required|string',
+            'date' => 'required|date',
+            'time' => 'required',
+            'section' => 'nullable|string',
+            'row' => 'nullable|string',
+            'seat' => 'nullable|string',
+            'backgroundImage' => 'nullable|string',
+            'generatedTicket' => 'required|string',
+            'filename' => 'nullable|string',
+            'template' => 'nullable|string'
+        ]);
+    }
+
+    protected function prepareTicketData(Request $request): array
+    {
+        return [
+            'event_name' => $request->eventName,
+            'event_location' => $request->eventLocation,
+            'event_datetime' => (new DateTime($request->date))->format('Y-m-d') . ' ' .
+                (new DateTime($request->time))->format('H:i:s'),
+            'section' => $request->section,
+            'row' => $request->row,
+            'seat' => $request->seat,
+            'template' => $request->template ?? 'modern',
+            'background_filename' => $request->filename,
+        ];
+    }
+
+    protected function handleError(\Exception $e)
+    {
+        Log::error('Ticket operation failed', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
     }
 
     public function index()
@@ -117,7 +197,6 @@ class TicketController extends Controller
             ->get()
             ->map(function ($ticket) {
                 $ticket->isPaid = $ticket->payments->isNotEmpty();
-                $ticket->generated_ticket_path = Storage::url($ticket->generated_ticket_path);
                 $ticket->lastUpdated = $ticket->updated_at;
                 $ticket->created = $ticket->created_at;
                 return $ticket;
@@ -145,7 +224,7 @@ class TicketController extends Controller
             }
 
             if ($ticket->generated_ticket_path) {
-                Storage::disk('public')->delete($ticket->generated_ticket_path);
+                Storage::disk('r2')->delete($ticket->generated_ticket_path);
             }
 
             $ticket->delete();
@@ -160,16 +239,12 @@ class TicketController extends Controller
 
     public function download(Ticket $ticket)
     {
-        // Get the file path from storage
-        $path = Storage::disk('public')->path($ticket->generated_ticket_path);
-
-        if (!Storage::disk('public')->exists($ticket->generated_ticket_path)) {
+        if (!Storage::disk('r2')->exists($ticket->generated_ticket_path)) {
             abort(404, 'Ticket file not found.');
         }
 
-        // Return the file as a download
-        return response()->download(
-            $path,
+        return Storage::disk('r2')->download(
+            $ticket->generated_ticket_path,
             $ticket->event_name . '-' . $ticket->event_location . '.png',
             ['Content-Type' => 'image/png']
         );
@@ -188,17 +263,14 @@ class TicketController extends Controller
 
     public function preview(Ticket $ticket)
     {
-        // Add isPaid and isOwner flags
-        $isPaid = Payment::where('ticket_id', $ticket->ticket_id)
-            ->where('payment_status', 'paid')
-            ->exists();
-
-        $isOwner = auth()->check() && auth()->id() === $ticket->user_id;
+        // Add background_url to the ticket data
+        $ticket->load('payments');
+        $ticket->background_url = $ticket->background_url;  // This will trigger the accessor
 
         return Inertia::render('Tickets/Preview', [
             'ticket' => $ticket,
-            'isPaid' => $isPaid,
-            'isOwner' => $isOwner,
+            'isPaid' => $ticket->isPaid(),
+            'isOwner' => auth()->check() && auth()->id() === $ticket->user_id,
             'auth' => [
                 'user' => auth()->user()
             ]

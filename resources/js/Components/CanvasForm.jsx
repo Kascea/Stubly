@@ -49,7 +49,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
     },
     maxFiles: 1,
     multiple: false,

@@ -27,6 +27,8 @@ const ModernTemplate = forwardRef(({ ticketInfo }, ref) => {
           style={{
             backgroundImage: ticketInfo?.backgroundImage
               ? `url(${ticketInfo.backgroundImage})`
+              : ticketInfo?.background_url
+              ? `url(${ticketInfo.background_url})`
               : undefined,
           }}
         >

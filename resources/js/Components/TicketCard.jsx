@@ -48,7 +48,7 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
           >
             <div className="aspect-[16/9] relative mb-4 rounded-lg overflow-hidden bg-gray-100">
               <img
-                src={ticket.generated_ticket_path}
+                src={ticket.generated_ticket_url}
                 alt={ticket.event_name}
                 className="object-cover w-full h-full"
               />
