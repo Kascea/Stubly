@@ -17,13 +17,6 @@ class TicketController extends Controller
 {
     public function store(Request $request)
     {
-        return $request->ticketId ?
-            $this->update($request, $request->ticketId) :
-            $this->create($request);
-    }
-
-    protected function create(Request $request)
-    {
         try {
             $this->validateTicket($request);
 
@@ -31,14 +24,14 @@ class TicketController extends Controller
             $ticketData['user_id'] = auth()->id();
             $ticketData['ticket_id'] = Str::uuid()->toString();
 
-            // Upload images to R2
-            $ticketData = $this->handleImageUploads($request, $ticketData);
+            // Only upload the generated ticket image
+            $ticketData = $this->handleTicketImage($request, $ticketData);
 
             $ticket = Ticket::create($ticketData);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Ticket created successfully',
+                'message' => 'Ticket created successfully!',
                 'ticket' => $ticket
             ]);
         } catch (\Exception $e) {
@@ -46,66 +39,8 @@ class TicketController extends Controller
         }
     }
 
-    protected function update(Request $request, string $ticketId)
+    protected function handleTicketImage(Request $request, array $ticketData): array
     {
-        try {
-            $this->validateTicket($request);
-
-            $ticket = Ticket::where('ticket_id', $ticketId)
-                ->where('user_id', auth()->id())
-                ->firstOrFail();
-
-            if ($ticket->isPaid()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Cannot modify a paid ticket.'
-                ], 403);
-            }
-
-            $ticketData = $this->prepareTicketData($request);
-
-            // Delete existing images from R2
-            if ($ticket->generated_ticket_path) {
-                Storage::disk('r2')->delete($ticket->generated_ticket_path);
-            }
-            if ($ticket->background_image) {
-                Storage::disk('r2')->delete($ticket->background_image);
-            }
-
-            // Upload new images to R2
-            $ticketData = $this->handleImageUploads($request, $ticketData);
-
-            $ticket->update($ticketData);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Ticket updated successfully',
-                'ticket' => $ticket
-            ]);
-        } catch (\Exception $e) {
-            return $this->handleError($e);
-        }
-    }
-
-    protected function handleImageUploads(Request $request, array $ticketData): array
-    {
-        // Handle background image
-        if ($request->backgroundImage) {
-            $backgroundImage = $request->backgroundImage;
-            // Extract format from data URI
-            preg_match('/data:image\/(.*?);base64,/', $backgroundImage, $matches);
-            $imageFormat = $matches[1] ?? 'png';
-
-            $backgroundImage = $this->cleanBase64Data($backgroundImage);
-            if ($decodedBackground = base64_decode($backgroundImage)) {
-                $backgroundPath = 'backgrounds/' . uniqid() . '.' . $imageFormat;
-                if (!Storage::disk('r2')->put($backgroundPath, $decodedBackground)) {
-                    throw new \Exception('Failed to save the background image');
-                }
-                $ticketData['background_image_path'] = $backgroundPath;
-            }
-        }
-
         // Handle generated ticket
         $image = $request->generatedTicket;
         preg_match('/data:image\/(.*?);base64,/', $image, $matches);
@@ -142,7 +77,6 @@ class TicketController extends Controller
     protected function validateTicket(Request $request): void
     {
         $request->validate([
-            'ticketId' => 'nullable|string',
             'eventName' => 'required|string',
             'eventLocation' => 'required|string',
             'date' => 'required|date',
@@ -150,9 +84,7 @@ class TicketController extends Controller
             'section' => 'nullable|string',
             'row' => 'nullable|string',
             'seat' => 'nullable|string',
-            'backgroundImage' => 'nullable|string',
             'generatedTicket' => 'required|string',
-            'filename' => 'nullable|string',
             'template' => 'nullable|string'
         ]);
     }
@@ -168,7 +100,6 @@ class TicketController extends Controller
             'row' => $request->row,
             'seat' => $request->seat,
             'template' => $request->template ?? 'modern',
-            'background_filename' => $request->filename,
         ];
     }
 
@@ -265,7 +196,6 @@ class TicketController extends Controller
     {
         // Add background_url to the ticket data
         $ticket->load('payments');
-        $ticket->background_url = $ticket->background_url;  // This will trigger the accessor
 
         return Inertia::render('Tickets/Preview', [
             'ticket' => $ticket,
@@ -274,6 +204,29 @@ class TicketController extends Controller
             'auth' => [
                 'user' => auth()->user()
             ]
+        ]);
+    }
+
+    public function canvas(Request $request)
+    {
+        $ticket = null;
+        if ($request->has('ticket')) {
+            $ticket = Ticket::where('ticket_id', $request->ticket)
+                ->where('user_id', auth()->id())
+                ->first();
+
+            if ($ticket) {
+                $isPaid = Payment::where('ticket_id', $ticket->id)
+                    ->where('payment_status', 'paid')
+                    ->exists();
+
+                if ($isPaid) {
+                    return redirect()->route('tickets.preview', ['ticket' => $ticket->ticket_id]);
+                }
+            }
+        }
+        return Inertia::render('Canvas', [
+            'ticket' => $ticket
         ]);
     }
 }

@@ -27,6 +27,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const onDrop = useCallback(
     (acceptedFiles) => {
@@ -70,7 +71,6 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
     });
   };
 
-  // In your CanvasForm.jsx
   const generateTicket = async () => {
     if (ticketRef.current) {
       setIsGenerating(true);
@@ -83,9 +83,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           backgroundColor: null,
           skipFonts: false,
           filter: (node) => {
-            // Ensure text nodes are included
             if (node.nodeType === 3 || node.nodeType === 1) {
-              // Text node
               return true;
             }
             return false;
@@ -93,7 +91,6 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
         });
 
         const ticketData = {
-          ticketId: ticketInfo.ticketId,
           eventName: ticketInfo.eventName,
           eventLocation: ticketInfo.eventLocation,
           date: ticketInfo.date,
@@ -101,39 +98,33 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           section: ticketInfo.section,
           row: ticketInfo.row,
           seat: ticketInfo.seat,
-          backgroundImage: ticketInfo.backgroundImage,
           generatedTicket: dataUrl,
-          filename: ticketInfo.filename,
           template: ticketInfo.template || "modern",
         };
 
         const response = await axios.post(route("tickets.store"), ticketData);
         const ticket = response.data.ticket;
 
-        if (!ticketInfo.ticketId && ticket) {
-          router.visit(route("canvas", { ticket: ticket.ticket_id }), {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
+        if (ticket) {
+          window.location.href = route("tickets.preview", {
+            ticket: ticket.ticket_id,
           });
-          setTicketInfo((prev) => ({
-            ...prev,
-            ticketId: ticket.ticket_id,
-          }));
         }
 
         setStatus("success");
+        setSuccessMessage("Ticket created successfully!");
       } catch (error) {
-        console.error("Failed to save ticket:", error);
+        console.error("Failed to create ticket:", error);
         setStatus("error");
         setErrorMessage(
-          error.response?.data?.message || "Failed to save ticket"
+          error.response?.data?.message || "Failed to create ticket"
         );
       } finally {
         setIsGenerating(false);
         setTimeout(() => {
           setStatus(null);
           setErrorMessage("");
+          setSuccessMessage("");
         }, 3000);
       }
     }
@@ -153,17 +144,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           <Select
             value={ticketInfo.template || "modern"}
             onValueChange={(value) => {
-              // Clear background image if switching away from modern template
-              if (value !== "modern") {
-                setTicketInfo((prev) => ({
-                  ...prev,
-                  template: value,
-                  backgroundImage: null,
-                  filename: null,
-                }));
-              } else {
-                setTicketInfo((prev) => ({ ...prev, template: value }));
-              }
+              setTicketInfo((prev) => ({ ...prev, template: value }));
             }}
           >
             <SelectTrigger>
@@ -176,55 +157,6 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
             </SelectContent>
           </Select>
         </div>
-
-        {/* Background Image Upload - Only show for modern template */}
-        {ticketInfo.template === "modern" && (
-          <div className="space-y-2">
-            <p className="text-sm text-sky-900/70 mb-4">
-              Add a background image to make your ticket pop
-            </p>
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer
-                ${
-                  isDragActive
-                    ? "border-sky-400 bg-sky-50"
-                    : ticketInfo.backgroundImage
-                    ? "bg-sky-50/50 border-sky-300 hover:border-sky-400"
-                    : "bg-sky-50 border-sky-200 hover:border-sky-300"
-                }`}
-            >
-              <input {...getInputProps()} />
-              <div className="flex flex-col items-center">
-                {isDragActive ? (
-                  <>
-                    <ArrowDown className="mx-auto h-12 w-12 text-sky-500 mb-2 animate-bounce" />
-                    <p className="text-sm text-sky-700">Drop your image here</p>
-                  </>
-                ) : (
-                  <>
-                    <ArrowDown className="mx-auto h-8 w-8 text-sky-500 mb-2" />
-                    <p className="text-sm text-sky-700">
-                      {ticketInfo.backgroundImage
-                        ? "Click or drag to change image"
-                        : "Drag and drop an image here, or click to select"}
-                    </p>
-                    {!ticketInfo.backgroundImage && (
-                      <p className="text-xs text-sky-500 mt-2">
-                        Supports: JPG, PNG, GIF, WEBP
-                      </p>
-                    )}
-                    {ticketInfo.filename && (
-                      <p className="text-xs text-sky-900/70 mt-1">
-                        Current: {ticketInfo.filename}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Event Details */}
         <div className="space-y-4">
@@ -322,50 +254,27 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </div>
         </div>
 
-        {status && (
-          <Alert variant={status}>
-            <AlertDescription variant={status}>
-              {status === "success"
-                ? `Ticket ${
-                    ticketInfo.ticketId ? "updated" : "created"
-                  } successfully!`
-                : errorMessage}
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">
-          <Button
-            onClick={generateTicket}
-            disabled={isGenerating}
-            className="w-full bg-sky-900 hover:bg-sky-800 text-white"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {ticketInfo.ticketId
-                  ? "Saving Changes..."
-                  : "Creating Your Ticket..."}
-              </>
-            ) : (
-              <>
-                {ticketInfo.ticketId ? (
-                  <>
-                    <Check className="mr-2 h-4 w-4" />
-                    Save Changes
-                  </>
-                ) : (
-                  <>
-                    <TicketPlus className="mr-2 h-4 w-4" />
-                    Create Your Ticket
-                  </>
-                )}
-              </>
-            )}
-          </Button>
-
-          {ticketInfo.ticketId && !ticketInfo.isPaid && (
+          {!ticketInfo.ticketId ? (
+            <Button
+              onClick={generateTicket}
+              disabled={isGenerating}
+              className="w-full bg-sky-900 hover:bg-sky-800 text-white"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Your Ticket...
+                </>
+              ) : (
+                <>
+                  <TicketPlus className="mr-2 h-4 w-4" />
+                  Create Your Ticket
+                </>
+              )}
+            </Button>
+          ) : (
             <Button
               onClick={handlePurchase}
               className="w-full bg-orange-400 hover:bg-orange-500 text-white"
@@ -375,6 +284,14 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
             </Button>
           )}
         </div>
+
+        {status && (
+          <Alert variant={status}>
+            <AlertDescription variant={status}>
+              {status === "success" ? successMessage : errorMessage}
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     </div>
   );

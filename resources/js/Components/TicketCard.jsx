@@ -37,11 +37,7 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
       >
         <CardContent className="p-6">
           <Link
-            href={
-              ticket.isPaid
-                ? route("tickets.preview", { ticket: ticket.ticket_id })
-                : route("canvas", { ticket: ticket.ticket_id })
-            }
+            href={route("tickets.preview", { ticket: ticket.ticket_id })}
             className={`block transition-transform ${
               isDropdownOpen ? "scale-[1.02]" : "group-hover:scale-[1.02]"
             }`}
@@ -84,11 +80,7 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
             </div>
 
             <div className="text-sm text-gray-500 mt-auto">
-              {ticket.updated_at !== ticket.created_at ? (
-                <>Updated {dayjs(ticket.lastUpdated).fromNow()}</>
-              ) : (
-                <>Created {dayjs(ticket.created).fromNow()}</>
-              )}
+              Created {dayjs(ticket.created).fromNow()}
             </div>
           </Link>
 

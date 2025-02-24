@@ -78,29 +78,15 @@ export default function Index({ tickets }) {
 
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-          {/* Header Section */}
+          {/* Header Section - Removed the Create button */}
           <div className="space-y-4">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <h1 className="text-3xl font-bold text-sky-900">
-                  Your Ticket Collection
-                </h1>
-                <p className="text-sky-900/70 text-lg">
-                  Design, customize, and share your event tickets
-                </p>
-              </div>
-              <Link href={route("canvas")}>
-                <button className="bg-orange-400 text-white px-4 py-3 rounded-lg font-medium hover:bg-orange-500 transform hover:scale-105 transition-all duration-300 ease-in-out group">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="relative">
-                      <Ticket className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                    </div>
-                    <span className="text-lg font-bold">
-                      Create Your Masterpiece
-                    </span>
-                  </div>
-                </button>
-              </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-sky-900">
+                Your Ticket Collection
+              </h1>
+              <p className="text-sky-900/70 text-lg">
+                Design, customize, and share your event tickets
+              </p>
             </div>
           </div>
 

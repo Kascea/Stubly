@@ -15,27 +15,7 @@ use Illuminate\Support\Str;
 
 Route::middleware(['auth', 'verified'])->group(function () {
   // Main canvas page
-  Route::get('/', function (Request $request) {
-    $ticket = null;
-    if ($request->has('ticket')) {
-      $ticket = Ticket::where('ticket_id', $request->ticket)
-        ->where('user_id', auth()->id())
-        ->first();
-
-      if ($ticket) {
-        $isPaid = Payment::where('ticket_id', $ticket->id)
-          ->where('payment_status', 'paid')
-          ->exists();
-
-        if ($isPaid) {
-          return redirect()->route('tickets.preview', ['ticket' => $ticket->ticket_id]);
-        }
-      }
-    }
-    return Inertia::render('Canvas', [
-      'ticket' => $ticket
-    ]);
-  })->name('canvas');
+  Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
 
   // Ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
