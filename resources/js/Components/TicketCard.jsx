@@ -11,6 +11,8 @@ import {
   CreditCard,
   Share2,
   LinkIcon,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,10 +23,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import dayjs from "dayjs";
 import { useState } from "react";
+import { calculateDaysRemaining } from "@/utils/ticketUtils";
 
 export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
   const { toast } = useToast();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Use the utility function instead of local calculation
+  const daysRemaining = calculateDaysRemaining(ticket, ticket.isPaid);
 
   return (
     <div className="relative group">
@@ -35,6 +41,29 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
             : "hover:border-orange-200 hover:shadow-lg"
         }`}
       >
+        {/* Warning banner for unpaid tickets close to expiring */}
+        {!ticket.isPaid && daysRemaining <= 7 && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center text-amber-800 text-sm">
+            <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>
+              {daysRemaining > 1
+                ? `Expires in ${daysRemaining} days`
+                : daysRemaining === 1
+                ? "Expires tomorrow"
+                : daysRemaining === 0
+                ? "Expires today"
+                : "Expired"}
+              {" - "}
+              <Link
+                href={route("payment.checkout", { ticket: ticket.ticket_id })}
+                className="font-medium underline hover:text-amber-900"
+              >
+                Pay now
+              </Link>
+            </span>
+          </div>
+        )}
+
         <CardContent className="p-6">
           <Link
             href={route("tickets.preview", { ticket: ticket.ticket_id })}

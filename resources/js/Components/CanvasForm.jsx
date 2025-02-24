@@ -9,6 +9,13 @@ import {
   Loader2,
   CreditCard,
   TicketPlus,
+  X,
+  CloudUpload,
+  Palette,
+  MapPin,
+  Calendar,
+  LayoutGrid,
+  Image,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { domToPng } from "modern-screenshot";
@@ -63,12 +70,6 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
 
   const handleDateTimeChange = (name, value) => {
     setTicketInfo((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handlePurchase = () => {
-    window.location.href = route("payment.checkout", {
-      ticket: ticketInfo.ticketId,
-    });
   };
 
   const generateTicket = async () => {
@@ -132,19 +133,25 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
-      <div className="space-y-6">
-        {/* Template Selection */}
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-sky-900">
-            Choose Your Style
-          </h3>
-          <p className="text-sm text-sky-900/70 mb-4">
-            Select a template that matches your event's vibe
-          </p>
+      <div className="space-y-2">
+        {/* SECTION: Template Selection */}
+        <div className="pb-4 border-b border-gray-100">
+          <div className="flex items-center mb-2 text-sky-900">
+            <Palette className="h-4 w-4 mr-2 text-orange-500" />
+            <h3 className="text-base font-semibold">Choose Your Style</h3>
+          </div>
           <Select
             value={ticketInfo.template || "modern"}
             onValueChange={(value) => {
-              setTicketInfo((prev) => ({ ...prev, template: value }));
+              if (value !== "modern" && ticketInfo.backgroundImage) {
+                setTicketInfo((prev) => ({
+                  ...prev,
+                  template: value,
+                  backgroundImage: null,
+                }));
+              } else {
+                setTicketInfo((prev) => ({ ...prev, template: value }));
+              }
             }}
           >
             <SelectTrigger>
@@ -158,9 +165,14 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </Select>
         </div>
 
-        {/* Event Details */}
-        <div className="space-y-4">
-          <div className="space-y-4">
+        {/* SECTION: Event Details */}
+        <div className="py-4 border-b border-gray-100">
+          <div className="flex items-center mb-2 text-sky-900">
+            <Calendar className="h-4 w-4 mr-2 text-orange-500" />
+            <h3 className="text-base font-semibold">Event Details</h3>
+          </div>
+
+          <div className="space-y-3">
             <div>
               <Label htmlFor="eventName" className="text-sky-900">
                 Event Name
@@ -201,12 +213,11 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </div>
         </div>
 
-        {/* Seating Details */}
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-sky-900">
-              Seating Details
-            </h3>
+        {/* SECTION: Seating Details */}
+        <div className="py-4 border-b border-gray-100">
+          <div className="flex items-center mb-2 text-sky-900">
+            <LayoutGrid className="h-4 w-4 mr-2 text-orange-500" />
+            <h3 className="text-base font-semibold">Seating Details</h3>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -254,42 +265,81 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3 pt-4">
-          {!ticketInfo.ticketId ? (
-            <Button
-              onClick={generateTicket}
-              disabled={isGenerating}
-              className="w-full bg-sky-900 hover:bg-sky-800 text-white"
+        {/* SECTION: Background Image - Only for Modern Template */}
+        {ticketInfo.template === "modern" && (
+          <div className="py-4 border-b border-gray-100">
+            <div className="flex items-center mb-2 text-sky-900">
+              <Image className="h-4 w-4 mr-2 text-orange-500" />
+              <h3 className="text-base font-semibold">Background Image</h3>
+            </div>
+
+            <div
+              className="border-2 border-dashed border-orange-200 rounded-lg p-4 text-center hover:bg-orange-50 transition-colors cursor-pointer"
+              {...getRootProps()}
             >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Your Ticket...
-                </>
-              ) : (
-                <>
-                  <TicketPlus className="mr-2 h-4 w-4" />
-                  Create Your Ticket
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={handlePurchase}
-              className="w-full bg-orange-400 hover:bg-orange-500 text-white"
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              Purchase This Design
-            </Button>
-          )}
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center">
+                <CloudUpload className="h-8 w-8 text-orange-300" />
+                <p className="mt-1 text-sm text-sky-900/70">
+                  {ticketInfo.backgroundImage
+                    ? "Image uploaded! Click to change"
+                    : "Drag and drop an image, or click to select"}
+                </p>
+
+                {ticketInfo.backgroundImage && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTicketInfo((prev) => ({
+                        ...prev,
+                        backgroundImage: null,
+                      }));
+                    }}
+                    className="mt-1 text-xs text-orange-500 hover:text-orange-600 flex items-center"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Remove image
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: Action Buttons - Simplified for ticket creation only */}
+        <div className="pt-2">
+          <Button
+            onClick={generateTicket}
+            disabled={isGenerating}
+            className="w-full bg-sky-900 hover:bg-sky-800 text-white py-6 text-lg"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Creating Your Ticket...
+              </>
+            ) : (
+              <>
+                <TicketPlus className="mr-2 h-5 w-5" />
+                Create Your Ticket
+              </>
+            )}
+          </Button>
         </div>
 
-        {status && (
-          <Alert variant={status}>
-            <AlertDescription variant={status}>
-              {status === "success" ? successMessage : errorMessage}
-            </AlertDescription>
+        {/* Status Messages */}
+        {status === "success" && (
+          <Alert className="mt-4 bg-green-50 border-green-200 text-green-800">
+            <Check className="h-4 w-4" />
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
+        )}
+
+        {status === "error" && (
+          <Alert className="mt-4 bg-red-50 border-red-200 text-red-800">
+            <X className="h-4 w-4" />
+            <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         )}
       </div>

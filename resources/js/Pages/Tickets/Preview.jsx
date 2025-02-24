@@ -12,13 +12,22 @@ import {
   UserPlus,
   Link as LinkIcon,
   CreditCard,
+  AlertTriangle,
+  Ticket,
+  Wallet,
+  CheckCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ShareDropdown from "@/Components/ShareDropdown";
+import dayjs from "dayjs";
+import { calculateDaysRemaining } from "@/utils/ticketUtils";
 
 export default function Preview({ ticket, isPaid, isOwner, auth }) {
   const { toast } = useToast();
   const Layout = auth.user ? AuthenticatedLayout : GuestLayout;
+
+  // Use the utility function instead of local calculation
+  const daysRemaining = calculateDaysRemaining(ticket, isPaid);
 
   // We still need the download handler because it requires special handling
   const handleDownload = () => {
@@ -37,7 +46,7 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
       <div className="py-6">
         <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
           <div className="space-y-6">
-            {/* Header Section - Redesigned to be more compact */}
+            {/* Header Section */}
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold text-sky-900">
@@ -51,7 +60,7 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
                   isPaid ? (
                     <Button
                       onClick={handleDownload}
-                      className="bg-sky-900 hover:bg-sky-800 text-white"
+                      className="bg-orange-400 hover:bg-orange-500 text-white"
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download Ticket
@@ -72,7 +81,7 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
                     href={route("tickets.duplicate", {
                       ticket: ticket.ticket_id,
                     })}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-sky-900 hover:bg-sky-800 text-white h-10 px-4 py-2"
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-orange-400 hover:bg-orange-500 text-white h-10 px-4 py-2"
                   >
                     <Copy className="mr-2 h-4 w-4" />
                     Make It Yours
@@ -88,7 +97,7 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
                     </Link>
                     <Link
                       href={route("register", redirectParams)}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-sky-900 hover:bg-sky-800 text-white h-10 px-4 py-2"
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-orange-400 hover:bg-orange-500 text-white h-10 px-4 py-2"
                     >
                       <UserPlus className="mr-2 h-4 w-4" />
                       Join Now
@@ -103,18 +112,68 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
               </div>
             </div>
 
-            {/* Ticket Preview - Now displaying the generated image */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            {/* Ticket Preview */}
+            <div className="rounded-lg p-6">
               <div className="max-w-3xl mx-auto">
                 {ticket.generated_ticket_url ? (
-                  <img
-                    src={ticket.generated_ticket_url}
-                    alt={`Ticket for ${ticket.event_name}`}
-                    className="mx-auto w-full max-w-lg rounded-sm shadow-lg"
-                  />
+                  <div className="relative mx-auto w-full max-w-lg">
+                    <img
+                      src={ticket.generated_ticket_url}
+                      alt={`Ticket for ${ticket.event_name}`}
+                      className="w-full rounded-sm shadow-lg"
+                    />
+
+                    {/* Watermark overlay for unpaid tickets - improved for all ticket orientations */}
+                    {!isPaid && (
+                      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute -inset-[50%] w-[300%] h-[300%] flex flex-col justify-around -rotate-45 -translate-y-1/4">
+                          {/* Increase rows for better coverage */}
+                          {Array.from({ length: 10 }).map((_, rowIndex) => (
+                            <div
+                              key={rowIndex}
+                              className="flex justify-around w-full"
+                            >
+                              {/* Increase columns for better horizontal coverage */}
+                              {Array.from({ length: 8 }).map((_, colIndex) => (
+                                <span
+                                  key={colIndex}
+                                  className="text-red-500 opacity-10 text-2xl font-bold uppercase whitespace-nowrap px-4"
+                                >
+                                  Preview Only
+                                </span>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className="bg-gray-100 p-10 text-center rounded-sm text-gray-500">
                     Ticket image not available
+                  </div>
+                )}
+
+                {/* Warning message for expiring tickets */}
+                {isOwner && !isPaid && daysRemaining <= 7 && (
+                  <div className="mt-4 text-xs bg-amber-100 border border-amber-300 rounded-md p-3 flex items-start shadow-sm">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-amber-800">
+                        This ticket will expire in {daysRemaining}{" "}
+                        {daysRemaining === 1 ? "day" : "days"}
+                      </p>
+                      <p className="text-amber-700 mt-0.5">
+                        <Link
+                          href={route("payment.checkout", {
+                            ticket: ticket.ticket_id,
+                          })}
+                          className="font-medium underline hover:text-amber-900"
+                        >
+                          Purchase now
+                        </Link>
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
