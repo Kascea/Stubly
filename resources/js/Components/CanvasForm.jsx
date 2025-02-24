@@ -143,7 +143,11 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           <Select
             value={ticketInfo.template || "modern"}
             onValueChange={(value) => {
-              if (value !== "modern" && ticketInfo.backgroundImage) {
+              if (
+                value !== "modern" &&
+                value !== "modern-horizontal" &&
+                ticketInfo.backgroundImage
+              ) {
                 setTicketInfo((prev) => ({
                   ...prev,
                   template: value,
@@ -158,7 +162,10 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="modern">Modern & Clean</SelectItem>
+              <SelectItem value="modern">Modern & Clean (Portrait)</SelectItem>
+              <SelectItem value="modern-horizontal">
+                Modern & Clean (Landscape)
+              </SelectItem>
               <SelectItem value="classic">Classic & Elegant</SelectItem>
               <SelectItem value="creative">Creative & Unique</SelectItem>
             </SelectContent>
@@ -265,8 +272,9 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </div>
         </div>
 
-        {/* SECTION: Background Image - Only for Modern Template */}
-        {ticketInfo.template === "modern" && (
+        {/* SECTION: Background Image - Only for Modern Templates */}
+        {(ticketInfo.template === "modern" ||
+          ticketInfo.template === "modern-horizontal") && (
           <div className="py-4 border-b border-gray-100">
             <div className="flex items-center mb-2 text-sky-900">
               <Image className="h-4 w-4 mr-2 text-orange-500" />

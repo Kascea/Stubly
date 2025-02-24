@@ -50,10 +50,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/status', [PaymentController::class, 'status'])
       ->middleware(['auth'])
       ->name('status');
-
-    // Webhook endpoint for Stripe (no auth middleware needed)
-    Route::post('/webhook', [PaymentController::class, 'webhook'])
-      ->name('webhook');
   });
 
   // Profile routes
