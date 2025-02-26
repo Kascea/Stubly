@@ -110,11 +110,6 @@ export default function Index({ tickets }) {
               ) : (
                 <div className="col-span-3 text-center py-8">
                   <p className="text-gray-500 mb-4">No tickets found</p>
-                  <Link href={route("tickets.create")}>
-                    <Button className="bg-sky-600 hover:bg-sky-700">
-                      Create Your First Ticket
-                    </Button>
-                  </Link>
                 </div>
               )}
             </div>
