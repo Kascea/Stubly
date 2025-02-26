@@ -26,7 +26,8 @@ class Ticket extends Model
     'row',
     'seat',
     'generated_ticket_path',
-    'template'
+    'template',
+    'template_id',
   ];
 
   protected $casts = [
@@ -95,5 +96,13 @@ class Ticket extends Model
     if (!$this->background_image_path)
       return null;
     return config('filesystems.disks.r2.url') . '/' . $this->background_image_path;
+  }
+
+  /**
+   * Get the template that owns the ticket.
+   */
+  public function template()
+  {
+    return $this->belongsTo(Template::class);
   }
 }

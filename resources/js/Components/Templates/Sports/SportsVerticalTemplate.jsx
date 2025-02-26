@@ -13,7 +13,7 @@ const generateBarcodePattern = () => {
   )}</svg>`;
 };
 
-const ModernTemplate = forwardRef(({ ticketInfo }, ref) => {
+const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div
@@ -146,6 +146,6 @@ const ModernTemplate = forwardRef(({ ticketInfo }, ref) => {
   );
 });
 
-ModernTemplate.displayName = "ModernTemplate";
+SportsVerticalTemplate.displayName = "SportsVerticalTemplate";
 
-export default ModernTemplate;
+export default SportsVerticalTemplate;

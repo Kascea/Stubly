@@ -5,6 +5,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Middleware\VerifyTicketOwner;
 use App\Http\Middleware\VerifyPayment;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 

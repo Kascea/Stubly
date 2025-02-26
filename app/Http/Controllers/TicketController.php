@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -212,8 +213,13 @@ class TicketController extends Controller
         ]);
     }
 
-    public function canvas(Request $request)
+    public function canvas()
     {
-        return Inertia::render('Canvas');
+        // Load categories with their templates
+        $categories = Category::with('templates')->get();
+
+        return Inertia::render('Canvas', [
+            'categories' => $categories
+        ]);
     }
 }

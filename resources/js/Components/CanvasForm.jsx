@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
@@ -29,12 +29,61 @@ import {
   SelectValue,
 } from "@/Components/ui/select";
 import { useDropzone } from "react-dropzone";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 
-export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
+export default function CanvasForm({
+  ticketInfo,
+  setTicketInfo,
+  ticketRef,
+  categories = [],
+}) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [templates, setTemplates] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Initialize with provided categories
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      // Set default category
+      const defaultCategory = categories[0];
+      setSelectedCategory(defaultCategory.id);
+      setTemplates(defaultCategory.templates);
+
+      // Set default template if none selected
+      if (defaultCategory.templates.length > 0 && !ticketInfo.template) {
+        setTicketInfo((prev) => ({
+          ...prev,
+          template: defaultCategory.templates[0].id,
+          template_id: defaultCategory.templates[0].id,
+        }));
+      }
+    }
+  }, [categories]);
+
+  // Update templates when category changes
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    const category = categories.find((c) => c.id === categoryId);
+    if (category) {
+      setTemplates(category.templates);
+
+      // Set default template for this category
+      if (category.templates.length > 0) {
+        setTicketInfo((prev) => ({
+          ...prev,
+          template: category.templates[0].id,
+          template_id: category.templates[0].id,
+          // Clear background image if new template doesn't support it
+          backgroundImage: category.templates[0].supports_background_image
+            ? prev.backgroundImage
+            : null,
+        }));
+      }
+    }
+  };
 
   const onDrop = useCallback(
     (acceptedFiles) => {
@@ -101,6 +150,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           seat: ticketInfo.seat,
           generatedTicket: dataUrl,
           template: ticketInfo.template || "modern",
+          template_id: ticketInfo.template_id,
         };
 
         const response = await axios.post(route("tickets.store"), ticketData);
@@ -131,45 +181,72 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
     }
   };
 
+  // Get the current template object
+  const currentTemplate = templates.find((t) => t.id === ticketInfo.template);
+  const supportsBackgroundImage =
+    currentTemplate?.supports_background_image || false;
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
       <div className="space-y-2">
-        {/* SECTION: Template Selection */}
+        {/* SECTION: Category Selection */}
         <div className="pb-4 border-b border-gray-100">
           <div className="flex items-center mb-2 text-sky-900">
             <Palette className="h-4 w-4 mr-2 text-orange-500" />
-            <h3 className="text-base font-semibold">Choose Your Style</h3>
+            <h3 className="text-base font-semibold">Choose a Category</h3>
           </div>
-          <Select
-            value={ticketInfo.template || "modern"}
-            onValueChange={(value) => {
-              if (
-                value !== "modern" &&
-                value !== "modern-horizontal" &&
-                ticketInfo.backgroundImage
-              ) {
-                setTicketInfo((prev) => ({
-                  ...prev,
-                  template: value,
-                  backgroundImage: null,
-                }));
-              } else {
-                setTicketInfo((prev) => ({ ...prev, template: value }));
-              }
-            }}
+
+          <Tabs
+            defaultValue={selectedCategory}
+            onValueChange={handleCategoryChange}
+            className="w-full"
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="modern">Modern & Clean (Portrait)</SelectItem>
-              <SelectItem value="modern-horizontal">
-                Modern & Clean (Landscape)
-              </SelectItem>
-              <SelectItem value="classic">Classic & Elegant</SelectItem>
-              <SelectItem value="creative">Creative & Unique</SelectItem>
-            </SelectContent>
-          </Select>
+            <TabsList className="w-full">
+              {categories.map((category) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id}
+                  className="flex-1"
+                >
+                  {category.id}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {categories.map((category) => (
+              <TabsContent key={category.id} value={category.id}>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {category.templates.map((template) => (
+                    <div
+                      key={template.id}
+                      className={`border rounded-md p-2 cursor-pointer transition-all ${
+                        ticketInfo.template === template.id
+                          ? "border-orange-500 bg-orange-50"
+                          : "border-gray-200 hover:border-orange-300"
+                      }`}
+                      onClick={() =>
+                        setTicketInfo((prev) => ({
+                          ...prev,
+                          template: template.id,
+                          template_id: template.id,
+                          backgroundImage: !template.supports_background_image
+                            ? null
+                            : prev.backgroundImage,
+                        }))
+                      }
+                    >
+                      <div className="aspect-[16/9] bg-gray-100 rounded mb-2">
+                        {/* No thumbnail available in the data */}
+                      </div>
+                      <div className="text-sm font-medium text-center">
+                        {template.id}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
 
         {/* SECTION: Event Details */}
@@ -272,9 +349,8 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </div>
         </div>
 
-        {/* SECTION: Background Image - Only for Modern Templates */}
-        {(ticketInfo.template === "modern" ||
-          ticketInfo.template === "modern-horizontal") && (
+        {/* SECTION: Background Image - Only for templates that support it */}
+        {supportsBackgroundImage && (
           <div className="py-4 border-b border-gray-100">
             <div className="flex items-center mb-2 text-sky-900">
               <Image className="h-4 w-4 mr-2 text-orange-500" />
@@ -315,7 +391,7 @@ export default function CanvasForm({ ticketInfo, setTicketInfo, ticketRef }) {
           </div>
         )}
 
-        {/* SECTION: Action Buttons - Simplified for ticket creation only */}
+        {/* SECTION: Action Buttons */}
         <div className="pt-2">
           <Button
             onClick={generateTicket}

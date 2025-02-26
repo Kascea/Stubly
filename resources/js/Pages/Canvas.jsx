@@ -2,12 +2,12 @@ import React, { useState, useRef } from "react"; // Remove useEffect import
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage } from "@inertiajs/react";
 import CanvasForm from "@/Components/CanvasForm";
-import TicketTemplate from "@/Components/TicketTemplate";
+import TicketVisualizer from "@/Components/TicketVisualizer";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { CheckCircle2 } from "lucide-react";
 
-export default function Canvas({ ticket = null }) {
+export default function Canvas({ categories, ticket = null }) {
   const { flash } = usePage().props;
   const [ticketInfo, setTicketInfo] = useState(
     ticket
@@ -61,7 +61,7 @@ export default function Canvas({ ticket = null }) {
         )}
 
         <div className="lg:w-2/3 p-4 lg:p-8 order-1 lg:order-2">
-          <TicketTemplate
+          <TicketVisualizer
             ref={ticketRef}
             template={ticketInfo.template}
             ticketInfo={ticketInfo}
@@ -75,6 +75,7 @@ export default function Canvas({ ticket = null }) {
             ticketInfo={ticketInfo}
             setTicketInfo={setTicketInfo}
             ticketRef={ticketRef}
+            categories={categories}
           />
         </div>
       </div>
