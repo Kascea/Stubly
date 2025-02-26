@@ -13,6 +13,8 @@ import {
   LinkIcon,
   Clock,
   AlertTriangle,
+  CheckCircle2,
+  Clock3,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,12 +27,19 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { calculateDaysRemaining } from "@/utils/ticketUtils";
 
-export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
+export default function TicketCard({
+  ticket,
+  onDeleteClick,
+  showDelete,
+  showStatusIndicator = false,
+}) {
   const { toast } = useToast();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Use the utility function instead of local calculation
   const daysRemaining = calculateDaysRemaining(ticket, ticket.isPaid);
+
+  console.log(ticket);
 
   return (
     <div className="relative group">
@@ -41,6 +50,29 @@ export default function TicketCard({ ticket, onDeleteClick, showDelete }) {
             : "hover:border-orange-200 hover:shadow-lg"
         }`}
       >
+        {/* Status indicator */}
+        {showStatusIndicator && (
+          <div
+            className={`absolute top-3 right-3 z-10 rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1 ${
+              ticket.isPaid
+                ? "bg-green-100 text-green-800"
+                : "bg-amber-100 text-amber-800"
+            }`}
+          >
+            {ticket.isPaid ? (
+              <>
+                <CheckCircle2 className="h-3 w-3" />
+                <span>Purchased</span>
+              </>
+            ) : (
+              <>
+                <Clock3 className="h-3 w-3" />
+                <span>Awaiting payment</span>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Warning banner for unpaid tickets close to expiring */}
         {!ticket.isPaid && daysRemaining <= 7 && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center text-amber-800 text-sm">

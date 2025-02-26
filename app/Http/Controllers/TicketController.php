@@ -16,6 +16,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class TicketController extends Controller
 {
+
     public function store(Request $request)
     {
         try {
@@ -27,7 +28,8 @@ class TicketController extends Controller
                 'template' => $request->template,
                 'event_name' => $request->eventName,
                 'event_location' => $request->eventLocation,
-                'event_datetime' => $request->date . ' ' . $request->time,
+                'event_datetime' => (new \DateTime($request->date))->format('Y-m-d') . ' ' .
+                    (new \DateTime($request->time))->format('H:i:s'),
                 'section' => $request->section,
                 'row' => $request->row,
                 'seat' => $request->seat,
@@ -44,6 +46,9 @@ class TicketController extends Controller
                 'ticket' => $ticket
             ]);
         } catch (\Exception $e) {
+            Log::error('Ticket creation failed', [
+                'message' => $e->getMessage(),
+            ]);
             return $this->handleError($e);
         }
     }

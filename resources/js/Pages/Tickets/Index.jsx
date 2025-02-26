@@ -32,14 +32,18 @@ dayjs.extend(relativeTime);
 export default function Index({ tickets }) {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState(null);
-  const [showUnpaid, setShowUnpaid] = useState(true);
-  const [showPaid, setShowPaid] = useState(true);
   const { flash } = usePage().props;
   const { toast } = useToast();
 
-  // Separate tickets into paid and unpaid
-  const paidTickets = tickets.filter((ticket) => ticket.isPaid);
-  const unpaidTickets = tickets.filter((ticket) => !ticket.isPaid);
+  // Sort tickets - paid tickets first, then by creation date (newest first)
+  const sortedTickets = [...tickets].sort((a, b) => {
+    // First sort by paid status
+    if (a.isPaid && !b.isPaid) return -1;
+    if (!a.isPaid && b.isPaid) return 1;
+
+    // Then sort by creation date (newest first)
+    return new Date(b.created) - new Date(a.created);
+  });
 
   const handleDeleteClick = (ticketId) => {
     setTicketToDelete(ticketId);
@@ -78,7 +82,7 @@ export default function Index({ tickets }) {
 
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-          {/* Header Section - Removed the Create button */}
+          {/* Header Section */}
           <div className="space-y-4">
             <div>
               <h1 className="text-3xl font-bold text-sky-900">
@@ -90,96 +94,29 @@ export default function Index({ tickets }) {
             </div>
           </div>
 
-          {/* Paid Tickets Section - Moved to top */}
-          <div className="rounded-lg shadow">
-            <button
-              onClick={() => setShowPaid(!showPaid)}
-              className="w-full flex justify-between items-center p-6 hover:bg-sky-50 transition-colors rounded-t-lg"
-            >
-              <div>
-                <h2 className="text-2xl font-bold text-sky-900">
-                  Ready for the Event
-                </h2>
-                <p className="text-sm text-sky-900/70">
-                  Your purchased and completed tickets
-                </p>
-              </div>
-              <div
-                className={`transform transition-transform duration-200 ${
-                  showPaid ? "rotate-180" : ""
-                }`}
-              >
-                <ChevronDown className="h-6 w-6 text-gray-500" />
-              </div>
-            </button>
-            <div
-              className={`transition-all duration-200 ease-in-out ${
-                showPaid ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
-              } overflow-hidden`}
-            >
-              <div className="p-6 pt-0">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {paidTickets.map((ticket) => (
-                    <TicketCard
-                      key={ticket.ticket_id}
-                      ticket={ticket}
-                      showDelete={false}
-                    />
-                  ))}
-                  {paidTickets.length === 0 && (
-                    <p className="text-gray-500 col-span-3 text-center py-4">
-                      No purchased tickets
-                    </p>
-                  )}
+          {/* All Tickets Section */}
+          <div className="rounded-lg p-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {sortedTickets.length > 0 ? (
+                sortedTickets.map((ticket) => (
+                  <TicketCard
+                    key={ticket.ticket_id}
+                    ticket={ticket}
+                    onDeleteClick={handleDeleteClick}
+                    showDelete={!ticket.isPaid}
+                    showStatusIndicator={true}
+                  />
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-8">
+                  <p className="text-gray-500 mb-4">No tickets found</p>
+                  <Link href={route("tickets.create")}>
+                    <Button className="bg-sky-600 hover:bg-sky-700">
+                      Create Your First Ticket
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Unpaid Tickets Section - Moved to bottom */}
-          <div className="rounded-lg shadow">
-            <button
-              onClick={() => setShowUnpaid(!showUnpaid)}
-              className="w-full flex justify-between items-center p-6 hover:bg-sky-50 transition-colors rounded-t-lg"
-            >
-              <div>
-                <h2 className="text-2xl font-bold text-sky-900">
-                  Design in Progress
-                </h2>
-                <p className="text-sm text-sky-900/70">
-                  Tickets you're currently working on
-                </p>
-              </div>
-              <div
-                className={`transform transition-transform duration-200 ${
-                  showUnpaid ? "rotate-180" : ""
-                }`}
-              >
-                <ChevronDown className="h-6 w-6 text-gray-500" />
-              </div>
-            </button>
-            <div
-              className={`transition-all duration-200 ease-in-out ${
-                showUnpaid ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
-              } overflow-hidden`}
-            >
-              <div className="p-6 pt-0">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {unpaidTickets.map((ticket) => (
-                    <TicketCard
-                      key={ticket.ticket_id}
-                      ticket={ticket}
-                      onDeleteClick={handleDeleteClick}
-                      showDelete={true}
-                    />
-                  ))}
-                  {unpaidTickets.length === 0 && (
-                    <p className="text-gray-500 col-span-3 text-center py-4">
-                      No unpaid tickets
-                    </p>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
