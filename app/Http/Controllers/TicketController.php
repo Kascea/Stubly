@@ -6,12 +6,13 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class TicketController extends Controller
 {
@@ -20,9 +21,17 @@ class TicketController extends Controller
         try {
             $this->validateTicket($request);
 
-            $ticketData = $this->prepareTicketData($request);
-            $ticketData['user_id'] = auth()->id();
-            $ticketData['ticket_id'] = Str::uuid()->toString();
+            $ticketData = [
+                'ticket_id' => Str::uuid()->toString(),
+                'user_id' => auth()->id(),
+                'template' => $request->template,
+                'event_name' => $request->eventName,
+                'event_location' => $request->eventLocation,
+                'event_datetime' => $request->date . ' ' . $request->time,
+                'section' => $request->section,
+                'row' => $request->row,
+                'seat' => $request->seat,
+            ];
 
             // Only upload the generated ticket image
             $ticketData = $this->handleTicketImage($request, $ticketData);
@@ -41,17 +50,23 @@ class TicketController extends Controller
 
     protected function handleTicketImage(Request $request, array $ticketData): array
     {
-        // Handle generated ticket
         $image = $request->generatedTicket;
-        preg_match('/data:image\/(.*?);base64,/', $image, $matches);
-        $imageFormat = $matches[1] ?? 'png';
 
-        $image = $this->cleanBase64Data($image);
-        if ($decodedImage = base64_decode($image)) {
-            $imageName = 'tickets/' . uniqid() . '.' . $imageFormat;
-            if (!Storage::disk('r2')->put($imageName, $decodedImage)) {
+        // Clean the base64 data
+        $cleanedBase64 = $this->cleanBase64Data($image);
+
+        if ($decodedImage = base64_decode($cleanedBase64)) {
+            $imageName = uniqid() . '.webp';
+            // Use Intervention Image to convert to WebP
+            $manager = new ImageManager(new Driver());
+            $img = $manager->read($decodedImage);
+            $encodedImage = $img->toWebp(85);
+
+            // Save to storage
+            if (!Storage::disk('r2')->put($imageName, $encodedImage->toString())) {
                 throw new \Exception('Failed to save the ticket image');
             }
+
             $ticketData['generated_ticket_path'] = $imageName;
         }
 
@@ -87,20 +102,6 @@ class TicketController extends Controller
             'generatedTicket' => 'required|string',
             'template' => 'nullable|string'
         ]);
-    }
-
-    protected function prepareTicketData(Request $request): array
-    {
-        return [
-            'event_name' => $request->eventName,
-            'event_location' => $request->eventLocation,
-            'event_datetime' => (new DateTime($request->date))->format('Y-m-d') . ' ' .
-                (new DateTime($request->time))->format('H:i:s'),
-            'section' => $request->section,
-            'row' => $request->row,
-            'seat' => $request->seat,
-            'template' => $request->template ?? 'modern',
-        ];
     }
 
     protected function handleError(\Exception $e)
@@ -176,8 +177,8 @@ class TicketController extends Controller
 
         return Storage::disk('r2')->download(
             $ticket->generated_ticket_path,
-            $ticket->event_name . '-' . $ticket->event_location . '.png',
-            ['Content-Type' => 'image/png']
+            'CustomTicket-' . $ticket->ticket_id . '.webp',
+            ['Content-Type' => 'image/webp']
         );
     }
 
@@ -194,7 +195,6 @@ class TicketController extends Controller
 
     public function preview(Ticket $ticket)
     {
-        // Add background_url to the ticket data
         $ticket->load('payments');
 
         return Inertia::render('Tickets/Preview', [
@@ -209,24 +209,6 @@ class TicketController extends Controller
 
     public function canvas(Request $request)
     {
-        $ticket = null;
-        if ($request->has('ticket')) {
-            $ticket = Ticket::where('ticket_id', $request->ticket)
-                ->where('user_id', auth()->id())
-                ->first();
-
-            if ($ticket) {
-                $isPaid = Payment::where('ticket_id', $ticket->id)
-                    ->where('payment_status', 'paid')
-                    ->exists();
-
-                if ($isPaid) {
-                    return redirect()->route('tickets.preview', ['ticket' => $ticket->ticket_id]);
-                }
-            }
-        }
-        return Inertia::render('Canvas', [
-            'ticket' => $ticket
-        ]);
+        return Inertia::render('Canvas');
     }
 }

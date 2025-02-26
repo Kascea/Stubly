@@ -25,8 +25,6 @@ class Ticket extends Model
     'section',
     'row',
     'seat',
-    'background_image_path',
-    'background_filename',
     'generated_ticket_path',
     'template'
   ];
@@ -37,7 +35,6 @@ class Ticket extends Model
 
   protected $appends = [
     'generated_ticket_url',
-    'background_url'
   ];
 
   protected static function boot()

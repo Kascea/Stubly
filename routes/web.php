@@ -6,12 +6,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Middleware\VerifyTicketOwner;
 use App\Http\Middleware\VerifyPayment;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use App\Models\Ticket;
-use Illuminate\Http\Request;
-use Laravel\Cashier\Cashier;
-use App\Models\Payment;
-use Illuminate\Support\Str;
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
   // Main canvas page
