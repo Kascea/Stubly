@@ -43,6 +43,7 @@
         "modern-screenshot": "^4.5.5",
         "react-day-picker": "^8.10.1",
         "react-dropzone": "^14.3.5",
+        "react-scan": "^0.2.6",
         "tailwind-merge": "^2.5.5",
         "tailwindcss-animate": "^1.0.7"
     }

@@ -351,24 +351,26 @@ export default function CanvasForm({
 
         {/* SECTION: Background Image - Only for templates that support it */}
         {supportsBackgroundImage && (
-          <div className="py-4 border-b border-gray-100">
+          <div className="py-3 border-b border-gray-100">
             <div className="flex items-center mb-2 text-sky-900">
               <Image className="h-4 w-4 mr-2 text-orange-500" />
               <h3 className="text-base font-semibold">Background Image</h3>
             </div>
 
             <div
-              className="border-2 border-dashed border-orange-200 rounded-lg p-4 text-center hover:bg-orange-50 transition-colors cursor-pointer"
+              className="border border-dashed border-orange-200 rounded-lg p-3 hover:bg-orange-50 transition-colors cursor-pointer"
               {...getRootProps()}
             >
               <input {...getInputProps()} />
-              <div className="flex flex-col items-center">
-                <CloudUpload className="h-8 w-8 text-orange-300" />
-                <p className="mt-1 text-sm text-sky-900/70">
-                  {ticketInfo.backgroundImage
-                    ? "Image uploaded! Click to change"
-                    : "Drag and drop an image, or click to select"}
-                </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <CloudUpload className="h-5 w-5 text-orange-300 mr-2" />
+                  <p className="text-sm text-sky-900/70">
+                    {ticketInfo.backgroundImage
+                      ? "Image uploaded! Click to change"
+                      : "Drag and drop an image, or click to select"}
+                  </p>
+                </div>
 
                 {ticketInfo.backgroundImage && (
                   <button
@@ -380,10 +382,10 @@ export default function CanvasForm({
                         backgroundImage: null,
                       }));
                     }}
-                    className="mt-1 text-xs text-orange-500 hover:text-orange-600 flex items-center"
+                    className="text-sm text-orange-500 hover:text-orange-600 flex items-center"
                   >
-                    <X className="h-3 w-3 mr-1" />
-                    Remove image
+                    <X className="h-4 w-4 mr-1" />
+                    Remove
                   </button>
                 )}
               </div>

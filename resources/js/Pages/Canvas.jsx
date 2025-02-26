@@ -61,7 +61,7 @@ export default function Canvas({ categories, ticket = null }) {
         )}
 
         {/* Ticket Visualizer - Fixed position with navbar offset */}
-        <div className="lg:w-2/3 order-1 lg:order-2 lg:fixed lg:right-0 lg:top-16 lg:bottom-0 lg:w-2/3 flex items-center justify-center">
+        <div className="lg:w-3/5 order-1 lg:order-2 lg:fixed lg:right-0 lg:top-16 lg:bottom-0 flex items-center justify-center">
           <div className="p-4 lg:p-8 max-w-full">
             <TicketVisualizer
               ref={ticketRef}
@@ -72,7 +72,7 @@ export default function Canvas({ categories, ticket = null }) {
         </div>
 
         {/* Form - Scrollable with margin to account for fixed visualizer */}
-        <div className="lg:w-1/3 border-t lg:border-t-0 lg:border-l border-sky-200 p-4 lg:p-8 bg-white/80 backdrop-blur-sm shadow-lg order-2 lg:order-1 overflow-y-auto">
+        <div className="lg:w-2/5 border-t lg:border-t-0 lg:border-l border-sky-200 p-4 lg:p-8 bg-white/80 backdrop-blur-sm shadow-lg order-2 lg:order-1 overflow-y-auto">
           <h2 className="text-2xl font-bold text-sky-900 mb-6">
             Customize Your Ticket
           </h2>
