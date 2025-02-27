@@ -16,6 +16,7 @@ import {
   Calendar,
   LayoutGrid,
   Image,
+  Users,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { domToPng } from "modern-screenshot";
@@ -85,6 +86,7 @@ export default function CanvasForm({
     }
   };
 
+  // Main dropzone for background image
   const onDrop = useCallback(
     (acceptedFiles) => {
       const file = acceptedFiles[0];
@@ -103,8 +105,71 @@ export default function CanvasForm({
     [setTicketInfo]
   );
 
+  // Home team logo dropzone
+  const onHomeTeamLogoDrop = useCallback(
+    (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setTicketInfo((prev) => ({
+            ...prev,
+            homeTeamLogo: reader.result,
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    [setTicketInfo]
+  );
+
+  // Away team logo dropzone
+  const onAwayTeamLogoDrop = useCallback(
+    (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setTicketInfo((prev) => ({
+            ...prev,
+            awayTeamLogo: reader.result,
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    [setTicketInfo]
+  );
+
+  // Main dropzone for background image
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
+    },
+    maxFiles: 1,
+    multiple: false,
+  });
+
+  // Home team logo dropzone
+  const {
+    getRootProps: getHomeTeamLogoRootProps,
+    getInputProps: getHomeTeamLogoInputProps,
+  } = useDropzone({
+    onDrop: onHomeTeamLogoDrop,
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
+    },
+    maxFiles: 1,
+    multiple: false,
+  });
+
+  // Away team logo dropzone
+  const {
+    getRootProps: getAwayTeamLogoRootProps,
+    getInputProps: getAwayTeamLogoInputProps,
+  } = useDropzone({
+    onDrop: onAwayTeamLogoDrop,
     accept: {
       "image/*": [".jpeg", ".jpg", ".png", ".webp"],
     },
@@ -129,7 +194,7 @@ export default function CanvasForm({
       try {
         const dataUrl = await domToPng(ticketRef.current, {
           quality: 4.0,
-          scale: 2,
+          scale: 4,
           backgroundColor: null,
           skipFonts: false,
           filter: (node) => {
@@ -186,14 +251,39 @@ export default function CanvasForm({
   const supportsBackgroundImage =
     currentTemplate?.supports_background_image || false;
 
+  // Get template thumbnail based on template ID
+  const getTemplateThumbnail = (templateId) => {
+    try {
+      // Use a consistent path structure for all thumbnails
+      return `/images/thumbnails/${templateId}.jpg`;
+    } catch (e) {
+      console.error("Error loading thumbnail:", e);
+      return "/images/thumbnails/default.jpg";
+    }
+  };
+
+  // Handle thumbnail loading errors
+  const handleThumbnailError = (e) => {
+    e.target.onerror = null; // Prevent infinite error loop
+    e.target.src = "/images/thumbnails/default.jpg";
+  };
+
+  // Format template name for display
+  const formatTemplateName = (templateId) => {
+    return templateId
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
       <div className="space-y-2">
         {/* SECTION: Category Selection */}
-        <div className="pb-4 border-b border-gray-100">
+        <div className="pb-3 border-b border-gray-100">
           <div className="flex items-center mb-2 text-sky-900">
             <Palette className="h-4 w-4 mr-2 text-orange-500" />
-            <h3 className="text-base font-semibold">Choose a Category</h3>
+            <h3 className="text-base font-semibold">Choose a Template</h3>
           </div>
 
           <Tabs
@@ -235,11 +325,16 @@ export default function CanvasForm({
                         }))
                       }
                     >
-                      <div className="aspect-[16/9] bg-gray-100 rounded mb-2">
-                        {/* No thumbnail available in the data */}
+                      <div className="aspect-video bg-gray-100 rounded mb-1 overflow-hidden">
+                        <img
+                          src={getTemplateThumbnail(template.id)}
+                          alt={formatTemplateName(template.id)}
+                          className="w-full h-full object-cover"
+                          onError={handleThumbnailError}
+                        />
                       </div>
-                      <div className="text-sm font-medium text-center">
-                        {template.id}
+                      <div className="text-xs font-medium text-center">
+                        {formatTemplateName(template.id)}
                       </div>
                     </div>
                   ))}
@@ -249,8 +344,8 @@ export default function CanvasForm({
           </Tabs>
         </div>
 
-        {/* SECTION: Event Details */}
-        <div className="py-4 border-b border-gray-100">
+        {/* SECTION: Event Details - 2 column layout */}
+        <div className="py-3 border-b border-gray-100">
           <div className="flex items-center mb-2 text-sky-900">
             <Calendar className="h-4 w-4 mr-2 text-orange-500" />
             <h3 className="text-base font-semibold">Event Details</h3>
@@ -298,13 +393,13 @@ export default function CanvasForm({
         </div>
 
         {/* SECTION: Seating Details */}
-        <div className="py-4 border-b border-gray-100">
+        <div className="py-3 border-b border-gray-100">
           <div className="flex items-center mb-2 text-sky-900">
             <LayoutGrid className="h-4 w-4 mr-2 text-orange-500" />
             <h3 className="text-base font-semibold">Seating Details</h3>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <Label htmlFor="section" className="text-sky-900">
                 Section
@@ -344,6 +439,155 @@ export default function CanvasForm({
                 onChange={handleChange}
                 placeholder="Seat"
                 className="mt-1"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* NEW SECTION: Team Information */}
+        <div className="py-3 border-b border-gray-100">
+          <div className="flex items-center mb-2 text-sky-900">
+            <Users className="h-4 w-4 mr-2 text-orange-500" />
+            <h3 className="text-base font-semibold">Team Information</h3>
+          </div>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="homeTeam" className="text-sky-900">
+                  Home Team
+                </Label>
+                <Input
+                  id="homeTeam"
+                  name="homeTeam"
+                  value={ticketInfo.homeTeam || ""}
+                  onChange={handleChange}
+                  placeholder="Home Team Name"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="awayTeam" className="text-sky-900">
+                  Away Team
+                </Label>
+                <Input
+                  id="awayTeam"
+                  name="awayTeam"
+                  value={ticketInfo.awayTeam || ""}
+                  onChange={handleChange}
+                  placeholder="Away Team Name"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sky-900 block mb-1">
+                  Home Team Logo
+                </Label>
+                <div
+                  className="border border-dashed border-orange-200 rounded-lg p-3 hover:bg-orange-50 transition-colors cursor-pointer"
+                  {...getHomeTeamLogoRootProps()}
+                >
+                  <input {...getHomeTeamLogoInputProps()} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <CloudUpload className="h-5 w-5 text-orange-300 mr-2" />
+                      <p className="text-sm text-sky-900/70">
+                        {ticketInfo.homeTeamLogo
+                          ? "Logo uploaded! Click to change"
+                          : "Upload home team logo"}
+                      </p>
+                    </div>
+
+                    {ticketInfo.homeTeamLogo && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTicketInfo((prev) => ({
+                            ...prev,
+                            homeTeamLogo: null,
+                          }));
+                        }}
+                        className="text-sm text-orange-500 hover:text-orange-600 flex items-center"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sky-900 block mb-1">
+                  Away Team Logo
+                </Label>
+                <div
+                  className="border border-dashed border-orange-200 rounded-lg p-3 hover:bg-orange-50 transition-colors cursor-pointer"
+                  {...getAwayTeamLogoRootProps()}
+                >
+                  <input {...getAwayTeamLogoInputProps()} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <CloudUpload className="h-5 w-5 text-orange-300 mr-2" />
+                      <p className="text-sm text-sky-900/70">
+                        {ticketInfo.awayTeamLogo
+                          ? "Logo uploaded! Click to change"
+                          : "Upload away team logo"}
+                      </p>
+                    </div>
+
+                    {ticketInfo.awayTeamLogo && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTicketInfo((prev) => ({
+                            ...prev,
+                            awayTeamLogo: null,
+                          }));
+                        }}
+                        className="text-sm text-orange-500 hover:text-orange-600 flex items-center"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* NEW SECTION: Divider Color */}
+        <div className="py-3 border-b border-gray-100">
+          <div className="flex items-center mb-2 text-sky-900">
+            <Palette className="h-4 w-4 mr-2 text-orange-500" />
+            <h3 className="text-base font-semibold">Ticket Style</h3>
+          </div>
+
+          <div>
+            <Label htmlFor="dividerColor" className="text-sky-900">
+              Divider Color
+            </Label>
+            <div className="flex items-center mt-1">
+              <Input
+                id="dividerColor"
+                name="dividerColor"
+                type="color"
+                value={ticketInfo.dividerColor || "#f97316"}
+                onChange={handleChange}
+                className="w-12 h-8 p-0 mr-2"
+              />
+              <Input
+                name="dividerColor"
+                value={ticketInfo.dividerColor || "#f97316"}
+                onChange={handleChange}
+                className="flex-1"
               />
             </div>
           </div>
@@ -398,7 +642,7 @@ export default function CanvasForm({
           <Button
             onClick={generateTicket}
             disabled={isGenerating}
-            className="w-full bg-sky-900 hover:bg-sky-800 text-white py-6 text-lg"
+            className="w-full bg-sky-900 hover:bg-sky-800 text-white py-4 text-base"
           >
             {isGenerating ? (
               <>
@@ -416,14 +660,14 @@ export default function CanvasForm({
 
         {/* Status Messages */}
         {status === "success" && (
-          <Alert className="mt-4 bg-green-50 border-green-200 text-green-800">
+          <Alert className="mt-2 bg-green-50 border-green-200 text-green-800">
             <Check className="h-4 w-4" />
             <AlertDescription>{successMessage}</AlertDescription>
           </Alert>
         )}
 
         {status === "error" && (
-          <Alert className="mt-4 bg-red-50 border-red-200 text-red-800">
+          <Alert className="mt-2 bg-red-50 border-red-200 text-red-800">
             <X className="h-4 w-4" />
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>

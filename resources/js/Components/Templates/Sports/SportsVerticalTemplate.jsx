@@ -19,7 +19,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
       <div
         ref={ref}
         className="relative w-96 overflow-hidden bg-white shadow-lg"
-        style={{ aspectRatio: "2/3" }}
+        style={{ aspectRatio: "3/7", maxHeight: "700px" }}
       >
         {/* Background Image */}
         <div
@@ -27,8 +27,6 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
           style={{
             backgroundImage: ticketInfo?.backgroundImage
               ? `url(${ticketInfo.backgroundImage})`
-              : ticketInfo?.background_url
-              ? `url(${ticketInfo.background_url})`
               : undefined,
           }}
         >
@@ -37,68 +35,127 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
 
         {/* Content Container */}
         <div className="relative text-white h-full flex flex-col">
-          {/* Main Content */}
-          <div className="flex-grow p-6 flex flex-col justify-between">
-            {/* Header Info */}
-            <div className="space-y-2">
-              <p className="text-sm">
-                {ticketInfo?.eventLocation || "Event Location"}
-              </p>
-              <p className="text-sm">
-                {ticketInfo?.date
-                  ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  : "TBD"}
-              </p>
-              <p className="text-sm">
-                {ticketInfo?.time
-                  ? new Date(`${ticketInfo.time}`).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "TBD"}
-              </p>
+          {/* Admit One Banner - Updated to be smaller and rounded */}
+          <div className="flex justify-center mt-2">
+            <div className="bg-white/10 backdrop-blur-sm py-1 px-6 rounded inline-block">
+              <p className="font-bold tracking-widest text-sm">ADMIT ONE</p>
             </div>
+          </div>
 
-            {/* Event Title */}
-            <div className="text-center my-8">
-              <h1 className="text-5xl font-bold mb-2 leading-tight">
+          {/* Main Content - Adjusted to take 60% of height */}
+          <div
+            className="flex-grow p-6 flex flex-col justify-end"
+            style={{ height: "60%" }}
+          >
+            {/* Event Title and Team Logos - Moved lower */}
+            <div className="text-center mb-4 mt-auto">
+              <h1 className="text-4xl font-bold mb-4 leading-tight drop-shadow-md">
                 {ticketInfo?.eventName || "Event Name"}
               </h1>
-              <p className="text-xl tracking-wider">
-                {ticketInfo?.eventLocation || "Event Location"}
-              </p>
+
+              {/* Team Logos and Names */}
+              <div className="flex items-center justify-center mt-4 space-x-6">
+                {/* Home Team */}
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
+                    {ticketInfo?.homeTeamLogo ? (
+                      <img
+                        src={ticketInfo.homeTeamLogo}
+                        alt="Home Team"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-2xl font-bold">H</span>
+                    )}
+                  </div>
+                  <p className="text-sm font-medium mt-2 drop-shadow-md">
+                    {ticketInfo?.homeTeam || "HOME"}
+                  </p>
+                </div>
+
+                {/* VS */}
+                <div className="text-xl font-bold drop-shadow-md">VS</div>
+
+                {/* Away Team */}
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
+                    {ticketInfo?.awayTeamLogo ? (
+                      <img
+                        src={ticketInfo.awayTeamLogo}
+                        alt="Away Team"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-2xl font-bold">A</span>
+                    )}
+                  </div>
+                  <p className="text-sm font-medium mt-2 drop-shadow-md">
+                    {ticketInfo?.awayTeam || "AWAY"}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Ticket Details Grid */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-xs text-gray-400">SEC</p>
-                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded">
-                  {ticketInfo?.section || "Section"}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">ROW</p>
-                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded">
-                  {ticketInfo?.row || "Row"}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">SEAT</p>
-                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded">
-                  {ticketInfo?.seat || "Seat"}
+            {/* Updated Event Information */}
+            <div className="bg-white/10 backdrop-blur-sm p-4 rounded">
+              <div className="flex flex-col space-y-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-xs text-gray-300">DATE</p>
+                    <p className="font-medium">
+                      {ticketInfo?.date
+                        ? new Date(ticketInfo.date).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )
+                        : "TBD"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-300">TIME</p>
+                    <p className="font-medium">
+                      {ticketInfo?.time
+                        ? new Date(`${ticketInfo.time}`).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                            }
+                          )
+                        : "TBD"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Tear-off Section */}
-          <div className="relative">
+          {/* Tear-off Section with Colored Divider and Location - Now 40% of height */}
+          <div className="relative" style={{ height: "40%" }}>
+            {/* Colored Divider Line with Location */}
+            <div
+              className="py-3 w-full flex items-center justify-center"
+              style={{
+                backgroundColor: ticketInfo?.dividerColor || "#f97316",
+              }}
+            >
+              <p className="text-white font-medium tracking-wide text-center px-4">
+                {ticketInfo?.eventLocation || "Event Location"}
+                {ticketInfo?.eventLocation ? " • " : ""}
+                {ticketInfo?.date
+                  ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : ""}
+              </p>
+            </div>
+
             {/* Perforation Line */}
             <div className="absolute -top-3 left-0 right-0 flex">
               {[...Array(40)].map((_, i) => (
@@ -110,31 +167,69 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
               ))}
             </div>
 
-            {/* Stub Content */}
-            <div className="bg-white/10 backdrop-blur-sm p-4">
-              <div className="grid grid-cols-3 gap-4 justify-items-center mb-4">
-                <div>
-                  <p className="text-xs text-gray-400 text-center">SEC</p>
-                  <p className="text-center">
-                    {ticketInfo?.section || "Section"}
+            {/* Stub Content - Now with white background and larger section/row/seat */}
+            <div className="bg-white p-4 text-gray-800 h-full flex flex-col justify-between">
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="flex flex-col items-center">
+                  <p className="text-xs text-gray-500 uppercase">Section</p>
+                  <p className="text-3xl font-bold">
+                    {ticketInfo?.section || "244"}
                   </p>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-400 text-center">ROW</p>
-                  <p className="text-center">{ticketInfo?.row || "Row"}</p>
+                <div className="flex flex-col items-center">
+                  <p className="text-xs text-gray-500 uppercase">Row</p>
+                  <p className="text-3xl font-bold">
+                    {ticketInfo?.row || "21"}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-400 text-center">SEAT</p>
-                  <p className="text-center">{ticketInfo?.seat || "Seat"}</p>
+                <div className="flex flex-col items-center">
+                  <p className="text-xs text-gray-500 uppercase">Seat</p>
+                  <p className="text-3xl font-bold">
+                    {ticketInfo?.seat || "5"}
+                  </p>
                 </div>
               </div>
+
+              {/* Additional match details */}
+              <div className="text-xs text-center mb-3 text-gray-600 uppercase tracking-wider">
+                <p>{ticketInfo?.eventName || "Team vs Team"}</p>
+                <p>
+                  {ticketInfo?.date
+                    ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "Sunday, January 17, 2025"}
+                </p>
+                <p>
+                  Start Time:{" "}
+                  {ticketInfo?.time
+                    ? new Date(`${ticketInfo.time}`).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        }
+                      )
+                    : "12:00 PM"}
+                </p>
+              </div>
+
               <div className="flex flex-col items-center">
+                <div className="border-t border-dashed border-gray-300 w-full mb-2 pt-2">
+                  <p className="text-xs text-center text-gray-500 mb-1">
+                    VOID IF DETACHED
+                  </p>
+                </div>
                 <img
                   src={generateBarcodePattern()}
                   alt="Barcode"
                   className="w-48"
                 />
-                <p className="text-xs mt-1">
+                <p className="text-xs mt-1 text-gray-600">
                   {Math.random().toString(36).substr(2, 12).toUpperCase()}
                 </p>
               </div>
