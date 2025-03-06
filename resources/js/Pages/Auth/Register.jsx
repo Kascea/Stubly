@@ -26,9 +26,9 @@ export default function Register() {
       <div className="flex min-h-screen flex-col items-center justify-center">
         <Link href="/">
           <img
-            src="/images/CustomTicketsLogo.png"
+            src="/images/logo-no-background.png"
             alt="CustomTickets"
-            className="h-12 w-auto mb-8"
+            className="h-10 w-auto mb-8"
           />
         </Link>
 

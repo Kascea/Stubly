@@ -53,9 +53,9 @@ export default function AuthenticatedLayout({ header, children }) {
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
                 <img
-                  src="/images/CustomTicketsLogo.png"
+                  src="/images/logo-no-background.png"
                   alt="CustomTickets"
-                  className="h-12 w-auto"
+                  className="h-10 w-auto"
                 />
               </Link>
             </div>
