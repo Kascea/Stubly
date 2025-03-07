@@ -18,8 +18,8 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
     <div className="min-h-screen flex items-center justify-center p-8">
       <div
         ref={ref}
-        className="relative w-96 overflow-hidden bg-white shadow-lg"
-        style={{ aspectRatio: "3/7", maxHeight: "700px" }}
+        className="relative w-80 overflow-hidden bg-white shadow-lg shadow-sky-900/25"
+        style={{ aspectRatio: "3/7", maxHeight: "40rem" }}
       >
         {/* Background Image */}
         <div

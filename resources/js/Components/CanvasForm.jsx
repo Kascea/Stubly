@@ -50,11 +50,16 @@ export default function CanvasForm({
     if (categories && categories.length > 0) {
       // Set default category
       const defaultCategory = categories[0];
+
       setSelectedCategory(defaultCategory.id);
       setTemplates(defaultCategory.templates);
 
       // Set default template if none selected
       if (defaultCategory.templates.length > 0 && !ticketInfo.template) {
+        console.log(
+          "Setting default template:",
+          defaultCategory.templates[0].id
+        );
         setTicketInfo((prev) => ({
           ...prev,
           template: defaultCategory.templates[0].id,
@@ -254,18 +259,27 @@ export default function CanvasForm({
   // Get template thumbnail based on template ID
   const getTemplateThumbnail = (templateId) => {
     try {
+      // First check if the template has a specific thumbnail path
+      const template = templates.find((t) => t.id === templateId);
+      if (template && template.thumbnail_path) {
+        return template.thumbnail_path;
+      }
+
       // Use a consistent path structure for all thumbnails
       return `/images/thumbnails/${templateId}.jpg`;
     } catch (e) {
       console.error("Error loading thumbnail:", e);
-      return "/images/thumbnails/default.jpg";
+      return null; // Return null instead of a default path that might not exist
     }
   };
 
   // Handle thumbnail loading errors
   const handleThumbnailError = (e) => {
     e.target.onerror = null; // Prevent infinite error loop
-    e.target.src = "/images/thumbnails/default.jpg";
+
+    // Use inline SVG as fallback instead of trying to load another image
+    e.target.src =
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='60' viewBox='0 0 100 60'%3E%3Crect width='100' height='60' fill='%23f3f4f6'/%3E%3Ctext x='50' y='30' font-family='Arial' font-size='10' text-anchor='middle' dominant-baseline='middle' fill='%236b7280'%3ENo Preview%3C/text%3E%3C/svg%3E";
   };
 
   // Format template name for display
@@ -326,12 +340,18 @@ export default function CanvasForm({
                       }
                     >
                       <div className="aspect-video bg-gray-100 rounded mb-1 overflow-hidden">
-                        <img
-                          src={getTemplateThumbnail(template.id)}
-                          alt={formatTemplateName(template.id)}
-                          className="w-full h-full object-cover"
-                          onError={handleThumbnailError}
-                        />
+                        {getTemplateThumbnail(template.id) ? (
+                          <img
+                            src={getTemplateThumbnail(template.id)}
+                            alt={formatTemplateName(template.id)}
+                            className="w-full h-full object-cover"
+                            onError={handleThumbnailError}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 text-xs">
+                            {formatTemplateName(template.id)}
+                          </div>
+                        )}
                       </div>
                       <div className="text-xs font-medium text-center">
                         {formatTemplateName(template.id)}
