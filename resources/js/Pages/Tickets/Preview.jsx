@@ -1,6 +1,6 @@
 import React from "react";
 import GuestLayout from "@/Layouts/GuestLayout";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import {
@@ -24,7 +24,7 @@ import { calculateDaysRemaining } from "@/utils/ticketUtils";
 
 export default function Preview({ ticket, isPaid, isOwner, auth }) {
   const { toast } = useToast();
-  const Layout = auth.user ? AuthenticatedLayout : GuestLayout;
+  const Layout = auth.user ? AppLayout : GuestLayout;
 
   // Use the utility function instead of local calculation
   const daysRemaining = calculateDaysRemaining(ticket, isPaid);

@@ -1,18 +1,23 @@
-import { Head, useForm } from "@inertiajs/react";
+import { useEffect } from "react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import { ChevronRight } from "lucide-react";
 import { Input } from "@/Components/ui/input";
 import InputError from "@/Components/InputError";
-import GuestLayout from "@/Layouts/GuestLayout";
 import { Checkbox } from "@/Components/ui/checkbox";
-import { Link } from "@inertiajs/react";
-import { Button } from "@/Components/ui/button";
+import AuthLayout from "@/Layouts/AuthLayout";
 
 export default function Login({ status, canResetPassword }) {
-  const { data, setData, post, processing, errors } = useForm({
+  const { data, setData, post, processing, errors, reset } = useForm({
     email: "",
     password: "",
     remember: false,
   });
+
+  useEffect(() => {
+    return () => {
+      reset("password");
+    };
+  }, []);
 
   const submit = (e) => {
     e.preventDefault();
@@ -20,17 +25,11 @@ export default function Login({ status, canResetPassword }) {
   };
 
   return (
-    <GuestLayout>
+    <AuthLayout title="Sign in to your account">
       <Head title="Log in" />
 
-      <h2 className="text-2xl font-bold text-sky-900 text-center mb-6">
-        Welcome back
-      </h2>
-
       {status && (
-        <div className="mb-4 text-sm font-medium text-green-600 bg-green-50 p-3 rounded">
-          {status}
-        </div>
+        <div className="mb-4 text-sm font-medium text-green-600">{status}</div>
       )}
 
       <form onSubmit={submit} className="space-y-6">
@@ -61,30 +60,37 @@ export default function Login({ status, canResetPassword }) {
         </div>
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center">
+          <div className="flex items-center space-x-2">
             <Checkbox
+              id="remember"
               checked={data.remember}
               onCheckedChange={(checked) => setData("remember", checked)}
-              className="text-sky-900"
-              variant="sky"
             />
-            <span className="ml-2 text-sm text-sky-900/70">Remember me</span>
-          </label>
+            <label
+              htmlFor="remember"
+              className="text-sm text-gray-600 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Remember me
+            </label>
+          </div>
 
           {canResetPassword && (
             <Link
               href={route("password.request")}
-              className="text-sm text-sky-900 hover:text-sky-800"
+              className="text-sm text-orange-400 hover:text-orange-500"
             >
               Forgot password?
             </Link>
           )}
         </div>
 
-        <Button variant="primary-stretch" size="xl" disabled={processing}>
+        <button
+          className="w-full bg-sky-900 text-white px-4 py-3 rounded-lg font-medium hover:bg-sky-800 transition-colors flex items-center justify-center group"
+          disabled={processing}
+        >
           Sign in
           <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-        </Button>
+        </button>
       </form>
 
       <div className="mt-6">
@@ -131,9 +137,9 @@ export default function Login({ status, canResetPassword }) {
           href={route("register")}
           className="font-semibold text-orange-400 hover:text-orange-500"
         >
-          Register here
+          Sign up
         </Link>
       </p>
-    </GuestLayout>
+    </AuthLayout>
   );
 }

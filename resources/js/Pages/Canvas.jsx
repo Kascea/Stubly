@@ -1,14 +1,14 @@
-import React, { useState, useRef } from "react"; // Remove useEffect import
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import React, { useState, useRef } from "react";
 import { Head, usePage } from "@inertiajs/react";
 import CanvasForm from "@/Components/CanvasForm";
 import TicketVisualizer from "@/Components/TicketVisualizer";
-import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { CheckCircle2 } from "lucide-react";
+import AppLayout from "@/Layouts/AppLayout";
 
-export default function Canvas({ categories, ticket = null }) {
+export default function Canvas({ categories, ticket = null, auth }) {
   const { flash } = usePage().props;
+  const isAuthenticated = auth?.user;
 
   const [ticketInfo, setTicketInfo] = useState(
     ticket
@@ -45,8 +45,9 @@ export default function Canvas({ categories, ticket = null }) {
   );
   const ticketRef = useRef(null);
 
-  return (
-    <AuthenticatedLayout>
+  // Content to render inside the layout
+  const content = (
+    <>
       <Head title="Design Your Ticket" />
 
       <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-sky-50 to-orange-50">
@@ -82,9 +83,13 @@ export default function Canvas({ categories, ticket = null }) {
             setTicketInfo={setTicketInfo}
             ticketRef={ticketRef}
             categories={categories}
+            isAuthenticated={isAuthenticated}
           />
         </div>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
+
+  // Use the single AppLayout for both authenticated and guest users
+  return <AppLayout auth={auth}>{content}</AppLayout>;
 }

@@ -1,18 +1,17 @@
-import PrimaryButton from "@/Components/PrimaryButton";
-import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { Button } from "@/Components/ui/button";
+import AuthLayout from "@/Layouts/AuthLayout";
 
 export default function VerifyEmail({ status }) {
   const { post, processing } = useForm({});
 
   const submit = (e) => {
     e.preventDefault();
-
     post(route("verification.send"));
   };
 
   return (
-    <GuestLayout>
+    <AuthLayout title="Email Verification">
       <Head title="Email Verification" />
 
       <div className="mb-4 text-sm text-sky-900/70">
@@ -30,9 +29,7 @@ export default function VerifyEmail({ status }) {
 
       <form onSubmit={submit}>
         <div className="mt-4 flex items-center justify-between">
-          <PrimaryButton disabled={processing}>
-            Resend Verification Email
-          </PrimaryButton>
+          <Button disabled={processing}>Resend Verification Email</Button>
 
           <Link
             href={route("logout")}
@@ -44,6 +41,6 @@ export default function VerifyEmail({ status }) {
           </Link>
         </div>
       </form>
-    </GuestLayout>
+    </AuthLayout>
   );
 }

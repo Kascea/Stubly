@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/Components/ui/card";
@@ -77,7 +77,7 @@ export default function Index({ tickets }) {
   };
 
   return (
-    <AuthenticatedLayout>
+    <AppLayout>
       <Head title="Ticket History" />
 
       <div className="py-12">
@@ -123,6 +123,6 @@ export default function Index({ tickets }) {
         onConfirm={handleConfirmDelete}
       />
       <Toaster />
-    </AuthenticatedLayout>
+    </AppLayout>
   );
 }

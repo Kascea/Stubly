@@ -219,7 +219,10 @@ class TicketController extends Controller
         $categories = Category::with('templates')->get();
 
         return Inertia::render('Canvas', [
-            'categories' => $categories
+            'categories' => $categories,
+            'auth' => [
+                'user' => auth()->user()
+            ]
         ]);
     }
 }

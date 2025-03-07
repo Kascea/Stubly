@@ -37,6 +37,7 @@ export default function CanvasForm({
   setTicketInfo,
   ticketRef,
   categories = [],
+  isAuthenticated = false,
 }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState(null);
@@ -192,6 +193,12 @@ export default function CanvasForm({
   };
 
   const generateTicket = async () => {
+    // If user is not authenticated, redirect to login
+    if (!isAuthenticated) {
+      window.location.href = route("login");
+      return;
+    }
+
     if (ticketRef.current) {
       setIsGenerating(true);
       setStatus(null);
@@ -672,7 +679,9 @@ export default function CanvasForm({
             ) : (
               <>
                 <TicketPlus className="mr-2 h-5 w-5" />
-                Create Your Ticket
+                {isAuthenticated
+                  ? "Create Your Ticket"
+                  : "Sign In to Create Ticket"}
               </>
             )}
           </Button>

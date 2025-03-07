@@ -8,11 +8,10 @@ use App\Http\Middleware\VerifyPayment;
 use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
+// Public routes
+Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-  // Main canvas page
-  Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
-
   // Ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');

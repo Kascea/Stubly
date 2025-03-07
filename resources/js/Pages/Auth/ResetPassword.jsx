@@ -1,9 +1,8 @@
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, Link } from "@inertiajs/react";
 import { ChevronRight } from "lucide-react";
 import { Input } from "@/Components/ui/input";
 import InputError from "@/Components/InputError";
-import GuestLayout from "@/Layouts/GuestLayout";
-import { Link } from "@inertiajs/react";
+import AuthLayout from "@/Layouts/AuthLayout";
 
 export default function ResetPassword({ token, email }) {
   const { data, setData, post, processing, errors } = useForm({
@@ -19,12 +18,8 @@ export default function ResetPassword({ token, email }) {
   };
 
   return (
-    <GuestLayout>
+    <AuthLayout title="Reset Password">
       <Head title="Reset Password" />
-
-      <h2 className="text-2xl font-bold text-sky-900 text-center mb-6">
-        Reset Password
-      </h2>
 
       <form onSubmit={submit} className="space-y-6">
         <div>
@@ -84,6 +79,6 @@ export default function ResetPassword({ token, email }) {
           Back to login
         </Link>
       </p>
-    </GuestLayout>
+    </AuthLayout>
   );
 }
