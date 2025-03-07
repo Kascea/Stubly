@@ -7,6 +7,7 @@ use App\Http\Middleware\VerifyTicketOwner;
 use App\Http\Middleware\VerifyPayment;
 use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\PasswordController;
 
 // Public routes
 Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
@@ -53,6 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/', [ProfileController::class, 'update'])->name('update');
     Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
   });
+
+  // Password routes
+  Route::post('/password/set', [PasswordController::class, 'set'])->name('password.set');
 });
 
 require __DIR__ . '/auth.php';

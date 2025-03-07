@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules;
 
 class PasswordController extends Controller
 {
@@ -25,5 +26,18 @@ class PasswordController extends Controller
         ]);
 
         return back();
+    }
+
+    public function set(Request $request)
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return back()->with('status', 'password-set');
     }
 }

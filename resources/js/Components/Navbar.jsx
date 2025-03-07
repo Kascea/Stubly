@@ -1,13 +1,27 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import Dropdown from "@/Components/Dropdown";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
+import {
+  TicketIcon,
+  UserIcon,
+  LogOutIcon,
+  HomeIcon,
+  UserPlusIcon,
+} from "lucide-react";
 
 export default function Navbar({
   auth,
   showingNavigationDropdown,
   setShowingNavigationDropdown,
 }) {
+  const { url, component } = usePage();
+
+  // Helper function to determine if a route is active
+  const isActive = (routeName) => {
+    return route().current(routeName);
+  };
+
   return (
     <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,8 +40,13 @@ export default function Navbar({
             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
               <Link
                 href={route("canvas")}
-                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${
+                  isActive("canvas")
+                    ? "border-orange-400 text-sky-900"
+                    : "border-transparent text-gray-500 hover:text-sky-900 hover:border-gray-300"
+                }`}
               >
+                <TicketIcon className="w-4 h-4 mr-2" />
                 Create Ticket
               </Link>
 
@@ -35,8 +54,13 @@ export default function Navbar({
                 <>
                   <Link
                     href={route("tickets.index")}
-                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${
+                      isActive("tickets.index")
+                        ? "border-orange-400 text-sky-900"
+                        : "border-transparent text-gray-500 hover:text-sky-900 hover:border-gray-300"
+                    }`}
                   >
+                    <HomeIcon className="w-4 h-4 mr-2" />
                     My Tickets
                   </Link>
                 </>
@@ -52,8 +76,9 @@ export default function Navbar({
                     <span className="inline-flex rounded-md">
                       <button
                         type="button"
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-sky-900 bg-white hover:text-orange-400 focus:outline-none transition ease-in-out duration-150"
                       >
+                        <UserIcon className="w-4 h-4 mr-2" />
                         {auth.user.name}
 
                         <svg
@@ -72,32 +97,41 @@ export default function Navbar({
                     </span>
                   </Dropdown.Trigger>
 
-                  <Dropdown.Content>
-                    <Dropdown.Link href={route("profile.edit")}>
+                  <Dropdown.Content width="48" contentClasses="py-1 bg-white">
+                    <Dropdown.Link
+                      href={route("profile.edit")}
+                      className="text-sky-900 hover:text-orange-400 hover:bg-gray-50"
+                    >
+                      <UserIcon className="w-4 h-4 mr-2 inline" />
                       Profile
                     </Dropdown.Link>
                     <Dropdown.Link
                       href={route("logout")}
                       method="post"
                       as="button"
+                      className="text-sky-900 hover:text-orange-400 hover:bg-gray-50"
                     >
+                      <LogOutIcon className="w-4 h-4 mr-2 inline" />
                       Log Out
                     </Dropdown.Link>
                   </Dropdown.Content>
                 </Dropdown>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="space-x-4">
                 <Link
                   href={route("login")}
-                  className="text-sm text-gray-700 hover:text-gray-900"
+                  className="text-sm text-sky-900 hover:text-orange-400 transition-colors inline-flex items-center"
                 >
+                  <UserIcon className="w-4 h-4 mr-1" />
                   Log in
                 </Link>
+
                 <Link
                   href={route("register")}
-                  className="ml-4 inline-flex items-center px-4 py-2 bg-sky-900 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sky-800 focus:bg-sky-800 active:bg-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                  className="ml-4 inline-flex items-center px-4 py-2 bg-sky-900 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sky-800 focus:bg-sky-800 active:bg-sky-900 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 transition ease-in-out duration-150"
                 >
+                  <UserPlusIcon className="w-4 h-4 mr-1" />
                   Register
                 </Link>
               </div>
@@ -109,7 +143,7 @@ export default function Navbar({
               onClick={() =>
                 setShowingNavigationDropdown((previousState) => !previousState)
               }
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-sky-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-sky-900 transition duration-150 ease-in-out"
             >
               <svg
                 className="h-6 w-6"
@@ -149,17 +183,33 @@ export default function Navbar({
         <div className="pt-2 pb-3 space-y-1">
           <ResponsiveNavLink
             href={route("canvas")}
-            active={route().current("canvas")}
+            active={isActive("canvas")}
+            className="flex items-center"
           >
-            Create Ticket
+            <TicketIcon className="w-4 h-4 mr-2" />
+            <span
+              className={
+                isActive("canvas") ? "text-orange-400" : "text-sky-900"
+              }
+            >
+              Create Ticket
+            </span>
           </ResponsiveNavLink>
 
           {auth?.user && (
             <ResponsiveNavLink
               href={route("tickets.index")}
-              active={route().current("tickets.index")}
+              active={isActive("tickets.index")}
+              className="flex items-center"
             >
-              My Tickets
+              <HomeIcon className="w-4 h-4 mr-2" />
+              <span
+                className={
+                  isActive("tickets.index") ? "text-orange-400" : "text-sky-900"
+                }
+              >
+                My Tickets
+              </span>
             </ResponsiveNavLink>
           )}
         </div>
@@ -167,23 +217,30 @@ export default function Navbar({
         {auth?.user && (
           <div className="pt-4 pb-1 border-t border-gray-200">
             <div className="px-4">
-              <div className="font-medium text-base text-gray-800">
+              <div className="font-medium text-base text-sky-900 flex items-center">
+                <UserIcon className="w-4 h-4 mr-2" />
                 {auth.user.name}
               </div>
-              <div className="font-medium text-sm text-gray-500">
+              <div className="font-medium text-sm text-gray-500 ml-6">
                 {auth.user.email}
               </div>
             </div>
 
             <div className="mt-3 space-y-1">
-              <ResponsiveNavLink href={route("profile.edit")}>
+              <ResponsiveNavLink
+                href={route("profile.edit")}
+                className="text-sky-900 hover:text-orange-400 flex items-center"
+              >
+                <UserIcon className="w-4 h-4 mr-2" />
                 Profile
               </ResponsiveNavLink>
               <ResponsiveNavLink
                 method="post"
                 href={route("logout")}
                 as="button"
+                className="text-sky-900 hover:text-orange-400 flex items-center w-full text-left"
               >
+                <LogOutIcon className="w-4 h-4 mr-2" />
                 Log Out
               </ResponsiveNavLink>
             </div>
@@ -193,10 +250,18 @@ export default function Navbar({
         {!auth?.user && (
           <div className="pt-4 pb-1 border-t border-gray-200">
             <div className="mt-3 space-y-1">
-              <ResponsiveNavLink href={route("login")}>
+              <ResponsiveNavLink
+                href={route("login")}
+                className="text-sky-900 hover:text-orange-400 flex items-center"
+              >
+                <UserIcon className="w-4 h-4 mr-2" />
                 Log in
               </ResponsiveNavLink>
-              <ResponsiveNavLink href={route("register")}>
+              <ResponsiveNavLink
+                href={route("register")}
+                className="text-sky-900 hover:text-orange-400 flex items-center"
+              >
+                <UserPlusIcon className="w-4 h-4 mr-2" />
                 Register
               </ResponsiveNavLink>
             </div>

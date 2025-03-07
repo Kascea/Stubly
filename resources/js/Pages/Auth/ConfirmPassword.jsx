@@ -1,8 +1,8 @@
 import { Head, useForm } from "@inertiajs/react";
 import { Input } from "@/Components/ui/input";
 import InputError from "@/Components/InputError";
-import GuestLayout from "@/Layouts/GuestLayout";
 import { ChevronRight } from "lucide-react";
+import AuthLayout from "@/Layouts/AuthLayout";
 
 export default function ConfirmPassword() {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -15,7 +15,7 @@ export default function ConfirmPassword() {
   };
 
   return (
-    <GuestLayout>
+    <AuthLayout>
       <Head title="Confirm Password" />
 
       <h2 className="text-2xl font-bold text-sky-900 text-center mb-4">
@@ -48,6 +48,6 @@ export default function ConfirmPassword() {
           <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
         </button>
       </form>
-    </GuestLayout>
+    </AuthLayout>
   );
 }

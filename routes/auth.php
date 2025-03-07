@@ -38,10 +38,6 @@ Route::middleware('guest')->group(function () {
   Route::get('auth/google', [GoogleController::class, 'redirect'])
     ->name('google.login');
 
-  Route::get('test-google', function () {
-    dd('Route is working');
-  });
-
   Route::get('auth/google/callback', [GoogleController::class, 'callback'])
     ->name('google.callback');
 });
