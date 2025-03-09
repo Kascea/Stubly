@@ -1,5 +1,5 @@
 import React from "react";
-import AppLayout from "@/Layouts/AppLayout";
+import AuthLayout from "@/Layouts/AuthLayout";
 import { Head } from "@inertiajs/react";
 import {
   EmbeddedCheckoutProvider,
@@ -11,7 +11,7 @@ export default function Checkout({ ticket, clientSecret, publishableKey }) {
   const stripePromise = loadStripe(publishableKey);
 
   return (
-    <AppLayout>
+    <AuthLayout>
       <Head title="Checkout" />
       <div className="py-12">
         <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
@@ -32,6 +32,6 @@ export default function Checkout({ ticket, clientSecret, publishableKey }) {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </AuthLayout>
   );
 }

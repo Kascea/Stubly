@@ -606,13 +606,13 @@ export default function CanvasForm({
                 id="dividerColor"
                 name="dividerColor"
                 type="color"
-                value={ticketInfo.dividerColor || "#f97316"}
+                value={ticketInfo.dividerColor || "#0c4a6e"}
                 onChange={handleChange}
                 className="w-12 h-8 p-0 mr-2"
               />
               <Input
                 name="dividerColor"
-                value={ticketInfo.dividerColor || "#f97316"}
+                value={ticketInfo.dividerColor || "#0c4a6e"}
                 onChange={handleChange}
                 className="flex-1"
               />

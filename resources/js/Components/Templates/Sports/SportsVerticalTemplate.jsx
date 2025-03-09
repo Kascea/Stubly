@@ -141,7 +141,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
             <div
               className="py-3 w-full flex items-center justify-center"
               style={{
-                backgroundColor: ticketInfo?.dividerColor || "#f97316",
+                backgroundColor: ticketInfo?.dividerColor || "#0c4a6e",
               }}
             >
               <p className="text-white font-medium tracking-wide text-center px-4">

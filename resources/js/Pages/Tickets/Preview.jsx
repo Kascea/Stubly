@@ -1,30 +1,22 @@
 import React from "react";
-import GuestLayout from "@/Layouts/GuestLayout";
 import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import {
   Download,
   Share2,
-  Share,
   LogIn,
   Copy,
   UserPlus,
-  Link as LinkIcon,
   CreditCard,
   AlertTriangle,
-  Ticket,
-  Wallet,
-  CheckCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ShareDropdown from "@/Components/ShareDropdown";
-import dayjs from "dayjs";
 import { calculateDaysRemaining } from "@/utils/ticketUtils";
 
 export default function Preview({ ticket, isPaid, isOwner, auth }) {
   const { toast } = useToast();
-  const Layout = auth.user ? AppLayout : GuestLayout;
 
   // Use the utility function instead of local calculation
   const daysRemaining = calculateDaysRemaining(ticket, isPaid);
@@ -40,14 +32,14 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
   const redirectParams = { redirect: window.location.pathname };
 
   return (
-    <Layout>
+    <AppLayout>
       <Head title="View Ticket" />
 
       <div className="py-6">
         <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
           <div className="space-y-6">
             {/* Header Section */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-sky-900">
                   {ticket.event_name}
@@ -55,7 +47,7 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
                 <p className="text-sky-900/70">{ticket.event_location}</p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
                 {isOwner ? (
                   isPaid ? (
                     <Button
@@ -113,7 +105,7 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
             </div>
 
             {/* Ticket Preview */}
-            <div className="rounded-lg p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
               <div className="max-w-3xl mx-auto">
                 {ticket.generated_ticket_url ? (
                   <div className="relative mx-auto w-full max-w-lg">
@@ -181,6 +173,6 @@ export default function Preview({ ticket, isPaid, isOwner, auth }) {
           </div>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 }
