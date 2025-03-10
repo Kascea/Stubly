@@ -518,36 +518,6 @@ export default function CanvasForm({
         {/* Category-specific fields */}
         {renderCategorySpecificFields()}
 
-        {/* SECTION: Divider Color */}
-        <div className="py-3 border-b border-gray-100">
-          <div className="flex items-center mb-2 text-sky-900">
-            <Palette className="h-4 w-4 mr-2 text-orange-500" />
-            <h3 className="text-base font-semibold">Ticket Style</h3>
-          </div>
-
-          <div>
-            <Label htmlFor="dividerColor" className="text-sky-900">
-              Divider Color
-            </Label>
-            <div className="flex items-center mt-1">
-              <Input
-                id="dividerColor"
-                name="dividerColor"
-                type="color"
-                value={ticketInfo.dividerColor || "#0c4a6e"}
-                onChange={handleChange}
-                className="w-12 h-8 p-0 mr-2"
-              />
-              <Input
-                name="dividerColor"
-                value={ticketInfo.dividerColor || "#0c4a6e"}
-                onChange={handleChange}
-                className="flex-1"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* SECTION: Background Image - Only for templates that support it */}
         {supportsBackgroundImage && (
           <div className="py-3 border-b border-gray-100">
