@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Head, usePage } from "@inertiajs/react";
-import CanvasForm from "@/Components/CanvasForm";
+import TicketEditorSidebar from "@/Components/TicketEditorSidebar";
 import TicketVisualizer from "@/Components/TicketVisualizer";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { CheckCircle2 } from "lucide-react";
@@ -25,6 +25,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
           background_url: ticket.background_url,
           filename: ticket.background_filename,
           template: ticket.template,
+          template_id: ticket.template_id,
           isPaid: ticket.isPaid,
         }
       : {
@@ -39,8 +40,10 @@ export default function Canvas({ categories, ticket = null, auth }) {
           backgroundImage: null,
           background_url: null,
           filename: null,
-          template: "modern",
+          template: null,
+          template_id: null,
           isPaid: false,
+          dividerColor: "#0c4a6e",
         }
   );
   const ticketRef = useRef(null);
@@ -50,9 +53,9 @@ export default function Canvas({ categories, ticket = null, auth }) {
     <>
       <Head title="Design Your Ticket" />
 
-      <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-sky-50 to-orange-50">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
         {flash?.success && (
-          <div className="p-4">
+          <div className="p-4 absolute top-4 right-4 z-50">
             <Alert className="bg-green-50 border-green-200">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-600">
@@ -62,9 +65,18 @@ export default function Canvas({ categories, ticket = null, auth }) {
           </div>
         )}
 
-        {/* Ticket Visualizer - Fixed position with navbar offset */}
-        <div className="lg:w-3/5 order-1 lg:order-2 lg:fixed lg:right-0 lg:top-16 lg:bottom-0 flex items-center justify-center">
-          <div className="p-4 lg:p-8 max-w-full">
+        {/* Sidebar - Collapsible */}
+        <TicketEditorSidebar
+          ticketInfo={ticketInfo}
+          setTicketInfo={setTicketInfo}
+          ticketRef={ticketRef}
+          categories={categories}
+          isAuthenticated={isAuthenticated}
+        />
+
+        {/* Ticket Visualizer - Takes remaining space */}
+        <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex items-center justify-center overflow-auto">
+          <div className="p-8 max-w-full">
             <TicketVisualizer
               ref={ticketRef}
               template={ticketInfo.template}
@@ -72,24 +84,10 @@ export default function Canvas({ categories, ticket = null, auth }) {
             />
           </div>
         </div>
-
-        {/* Form - Scrollable with margin to account for fixed visualizer */}
-        <div className="lg:w-2/5 border-t lg:border-t-0 lg:border-l border-sky-200 p-4 lg:p-8 bg-white/80 backdrop-blur-sm shadow-lg order-2 lg:order-1 overflow-y-auto">
-          <h2 className="text-2xl font-bold text-sky-900 mb-6">
-            Customize Your Ticket
-          </h2>
-          <CanvasForm
-            ticketInfo={ticketInfo}
-            setTicketInfo={setTicketInfo}
-            ticketRef={ticketRef}
-            categories={categories}
-            isAuthenticated={isAuthenticated}
-          />
-        </div>
       </div>
     </>
   );
 
-  // Use the single AppLayout for both authenticated and guest users
+  // Use the AppLayout for both authenticated and guest users
   return <AppLayout auth={auth}>{content}</AppLayout>;
 }
