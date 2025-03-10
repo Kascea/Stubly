@@ -17,6 +17,8 @@ import {
   LayoutGrid,
   Image,
   Users,
+  Music,
+  Film,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { domToPng } from "modern-screenshot";
@@ -31,6 +33,10 @@ import {
 } from "@/Components/ui/select";
 import { useDropzone } from "react-dropzone";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
+
+// Import ticket type components
+import SportsTicketFields from "@/Components/TicketTypes/SportsTicketFields";
+import ConcertTicketFields from "@/Components/TicketTypes/ConcertTicketFields";
 
 export default function CanvasForm({
   ticketInfo,
@@ -217,6 +223,7 @@ export default function CanvasForm({
           },
         });
 
+        // Base ticket data for all ticket types
         const ticketData = {
           eventName: ticketInfo.eventName,
           eventLocation: ticketInfo.eventLocation,
@@ -229,6 +236,15 @@ export default function CanvasForm({
           template: ticketInfo.template || "modern",
           template_id: ticketInfo.template_id,
         };
+
+        // Add category-specific fields based on the selected category
+        if (selectedCategory === "sports") {
+          ticketData.team_home = ticketInfo.homeTeam;
+          ticketData.team_away = ticketInfo.awayTeam;
+        } else if (selectedCategory === "concerts") {
+          ticketData.artist = ticketInfo.artist;
+          ticketData.tour_name = ticketInfo.tourName;
+        }
 
         const response = await axios.post(route("tickets.store"), ticketData);
         const ticket = response.data.ticket;
@@ -295,6 +311,34 @@ export default function CanvasForm({
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+  };
+
+  // Render category-specific fields based on the selected category
+  const renderCategorySpecificFields = () => {
+    switch (selectedCategory) {
+      case "sports":
+        return (
+          <SportsTicketFields
+            ticketInfo={ticketInfo}
+            setTicketInfo={setTicketInfo}
+            getHomeTeamLogoRootProps={getHomeTeamLogoRootProps}
+            getHomeTeamLogoInputProps={getHomeTeamLogoInputProps}
+            getAwayTeamLogoRootProps={getAwayTeamLogoRootProps}
+            getAwayTeamLogoInputProps={getAwayTeamLogoInputProps}
+          />
+        );
+
+      case "concerts":
+        return (
+          <ConcertTicketFields
+            ticketInfo={ticketInfo}
+            setTicketInfo={setTicketInfo}
+          />
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
@@ -471,126 +515,10 @@ export default function CanvasForm({
           </div>
         </div>
 
-        {/* NEW SECTION: Team Information */}
-        <div className="py-3 border-b border-gray-100">
-          <div className="flex items-center mb-2 text-sky-900">
-            <Users className="h-4 w-4 mr-2 text-orange-500" />
-            <h3 className="text-base font-semibold">Team Information</h3>
-          </div>
+        {/* Category-specific fields */}
+        {renderCategorySpecificFields()}
 
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="homeTeam" className="text-sky-900">
-                  Home Team
-                </Label>
-                <Input
-                  id="homeTeam"
-                  name="homeTeam"
-                  value={ticketInfo.homeTeam || ""}
-                  onChange={handleChange}
-                  placeholder="Home Team Name"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="awayTeam" className="text-sky-900">
-                  Away Team
-                </Label>
-                <Input
-                  id="awayTeam"
-                  name="awayTeam"
-                  value={ticketInfo.awayTeam || ""}
-                  onChange={handleChange}
-                  placeholder="Away Team Name"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-sky-900 block mb-1">
-                  Home Team Logo
-                </Label>
-                <div
-                  className="border border-dashed border-orange-200 rounded-lg p-3 hover:bg-orange-50 transition-colors cursor-pointer"
-                  {...getHomeTeamLogoRootProps()}
-                >
-                  <input {...getHomeTeamLogoInputProps()} />
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <CloudUpload className="h-5 w-5 text-orange-300 mr-2" />
-                      <p className="text-sm text-sky-900/70">
-                        {ticketInfo.homeTeamLogo
-                          ? "Logo uploaded! Click to change"
-                          : "Upload home team logo"}
-                      </p>
-                    </div>
-
-                    {ticketInfo.homeTeamLogo && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTicketInfo((prev) => ({
-                            ...prev,
-                            homeTeamLogo: null,
-                          }));
-                        }}
-                        className="text-sm text-orange-500 hover:text-orange-600 flex items-center"
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sky-900 block mb-1">
-                  Away Team Logo
-                </Label>
-                <div
-                  className="border border-dashed border-orange-200 rounded-lg p-3 hover:bg-orange-50 transition-colors cursor-pointer"
-                  {...getAwayTeamLogoRootProps()}
-                >
-                  <input {...getAwayTeamLogoInputProps()} />
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <CloudUpload className="h-5 w-5 text-orange-300 mr-2" />
-                      <p className="text-sm text-sky-900/70">
-                        {ticketInfo.awayTeamLogo
-                          ? "Logo uploaded! Click to change"
-                          : "Upload away team logo"}
-                      </p>
-                    </div>
-
-                    {ticketInfo.awayTeamLogo && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTicketInfo((prev) => ({
-                            ...prev,
-                            awayTeamLogo: null,
-                          }));
-                        }}
-                        className="text-sm text-orange-500 hover:text-orange-600 flex items-center"
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* NEW SECTION: Divider Color */}
+        {/* SECTION: Divider Color */}
         <div className="py-3 border-b border-gray-100">
           <div className="flex items-center mb-2 text-sky-900">
             <Palette className="h-4 w-4 mr-2 text-orange-500" />
