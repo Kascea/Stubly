@@ -15,31 +15,31 @@ class CategoryTemplateSeeder extends Seeder
     {
         // Create categories
         $categories = [
-            'sports' => 'Sports',
-            'concerts' => 'Concerts'
+            'sports',
+            'concerts',
         ];
 
-        foreach ($categories as $key => $id) {
-            Category::create(['id' => $id]);
+        foreach ($categories as $category) {
+            Category::create(['id' => $category]);
 
             // Create templates for each category
-            $this->createTemplatesForCategory($id, $key);
+            $this->createTemplatesForCategory($category);
         }
     }
 
     /**
      * Create templates for a specific category.
      */
-    private function createTemplatesForCategory(string $categoryId, string $categoryKey): void
+    private function createTemplatesForCategory(string $categoryId): void
     {
         // Each category gets a vertical and horizontal template
         $templates = [
             [
-                'id' => $categoryKey . '-vertical',
+                'id' => "{$categoryId}-vertical",
                 'supports_background_image' => true,
             ],
             [
-                'id' => $categoryKey . '-horizontal',
+                'id' => "{$categoryId}-horizontal",
                 'supports_background_image' => true,
             ],
         ];

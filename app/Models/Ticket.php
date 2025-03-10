@@ -26,8 +26,9 @@ class Ticket extends Model
     'row',
     'seat',
     'generated_ticket_path',
-    'template',
     'template_id',
+    'ticketable_id',
+    'ticketable_type',
   ];
 
   protected $casts = [
@@ -62,6 +63,14 @@ class Ticket extends Model
         throw new \Exception('Ticket ID cannot be null');
       }
     });
+  }
+
+  /**
+   * Get the parent ticketable model (SportsTicket, ConcertTicket, etc.).
+   */
+  public function ticketable()
+  {
+    return $this->morphTo();
   }
 
   public function user()

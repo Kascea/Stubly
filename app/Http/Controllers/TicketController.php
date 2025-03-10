@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\Category;
+use App\Models\SportsTicket;
+use App\Models\ConcertTicket;
+use App\Models\Template;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -12,6 +15,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 
@@ -23,10 +27,26 @@ class TicketController extends Controller
         try {
             $this->validateTicket($request);
 
+            // Start a database transaction
+            DB::beginTransaction();
+
+            // Get the template
+            $template = Template::findOrFail($request->template_id);
+            $categoryId = $template->category_id;
+
+            // Create the specialized ticket based on the template's category
+            $specializedTicket = $this->createSpecializedTicket($request, $categoryId);
+
+            if (!$specializedTicket) {
+                throw new \Exception("Invalid ticket category: {$categoryId}");
+            }
+
+            // Create the base ticket data
             $ticketData = [
                 'ticket_id' => Str::uuid()->toString(),
                 'user_id' => auth()->id(),
-                'template' => $request->template,
+                'template_id' => $request->template_id,
+                'template' => $request->template, // Keep for backward compatibility
                 'event_name' => $request->eventName,
                 'event_location' => $request->eventLocation,
                 'event_datetime' => (new \DateTime($request->date))->format('Y-m-d') . ' ' .
@@ -34,12 +54,18 @@ class TicketController extends Controller
                 'section' => $request->section,
                 'row' => $request->row,
                 'seat' => $request->seat,
+                'ticketable_id' => $specializedTicket->id,
+                'ticketable_type' => get_class($specializedTicket),
             ];
 
-            // Only upload the generated ticket image
+            // Handle the ticket image
             $ticketData = $this->handleTicketImage($request, $ticketData);
 
+            // Create the ticket
             $ticket = Ticket::create($ticketData);
+
+            // Commit the transaction
+            DB::commit();
 
             return response()->json([
                 'status' => 'success',
@@ -47,10 +73,41 @@ class TicketController extends Controller
                 'ticket' => $ticket
             ]);
         } catch (\Exception $e) {
+            // Rollback the transaction in case of error
+            DB::rollBack();
+
             Log::error('Ticket creation failed', [
                 'message' => $e->getMessage(),
             ]);
             return $this->handleError($e);
+        }
+    }
+
+    /**
+     * Create a specialized ticket based on the category
+     */
+    protected function createSpecializedTicket(Request $request, string $categoryId)
+    {
+        switch ($categoryId) {
+            case 'sports':
+                return SportsTicket::create([
+                    'sport_type' => $request->sport_type ?? null,
+                    'team_home' => $request->team_home ?? null,
+                    'team_away' => $request->team_away ?? null,
+                ]);
+
+            case 'concerts':
+                return ConcertTicket::create([
+                    'artist' => $request->artist ?? null,
+                    'tour_name' => $request->tour_name ?? null,
+                ]);
+
+            // Add more cases for other categories
+
+            default:
+                // If we don't have a specialized type for this category, return null
+                // This will trigger an error since we want all tickets to be specialized
+                return null;
         }
     }
 
@@ -97,7 +154,12 @@ class TicketController extends Controller
 
     protected function validateTicket(Request $request): void
     {
-        $request->validate([
+        // Get the template to determine category-specific validation
+        $template = Template::findOrFail($request->template_id);
+        $categoryId = $template->category_id;
+
+        // Base validation rules for all tickets
+        $rules = [
             'eventName' => 'required|string',
             'eventLocation' => 'required|string',
             'date' => 'required|date',
@@ -106,8 +168,30 @@ class TicketController extends Controller
             'row' => 'nullable|string',
             'seat' => 'nullable|string',
             'generatedTicket' => 'required|string',
-            'template' => 'nullable|string'
-        ]);
+            'template' => 'nullable|string',
+            'template_id' => 'required|string|exists:templates,id',
+        ];
+
+        // Add category-specific validation rules
+        switch ($categoryId) {
+            case 'sports':
+                $rules = array_merge($rules, [
+                    'team_home' => 'required|string',
+                    'team_away' => 'required|string',
+                ]);
+                break;
+
+            case 'concerts':
+                $rules = array_merge($rules, [
+                    'artist' => 'required|string',
+                    'tour_name' => 'required|string',
+                ]);
+                break;
+
+            // Add more cases for other categories as needed
+        }
+
+        $request->validate($rules);
     }
 
     protected function handleError(\Exception $e)
@@ -129,7 +213,10 @@ class TicketController extends Controller
             ->with([
                 'payments' => function ($query) {
                     $query->where('payment_status', 'paid');
-                }
+                },
+                'ticketable', // Load the specialized ticket data
+                'template', // Load the template
+                'template.category' // Load the category
             ])
             ->latest('updated_at')
             ->get()
