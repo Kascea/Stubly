@@ -19,6 +19,7 @@ import {
   Type,
   ChevronRight,
   ChevronLeft,
+  Check,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { domToPng } from "modern-screenshot";
@@ -94,6 +95,11 @@ export default function TicketEditorSidebar({
   // Handle form field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setTicketInfo((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Add this function to handle date and time changes separately
+  const handleDateTimeChange = (name, value) => {
     setTicketInfo((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -268,11 +274,11 @@ export default function TicketEditorSidebar({
           <div className="bg-white transition-all duration-300 ease-in-out overflow-y-auto flex-1 relative w-96">
             {/* Collapse button - moved to top right */}
             <button
-              className="w-8 h-8 bg-white hover:bg-sky-50 flex items-center justify-center rounded-bl-md absolute right-0 top-0 transition-colors border-l border-b border-gray-200 shadow-sm z-10"
+              className="w-8 h-8 bg-white hover:bg-orange-50 flex items-center justify-center rounded-bl-md absolute right-0 top-0 transition-colors border-l border-b border-gray-200 shadow-sm z-10"
               onClick={() => setIsPanelExpanded(false)}
               title="Collapse panel"
             >
-              <ChevronLeft className="h-5 w-5 text-sky-900" />
+              <ChevronLeft className="h-5 w-5 text-orange-500" />
             </button>
 
             <div className="p-4">
@@ -310,14 +316,14 @@ export default function TicketEditorSidebar({
                       <Label className="text-sky-900 mb-2 block">
                         Template
                       </Label>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 gap-2">
                         {templates.map((template) => (
-                          <div
+                          <button
                             key={template.id}
-                            className={`border rounded-md p-2 cursor-pointer transition-all ${
+                            className={`flex items-center p-3 rounded-md transition-all ${
                               ticketInfo.template === template.id
-                                ? "border-orange-500 bg-orange-50"
-                                : "border-gray-200 hover:border-orange-300"
+                                ? "bg-orange-50 border border-orange-500 text-sky-900"
+                                : "bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50"
                             }`}
                             onClick={() =>
                               setTicketInfo((prev) => ({
@@ -331,22 +337,20 @@ export default function TicketEditorSidebar({
                               }))
                             }
                           >
-                            <div className="aspect-w-16 aspect-h-9 mb-2 bg-gray-100 rounded overflow-hidden">
-                              <img
-                                src={`/images/thumbnails/${template.id}.jpg`}
-                                alt={formatTemplateName(template.id)}
-                                className="object-cover w-full h-full"
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src =
-                                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='60' viewBox='0 0 100 60'%3E%3Crect width='100' height='60' fill='%23f3f4f6'/%3E%3Ctext x='50' y='30' font-family='Arial' font-size='10' text-anchor='middle' dominant-baseline='middle' fill='%236b7280'%3ENo Preview%3C/text%3E%3C/svg%3E";
-                                }}
-                              />
+                            <div className="flex-1 text-left">
+                              <div className="font-medium">
+                                {formatTemplateName(template.id)}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {template.supports_background_image
+                                  ? "Supports custom background"
+                                  : "Fixed background"}
+                              </div>
                             </div>
-                            <div className="text-sm text-center text-sky-900">
-                              {formatTemplateName(template.id)}
-                            </div>
-                          </div>
+                            {ticketInfo.template === template.id && (
+                              <Check className="h-5 w-5 text-orange-500" />
+                            )}
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -354,7 +358,7 @@ export default function TicketEditorSidebar({
                 </div>
               )}
 
-              {/* Details Tab - Now Second */}
+              {/* Details Tab */}
               {activeTab === "details" && (
                 <div className="space-y-4">
                   <h3 className="font-medium text-lg text-sky-900">
@@ -388,33 +392,18 @@ export default function TicketEditorSidebar({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="date" className="text-sky-900">
-                        Date
-                      </Label>
-                      <DateTimePicker
-                        date={ticketInfo.date}
-                        setDate={(date) =>
-                          setTicketInfo((prev) => ({ ...prev, date }))
-                        }
-                        className="mt-1"
-                        showTimePicker={false}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="time" className="text-sky-900">
-                        Time
-                      </Label>
-                      <DateTimePicker
-                        date={ticketInfo.time}
-                        setDate={(time) =>
-                          setTicketInfo((prev) => ({ ...prev, time }))
-                        }
-                        className="mt-1"
-                        showDatePicker={false}
-                      />
-                    </div>
+                  <div>
+                    <Label className="text-sky-900">Date & Time</Label>
+                    <DateTimePicker
+                      initialDate={ticketInfo.date}
+                      initialTime={ticketInfo.time}
+                      onDateChange={(value) =>
+                        handleDateTimeChange("date", value)
+                      }
+                      onTimeChange={(value) =>
+                        handleDateTimeChange("time", value)
+                      }
+                    />
                   </div>
 
                   <div className="grid grid-cols-3 gap-3">
@@ -572,11 +561,11 @@ export default function TicketEditorSidebar({
         ) : (
           /* Expand button - moved to top left */
           <button
-            className="w-8 h-8 bg-white hover:bg-sky-50 flex items-center justify-center rounded-br-md absolute left-20 top-0 transition-colors border-r border-b border-gray-200 shadow-sm"
+            className="w-8 h-8 bg-white hover:bg-orange-50 flex items-center justify-center rounded-br-md absolute left-20 top-0 transition-colors border-r border-b border-gray-200 shadow-sm"
             onClick={() => setIsPanelExpanded(true)}
             title="Expand panel"
           >
-            <ChevronRight className="h-5 w-5 text-sky-900" />
+            <ChevronRight className="h-5 w-5 text-orange-500" />
           </button>
         )}
       </div>

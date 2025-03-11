@@ -8,6 +8,7 @@ import {
   LogOutIcon,
   HomeIcon,
   UserPlusIcon,
+  ShoppingCartIcon,
 } from "lucide-react";
 
 export default function Navbar({
@@ -68,9 +69,9 @@ export default function Navbar({
             </div>
           </div>
 
-          <div className="hidden sm:flex sm:items-center sm:ml-6">
+          <div className="hidden sm:flex sm:items-center sm:ml-6 space-x-4">
             {auth?.user ? (
-              <div className="ml-3 relative">
+              <div className="relative">
                 <Dropdown>
                   <Dropdown.Trigger>
                     <span className="inline-flex rounded-md">
@@ -118,24 +119,29 @@ export default function Navbar({
                 </Dropdown>
               </div>
             ) : (
-              <div className="space-x-4">
-                <Link
-                  href={route("login")}
-                  className="text-sm text-sky-900 hover:text-orange-400 transition-colors inline-flex items-center"
-                >
-                  <UserIcon className="w-4 h-4 mr-1" />
-                  Log in
-                </Link>
-
-                <Link
-                  href={route("register")}
-                  className="ml-4 inline-flex items-center px-4 py-2 bg-sky-900 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sky-800 focus:bg-sky-800 active:bg-sky-900 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 transition ease-in-out duration-150"
-                >
-                  <UserPlusIcon className="w-4 h-4 mr-1" />
-                  Register
-                </Link>
-              </div>
+              <Link
+                href={route("login")}
+                className="inline-flex items-center rounded-md bg-sky-900 hover:bg-sky-800 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 focus:ring-offset-sky-200 shadow-sm"
+              >
+                <UserIcon className="w-4 h-4 mr-1" />
+                Sign in
+              </Link>
             )}
+
+            {/* Cart Icon - Now positioned after auth elements */}
+            <Link
+              href="#"
+              className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100"
+              onClick={(e) => {
+                e.preventDefault();
+                alert("Cart functionality coming soon!");
+              }}
+            >
+              <ShoppingCartIcon className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                0
+              </span>
+            </Link>
           </div>
 
           <div className="-mr-2 flex items-center sm:hidden">
@@ -212,6 +218,19 @@ export default function Navbar({
               </span>
             </ResponsiveNavLink>
           )}
+
+          {/* Mobile Cart Link */}
+          <ResponsiveNavLink
+            href="#"
+            className="flex items-center"
+            onClick={(e) => {
+              e.preventDefault();
+              alert("Cart functionality coming soon!");
+            }}
+          >
+            <ShoppingCartIcon className="w-4 h-4 mr-2" />
+            <span className="text-sky-900">Cart</span>
+          </ResponsiveNavLink>
         </div>
 
         {auth?.user && (
@@ -255,14 +274,7 @@ export default function Navbar({
                 className="text-sky-900 hover:text-orange-400 flex items-center"
               >
                 <UserIcon className="w-4 h-4 mr-2" />
-                Log in
-              </ResponsiveNavLink>
-              <ResponsiveNavLink
-                href={route("register")}
-                className="text-sky-900 hover:text-orange-400 flex items-center"
-              >
-                <UserPlusIcon className="w-4 h-4 mr-2" />
-                Register
+                Sign in
               </ResponsiveNavLink>
             </div>
           </div>
