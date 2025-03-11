@@ -3,12 +3,19 @@ import { Head, usePage } from "@inertiajs/react";
 import TicketEditorSidebar from "@/Components/TicketEditorSidebar";
 import TicketVisualizer from "@/Components/TicketVisualizer";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
-import { CheckCircle2 } from "lucide-react";
+import { Button } from "@/Components/ui/button";
+import { CheckCircle2, Loader2, TicketPlus } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
+import { domToPng } from "modern-screenshot";
+import axios from "axios";
 
 export default function Canvas({ categories, ticket = null, auth }) {
   const { flash } = usePage().props;
   const isAuthenticated = auth?.user;
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [ticketInfo, setTicketInfo] = useState(
     ticket
@@ -48,12 +55,92 @@ export default function Canvas({ categories, ticket = null, auth }) {
   );
   const ticketRef = useRef(null);
 
+  const generateTicket = async () => {
+    // If user is not authenticated, redirect to login
+    if (!isAuthenticated) {
+      window.location.href = route("login");
+      return;
+    }
+
+    if (ticketRef.current) {
+      setIsGenerating(true);
+      setStatus(null);
+      setErrorMessage("");
+      try {
+        const dataUrl = await domToPng(ticketRef.current, {
+          quality: 4.0,
+          scale: 4,
+          backgroundColor: null,
+          skipFonts: false,
+          filter: (node) => {
+            if (node.nodeType === 3 || node.nodeType === 1) {
+              return true;
+            }
+            return false;
+          },
+        });
+
+        // Get the selected category
+        const selectedCategory = categories.find((c) =>
+          c.templates.some((t) => t.id === ticketInfo.template)
+        )?.id;
+
+        // Base ticket data for all ticket types
+        const ticketData = {
+          eventName: ticketInfo.eventName,
+          eventLocation: ticketInfo.eventLocation,
+          date: ticketInfo.date,
+          time: ticketInfo.time,
+          section: ticketInfo.section,
+          row: ticketInfo.row,
+          seat: ticketInfo.seat,
+          generatedTicket: dataUrl,
+          template_id: ticketInfo.template_id,
+        };
+
+        // Add category-specific fields based on the selected category
+        if (selectedCategory === "sports") {
+          ticketData.team_home = ticketInfo.homeTeam;
+          ticketData.team_away = ticketInfo.awayTeam;
+          ticketData.dividerColor = ticketInfo.dividerColor;
+        } else if (selectedCategory === "concerts") {
+          ticketData.artist = ticketInfo.artist;
+          ticketData.tour_name = ticketInfo.tourName;
+        }
+
+        // Add background image if available
+        if (ticketInfo.backgroundImage) {
+          ticketData.backgroundImage = ticketInfo.backgroundImage;
+          ticketData.filename = ticketInfo.filename;
+        }
+
+        // Send the ticket data to the server
+        const response = await axios.post(route("tickets.store"), ticketData);
+
+        setStatus("success");
+        setSuccessMessage("Ticket created successfully!");
+
+        // Redirect to the tickets page
+        window.location.href = route("tickets.index");
+      } catch (error) {
+        console.error("Error generating ticket:", error);
+        setStatus("error");
+        setErrorMessage(
+          error.response?.data?.message ||
+            "An error occurred while creating your ticket."
+        );
+      } finally {
+        setIsGenerating(false);
+      }
+    }
+  };
+
   // Content to render inside the layout
   const content = (
     <>
       <Head title="Design Your Ticket" />
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] relative">
         {flash?.success && (
           <div className="p-4 absolute top-4 right-4 z-50">
             <Alert className="bg-green-50 border-green-200">
@@ -69,9 +156,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
         <TicketEditorSidebar
           ticketInfo={ticketInfo}
           setTicketInfo={setTicketInfo}
-          ticketRef={ticketRef}
           categories={categories}
-          isAuthenticated={isAuthenticated}
         />
 
         {/* Ticket Visualizer - Takes remaining space */}
@@ -83,6 +168,41 @@ export default function Canvas({ categories, ticket = null, auth }) {
               ticketInfo={ticketInfo}
             />
           </div>
+        </div>
+
+        {/* Create Ticket Button - Fixed at bottom right */}
+        <div className="absolute bottom-6 right-6 z-10">
+          <Button
+            onClick={generateTicket}
+            disabled={isGenerating}
+            className="bg-sky-900 hover:bg-sky-800 text-white py-6 px-8 rounded-lg shadow-lg text-base flex items-center"
+            size="lg"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <TicketPlus className="mr-2 h-5 w-5" />
+                {isAuthenticated ? "Create Ticket" : "Sign In to Create"}
+              </>
+            )}
+          </Button>
+
+          {/* Status Messages */}
+          {status === "success" && (
+            <Alert className="mt-2 bg-green-50 border-green-200 text-green-800">
+              <AlertDescription>{successMessage}</AlertDescription>
+            </Alert>
+          )}
+
+          {status === "error" && (
+            <Alert className="mt-2 bg-red-50 border-red-200 text-red-800">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
         </div>
       </div>
     </>

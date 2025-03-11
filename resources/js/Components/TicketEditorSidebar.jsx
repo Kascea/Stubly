@@ -44,10 +44,6 @@ export default function TicketEditorSidebar({
   categories = [],
   isAuthenticated = false,
 }) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [status, setStatus] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [templates, setTemplates] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("templates");
@@ -171,81 +167,6 @@ export default function TicketEditorSidebar({
     multiple: false,
   });
 
-  const generateTicket = async () => {
-    // If user is not authenticated, redirect to login
-    if (!isAuthenticated) {
-      window.location.href = route("login");
-      return;
-    }
-
-    if (ticketRef.current) {
-      setIsGenerating(true);
-      setStatus(null);
-      setErrorMessage("");
-      try {
-        const dataUrl = await domToPng(ticketRef.current, {
-          quality: 4.0,
-          scale: 4,
-          backgroundColor: null,
-          skipFonts: false,
-          filter: (node) => {
-            if (node.nodeType === 3 || node.nodeType === 1) {
-              return true;
-            }
-            return false;
-          },
-        });
-
-        // Base ticket data for all ticket types
-        const ticketData = {
-          eventName: ticketInfo.eventName,
-          eventLocation: ticketInfo.eventLocation,
-          date: ticketInfo.date,
-          time: ticketInfo.time,
-          section: ticketInfo.section,
-          row: ticketInfo.row,
-          seat: ticketInfo.seat,
-          generatedTicket: dataUrl,
-          template: ticketInfo.template || "modern",
-          template_id: ticketInfo.template_id,
-        };
-
-        // Add category-specific fields based on the selected category
-        if (selectedCategory === "sports") {
-          ticketData.team_home = ticketInfo.homeTeam;
-          ticketData.team_away = ticketInfo.awayTeam;
-        } else if (selectedCategory === "concerts") {
-          ticketData.artist = ticketInfo.artist;
-          ticketData.tour_name = ticketInfo.tourName;
-        }
-
-        // Add background image if available
-        if (ticketInfo.backgroundImage) {
-          ticketData.backgroundImage = ticketInfo.backgroundImage;
-          ticketData.filename = ticketInfo.filename;
-        }
-
-        // Send the ticket data to the server
-        const response = await axios.post(route("tickets.store"), ticketData);
-
-        setStatus("success");
-        setSuccessMessage("Ticket created successfully!");
-
-        // Redirect to the tickets page
-        window.location.href = route("tickets.index");
-      } catch (error) {
-        console.error("Error generating ticket:", error);
-        setStatus("error");
-        setErrorMessage(
-          error.response?.data?.message ||
-            "An error occurred while creating your ticket."
-        );
-      } finally {
-        setIsGenerating(false);
-      }
-    }
-  };
-
   // Get the current template object
   const currentTemplate = templates.find((t) => t.id === ticketInfo.template);
   const supportsBackgroundImage =
@@ -306,56 +227,77 @@ export default function TicketEditorSidebar({
       : []),
   ];
 
+  // Handle tab click - now also expands the panel if collapsed
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (!isPanelExpanded) {
+      setIsPanelExpanded(true);
+    }
+  };
+
   return (
     <div
       className={cn(
-        "flex flex-col h-full transition-all duration-200",
-        isPanelExpanded ? "w-auto" : "w-20"
+        "flex flex-col h-full transition-all duration-300 ease-in-out",
+        isPanelExpanded ? "w-128" : "w-20"
       )}
     >
       {/* Main content area with tabs and panel */}
       <div className="flex flex-1 overflow-hidden">
         {/* Vertical tabs */}
-        <div className="flex flex-col bg-gray-50 border-r border-gray-200 w-20">
+        <div className="flex flex-col bg-gray-50 border-r border-gray-200 w-20 flex-shrink-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 transition-colors",
+                "flex flex-col items-center justify-center py-4 px-2 transition-colors relative",
                 activeTab === tab.id
                   ? "bg-orange-50 text-orange-600 border-r-2 border-orange-500"
                   : "text-gray-500 hover:bg-gray-100"
               )}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
             >
               {tab.icon}
               <span className="text-xs mt-1">{tab.label}</span>
+
+              {/* Active indicator dot for collapsed state */}
+              {!isPanelExpanded && activeTab === tab.id && (
+                <div className="absolute right-2 top-2 w-2 h-2 rounded-full bg-orange-500"></div>
+              )}
             </button>
           ))}
-          <div className="mt-auto">
+
+          {/* Collapsed state expand button at the bottom */}
+          {!isPanelExpanded && (
             <button
-              className="flex flex-col items-center justify-center py-4 px-2 w-full text-gray-500 hover:bg-gray-100 transition-colors"
-              onClick={() => setIsPanelExpanded(!isPanelExpanded)}
+              className="mt-auto flex flex-col items-center justify-center py-4 px-2 text-gray-500 hover:bg-gray-100 transition-colors"
+              onClick={() => setIsPanelExpanded(true)}
+              title="Expand panel"
             >
-              {isPanelExpanded ? (
-                <ChevronLeft className="h-5 w-5" />
-              ) : (
-                <ChevronRight className="h-5 w-5" />
-              )}
-              <span className="text-xs mt-1">
-                {isPanelExpanded ? "Collapse" : "Expand"}
-              </span>
+              <ChevronRight className="h-5 w-5" />
+              <span className="text-xs mt-1">Expand</span>
             </button>
-          </div>
+          )}
         </div>
 
         {/* Content panel */}
         <div
           className={cn(
-            "bg-white transition-all duration-200 overflow-y-auto flex-1",
+            "bg-white transition-all duration-300 ease-in-out overflow-y-auto flex-1 relative w-96",
             isPanelExpanded ? "block" : "hidden"
           )}
         >
+          {/* Add collapse button to the top right */}
+          <button
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors z-10"
+            onClick={() => setIsPanelExpanded(false)}
+            title="Collapse panel"
+          >
+            <ChevronLeft
+              className={cn("h-4 w-4 transition-transform duration-200")}
+            />
+          </button>
+
           <div className="p-4">
             {/* Templates Tab - Now First */}
             {activeTab === "templates" && (
@@ -646,47 +588,6 @@ export default function TicketEditorSidebar({
             )}
           </div>
         </div>
-      </div>
-
-      {/* Footer with action button - Only in the sidebar */}
-      <div
-        className={cn(
-          "border-t border-gray-200 p-4 bg-white",
-          isPanelExpanded ? "" : "hidden"
-        )}
-      >
-        <Button
-          onClick={generateTicket}
-          disabled={isGenerating}
-          className="w-full bg-sky-900 hover:bg-sky-800 text-white py-4 text-base"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Creating Your Ticket...
-            </>
-          ) : (
-            <>
-              <TicketPlus className="mr-2 h-5 w-5" />
-              {isAuthenticated
-                ? "Create Your Ticket"
-                : "Sign In to Create Ticket"}
-            </>
-          )}
-        </Button>
-
-        {/* Status Messages */}
-        {status === "success" && (
-          <Alert className="mt-2 bg-green-50 border-green-200 text-green-800">
-            <AlertDescription>{successMessage}</AlertDescription>
-          </Alert>
-        )}
-
-        {status === "error" && (
-          <Alert className="mt-2 bg-red-50 border-red-200 text-red-800">
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
       </div>
     </div>
   );
