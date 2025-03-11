@@ -259,11 +259,6 @@ export default function TicketEditorSidebar({
             >
               {tab.icon}
               <span className="text-xs mt-1">{tab.label}</span>
-
-              {/* Active indicator dot for collapsed state */}
-              {!isPanelExpanded && activeTab === tab.id && (
-                <div className="absolute right-2 top-2 w-2 h-2 rounded-full bg-orange-500"></div>
-              )}
             </button>
           ))}
         </div>
@@ -271,13 +266,13 @@ export default function TicketEditorSidebar({
         {/* Content panel when expanded */}
         {isPanelExpanded ? (
           <div className="bg-white transition-all duration-300 ease-in-out overflow-y-auto flex-1 relative w-96">
-            {/* Collapse button */}
+            {/* Collapse button - moved to top right */}
             <button
-              className="absolute top-2 right-2 p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors z-10"
+              className="w-8 h-8 bg-white hover:bg-sky-50 flex items-center justify-center rounded-bl-md absolute right-0 top-0 transition-colors border-l border-b border-gray-200 shadow-sm z-10"
               onClick={() => setIsPanelExpanded(false)}
               title="Collapse panel"
             >
-              <ChevronLeft className="h-4 w-4 transition-transform duration-200" />
+              <ChevronLeft className="h-5 w-5 text-sky-900" />
             </button>
 
             <div className="p-4">
@@ -575,13 +570,13 @@ export default function TicketEditorSidebar({
             </div>
           </div>
         ) : (
-          /* Minimal expand button when collapsed */
+          /* Expand button - moved to top left */
           <button
-            className="w-6 h-12 bg-gray-100 hover:bg-gray-200 flex items-center justify-center rounded-r-md absolute left-20 top-1/2 transform -translate-y-1/2 transition-colors border border-l-0 border-gray-200"
+            className="w-8 h-8 bg-white hover:bg-sky-50 flex items-center justify-center rounded-br-md absolute left-20 top-0 transition-colors border-r border-b border-gray-200 shadow-sm"
             onClick={() => setIsPanelExpanded(true)}
             title="Expand panel"
           >
-            <ChevronRight className="h-4 w-4 text-gray-500" />
+            <ChevronRight className="h-5 w-5 text-sky-900" />
           </button>
         )}
       </div>
