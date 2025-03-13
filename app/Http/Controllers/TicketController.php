@@ -228,7 +228,7 @@ class TicketController extends Controller
             });
 
         return Inertia::render('Tickets/Index', [
-            'tickets' => $tickets
+            'tickets' => Inertia::defer(fn() => $tickets)
         ]);
     }
 

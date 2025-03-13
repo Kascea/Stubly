@@ -207,6 +207,7 @@ export default function Navbar({
               href={route("tickets.index")}
               active={isActive("tickets.index")}
               className="flex items-center"
+              prefetch={true}
             >
               <HomeIcon className="w-4 h-4 mr-2" />
               <span

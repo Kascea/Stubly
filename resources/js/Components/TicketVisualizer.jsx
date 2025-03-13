@@ -20,7 +20,13 @@ const TicketTemplate = forwardRef(({ ticketInfo }, ref) => {
   const Template =
     templates[ticketInfo.template] || templates["sports-vertical"];
 
-  return <Template ref={ref} ticketInfo={ticketInfo} />;
+  return (
+    <div className="flex items-center justify-center w-full">
+      <div className="max-w-full" style={{ minHeight: "auto" }}>
+        <Template ref={ref} ticketInfo={ticketInfo} />
+      </div>
+    </div>
+  );
 });
 
 TicketTemplate.displayName = "TicketTemplate";
