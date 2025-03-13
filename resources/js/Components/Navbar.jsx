@@ -16,8 +16,6 @@ export default function Navbar({
   showingNavigationDropdown,
   setShowingNavigationDropdown,
 }) {
-  const { url, component } = usePage();
-
   // Helper function to determine if a route is active
   const isActive = (routeName) => {
     return route().current(routeName);
@@ -41,6 +39,7 @@ export default function Navbar({
             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
               <Link
                 href={route("canvas")}
+                prefetch={true}
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${
                   isActive("canvas")
                     ? "border-orange-400 text-sky-900"
@@ -55,6 +54,7 @@ export default function Navbar({
                 <>
                   <Link
                     href={route("tickets.index")}
+                    prefetch={true}
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${
                       isActive("tickets.index")
                         ? "border-orange-400 text-sky-900"
@@ -138,9 +138,6 @@ export default function Navbar({
               }}
             >
               <ShoppingCartIcon className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                0
-              </span>
             </Link>
           </div>
 
@@ -207,7 +204,6 @@ export default function Navbar({
               href={route("tickets.index")}
               active={isActive("tickets.index")}
               className="flex items-center"
-              prefetch={true}
             >
               <HomeIcon className="w-4 h-4 mr-2" />
               <span
