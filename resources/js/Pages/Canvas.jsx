@@ -182,7 +182,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
     <>
       <Head title="Design Your Ticket" />
 
-      <div className="flex flex-col sm:flex-row h-[calc(100vh-64px)] relative">
+      <div className="flex flex-col sm:flex-row h-[calc(100vh-65px)] relative overflow-hidden">
         {/* Sidebar - On left for large screens, overlay for small screens */}
         <div
           className={`
@@ -205,8 +205,8 @@ export default function Canvas({ categories, ticket = null, auth }) {
         </div>
 
         {/* Ticket Visualizer Container - Full width */}
-        <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex items-center justify-center overflow-auto">
-          {/* Ticket Visualizer Wrapper - Fixed size with scrolling */}
+        <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex items-center justify-center">
+          {/* Ticket Visualizer Wrapper - Fixed size without scrolling */}
           <div className="p-4 sm:p-8 w-full max-w-md mx-auto">
             <div className="transform scale-100 transition-transform duration-300">
               <TicketVisualizer
