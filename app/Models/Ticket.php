@@ -29,10 +29,13 @@ class Ticket extends Model
     'template_id',
     'ticketable_id',
     'ticketable_type',
+    'order_id',
+    'price',
   ];
 
   protected $casts = [
-    'event_datetime' => 'datetime'
+    'event_datetime' => 'datetime',
+    'price' => 'decimal:2',
   ];
 
   protected $appends = [
@@ -113,5 +116,21 @@ class Ticket extends Model
   public function template()
   {
     return $this->belongsTo(Template::class);
+  }
+
+  /**
+   * Get the order that this ticket belongs to.
+   */
+  public function order()
+  {
+    return $this->belongsTo(Order::class, 'order_id', 'order_id');
+  }
+
+  /**
+   * Get the cart items for this ticket.
+   */
+  public function cartItems()
+  {
+    return $this->hasMany(CartItem::class, 'ticket_id', 'ticket_id');
   }
 }

@@ -8,6 +8,8 @@ use App\Http\Middleware\VerifyPayment;
 use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 
 // Public routes
 Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
@@ -57,6 +59,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
   // Password routes
   Route::post('/password/set', [PasswordController::class, 'set'])->name('password.set');
+
+  // Cart routes
+  Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+  Route::post('/cart/add', [CartController::class, 'addItem'])->name('cart.add');
+  Route::delete('/cart/items/{item}', [CartController::class, 'removeItem'])->name('cart.remove');
+  Route::patch('/cart/items/{item}', [CartController::class, 'updateItem'])->name('cart.update');
+  Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+
+  // Order routes
+  Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+  Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+  Route::post('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+
+  // Get cart count for navbar
+  Route::get('/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
 });
 
 require __DIR__ . '/auth.php';

@@ -1,33 +1,53 @@
-import { useToast } from "@/hooks/use-toast";
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
-} from "@/Components/ui/toast";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { ToastContainer } from "./toast";
 
 export function Toaster() {
-  const { toasts } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+  const [toasts, setToasts] = useState([]);
 
-  return (
-    <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
-            {action}
-            <ToastClose />
-          </Toast>
-        );
-      })}
-      <ToastViewport />
-    </ToastProvider>
+  useEffect(() => {
+    setIsMounted(true);
+
+    const handleToast = (event) => {
+      const { toast } = event.detail;
+
+      if (toast) {
+        setToasts((prev) => [...prev, { id: Date.now(), ...toast }]);
+
+        // Auto-remove toast after duration
+        if (toast.duration !== Infinity) {
+          setTimeout(() => {
+            setToasts((prev) => prev.filter((t) => t.id !== toast.id));
+          }, toast.duration || 5000);
+        }
+      }
+    };
+
+    window.addEventListener("toast", handleToast);
+    return () => window.removeEventListener("toast", handleToast);
+  }, []);
+
+  if (!isMounted) return null;
+
+  return createPortal(
+    <ToastContainer toasts={toasts} setToasts={setToasts} />,
+    document.body
   );
+}
+
+// Helper function to create toasts from anywhere
+export function toast({
+  title,
+  description,
+  variant = "default",
+  duration = 5000,
+}) {
+  const event = new CustomEvent("toast", {
+    detail: {
+      toast: { title, description, variant, duration },
+    },
+  });
+
+  window.dispatchEvent(event);
 }

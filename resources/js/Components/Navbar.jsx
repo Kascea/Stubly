@@ -15,6 +15,7 @@ export default function Navbar({
   auth,
   showingNavigationDropdown,
   setShowingNavigationDropdown,
+  cartItemCount,
 }) {
   // Helper function to determine if a route is active
   const isActive = (routeName) => {
@@ -130,14 +131,15 @@ export default function Navbar({
 
             {/* Cart Icon - Now positioned after auth elements */}
             <Link
-              href="#"
+              href={route("cart.index")}
               className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100"
-              onClick={(e) => {
-                e.preventDefault();
-                alert("Cart functionality coming soon!");
-              }}
             >
               <ShoppingCartIcon className="w-5 h-5" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemCount}
+                </span>
+              )}
             </Link>
           </div>
 
@@ -218,12 +220,8 @@ export default function Navbar({
 
           {/* Mobile Cart Link */}
           <ResponsiveNavLink
-            href="#"
+            href={route("cart.index")}
             className="flex items-center"
-            onClick={(e) => {
-              e.preventDefault();
-              alert("Cart functionality coming soon!");
-            }}
           >
             <ShoppingCartIcon className="w-4 h-4 mr-2" />
             <span className="text-sky-900">Cart</span>

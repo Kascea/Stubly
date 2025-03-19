@@ -1,32 +1,13 @@
 import React, { useState } from "react";
 import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link, usePage, router, Deferred } from "@inertiajs/react";
-import { format } from "date-fns";
-import { Card, CardContent } from "@/Components/ui/card";
-import {
-  CalendarIcon,
-  MapPinIcon,
-  TicketIcon,
-  PlusCircle,
-  ChevronDown,
-  ChevronUp,
-  MoreVertical,
-  Trash2,
-  Download,
-  CreditCard,
-  Share2,
-  LinkIcon,
-  Sparkles,
-  Ticket,
-  Loader2,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import TicketCard from "@/Components/TicketCard";
-import { Button } from "@/Components/ui/button";
 
 dayjs.extend(relativeTime);
 

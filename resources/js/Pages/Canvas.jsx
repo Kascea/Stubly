@@ -4,13 +4,19 @@ import TicketEditorSidebar from "@/Components/TicketEditorSidebar";
 import TicketVisualizer from "@/Components/TicketVisualizer";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { Button } from "@/Components/ui/button";
-import { CheckCircle2, Loader2, TicketPlus, Eye, Edit } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  TicketPlus,
+  Eye,
+  Edit,
+  ShoppingCart,
+} from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import { domToPng } from "modern-screenshot";
 import axios from "axios";
 
 export default function Canvas({ categories, ticket = null, auth }) {
-  const { flash } = usePage().props;
   const isAuthenticated = auth?.user;
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState(null);
@@ -97,7 +103,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
     setIsSidebarVisible(!isSidebarVisible);
   };
 
-  const generateTicket = async () => {
+  const addTicketToCart = async () => {
     // If user is not authenticated, redirect to login
     if (!isAuthenticated) {
       window.location.href = route("login");
@@ -156,14 +162,23 @@ export default function Canvas({ categories, ticket = null, auth }) {
           ticketData.filename = ticketInfo.filename;
         }
 
-        // Send the ticket data to the server
+        // Send the ticket data to the server to create a ticket
         const response = await axios.post(route("tickets.store"), ticketData);
 
-        setStatus("success");
-        setSuccessMessage("Ticket created successfully!");
+        // Add the created ticket to cart
+        await axios.post(route("cart.add"), {
+          ticket_id: response.data.ticket.ticket_id,
+          quantity: 1,
+        });
 
-        // Redirect to the tickets page
-        window.location.href = route("tickets.index");
+        // Update cart count
+        await axios.get(route("cart.count"));
+
+        setStatus("success");
+        setSuccessMessage("Ticket added to cart successfully!");
+
+        // Redirect to the cart page
+        window.location.href = route("cart.index");
       } catch (error) {
         console.error("Error generating ticket:", error);
         setStatus("error");
@@ -232,10 +247,10 @@ export default function Canvas({ categories, ticket = null, auth }) {
           </button>
         )}
 
-        {/* Create Ticket Button - Fixed at bottom right */}
+        {/* Add to Cart Button - Fixed at bottom right */}
         <div className="fixed bottom-6 right-6 z-10">
           <Button
-            onClick={generateTicket}
+            onClick={addTicketToCart}
             disabled={isGenerating}
             className="bg-sky-900 hover:bg-sky-800 text-white py-4 px-6 rounded-lg shadow-lg text-sm sm:text-base flex items-center"
             size="lg"
@@ -247,8 +262,8 @@ export default function Canvas({ categories, ticket = null, auth }) {
               </>
             ) : (
               <>
-                <TicketPlus className="mr-2 h-5 w-5" />
-                {isAuthenticated ? "Create Ticket" : "Sign In to Create"}
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                {isAuthenticated ? "Add to Cart" : "Sign In to Add to Cart"}
               </>
             )}
           </Button>
