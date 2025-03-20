@@ -14,6 +14,9 @@ use App\Http\Controllers\OrderController;
 // Public routes
 Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
 
+// Public ticket routes
+Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
+
 // Cart and checkout routes (accessible to guests)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'addItem'])->name('cart.add');
@@ -25,11 +28,13 @@ Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
 Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])->name('cart.checkout.success');
 
+// Add this with your other public cart routes
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+
 Route::middleware(['auth', 'verified'])->group(function () {
-  // Ticket routes
+  // Authenticated ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');
-    Route::post('/', [TicketController::class, 'store'])->name('store');
     Route::get('/duplicate/{ticket:ticket_id}', [TicketController::class, 'duplicate'])->name('duplicate');
     Route::get('/preview/{ticket:ticket_id}', [TicketController::class, 'preview'])->name('preview');
 

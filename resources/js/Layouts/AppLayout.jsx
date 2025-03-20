@@ -15,16 +15,12 @@ export default function AppLayout({ children, auth: propAuth }) {
   const pageAuth = usePage().props.auth;
   const auth = propAuth || pageAuth;
 
-  // Get cart count from shared data
-  const { cart } = usePage().props;
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar
         auth={auth}
         showingNavigationDropdown={showingNavigationDropdown}
         setShowingNavigationDropdown={setShowingNavigationDropdown}
-        cartItemCount={cart.count}
       />
 
       <main className="flex-grow">{children}</main>

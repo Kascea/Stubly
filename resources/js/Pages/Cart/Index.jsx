@@ -23,7 +23,7 @@ import { router } from "@inertiajs/react";
 import { toast } from "@/Components/ui/toaster";
 
 export default function CartIndex({ cart, auth }) {
-  const { flash = {} } = usePage().props;
+  const { flash = {}, cart: sharedCart } = usePage().props;
   const hasItems = cart.items && cart.items.length > 0;
 
   // Calculate totals

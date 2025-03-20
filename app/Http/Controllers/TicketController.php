@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\Session;
 
 class TicketController extends Controller
 {
@@ -44,7 +45,8 @@ class TicketController extends Controller
             // Create the base ticket data
             $ticketData = [
                 'ticket_id' => Str::uuid()->toString(),
-                'user_id' => auth()->id(),
+                'user_id' => auth()->check() ? auth()->id() : null,
+                'session_id' => !auth()->check() ? Session::getId() : null,
                 'template_id' => $request->template_id,
                 'template' => $request->template, // Keep for backward compatibility
                 'event_name' => $request->eventName,
@@ -207,31 +209,6 @@ class TicketController extends Controller
         ], 500);
     }
 
-    public function index()
-    {
-        $tickets = Ticket::where('user_id', auth()->id())
-            ->with([
-                'payments' => function ($query) {
-                    $query->where('payment_status', 'paid');
-                },
-                'ticketable', // Load the specialized ticket data
-                'template', // Load the template
-                'template.category' // Load the category
-            ])
-            ->latest('updated_at')
-            ->get()
-            ->map(function ($ticket) {
-                $ticket->isPaid = $ticket->payments->isNotEmpty();
-                $ticket->lastUpdated = $ticket->updated_at;
-                $ticket->created = $ticket->created_at;
-                return $ticket;
-            });
-
-        return Inertia::render('Tickets/Index', [
-            'tickets' => Inertia::defer(fn() => $tickets)
-        ]);
-    }
-
     public function destroy(Ticket $ticket)
     {
         try {
@@ -273,31 +250,6 @@ class TicketController extends Controller
             'CustomTicket-' . $ticket->ticket_id . '.webp',
             ['Content-Type' => 'image/webp']
         );
-    }
-
-    public function duplicate(Ticket $ticket)
-    {
-        $newTicket = $ticket->replicate();
-        $newTicket->ticket_id = Str::uuid()->toString();
-        $newTicket->user_id = auth()->id();
-        $newTicket->save();
-
-        return redirect()->route('canvas', ['ticket' => $newTicket->ticket_id])
-            ->with('success', 'Ticket duplicated successfully');
-    }
-
-    public function preview(Ticket $ticket)
-    {
-        $ticket->load('payments');
-
-        return Inertia::render('Tickets/Preview', [
-            'ticket' => $ticket,
-            'isPaid' => $ticket->isPaid(),
-            'isOwner' => auth()->check() && auth()->id() === $ticket->user_id,
-            'auth' => [
-                'user' => auth()->user()
-            ]
-        ]);
     }
 
     public function canvas()

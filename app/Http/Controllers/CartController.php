@@ -66,10 +66,12 @@ class CartController extends Controller
         $cart = $this->getCart();
 
         // Load cart items with their tickets
-        $cart->load(['items.ticket']);
+        $cartData = [
+            'items' => $cart ? $cart->items->load('ticket') : [],
+        ];
 
         return Inertia::render('Cart/Index', [
-            'cart' => $cart,
+            'cart' => $cartData,
         ]);
     }
 
@@ -167,27 +169,16 @@ class CartController extends Controller
     }
 
     /**
-     * Get the number of items in the cart
-     * This method can be removed if you use Inertia for everything, 
-     * as the cart count would be part of the shared data
-     */
-
-    /**
      * Process checkout for cart items
      */
     public function checkout(Request $request)
     {
-        $user = auth()->user();
-
         // Get active cart with its items and related ticket data
-        $cart = Cart::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->with(['items.ticket'])
-            ->first();
+        $cart = $this->getCart();
 
         // Debug the cart to see what's happening
         \Log::info('Checkout initiated', [
-            'user_id' => $user->id,
+            'user_id' => Auth::id() ?? 'guest',
             'cart_exists' => $cart ? true : false,
             'items_count' => $cart ? $cart->items->count() : 0
         ]);
@@ -200,31 +191,18 @@ class CartController extends Controller
             // Initialize Stripe
             Stripe::setApiKey(config('services.stripe.secret'));
 
-            \Log::info('Stripe API Key set', [
-                'key_length' => strlen(config('services.stripe.secret')),
-                'key_starts_with' => substr(config('services.stripe.secret'), 0, 3)
-            ]);
-
             // Calculate total
             $totalAmount = $cart->items->reduce(function ($total, $item) {
                 return $total + ($item->price * $item->quantity);
             }, 0);
 
-            \Log::info('Creating checkout session', [
-                'total_amount' => $totalAmount,
-                'item_count' => $cart->items->count(),
-                'success_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('cart.index'),
-            ]);
-
-            // Create a Stripe checkout session
             $checkoutSession = StripeSession::create([
                 'payment_method_types' => ['card'],
                 'mode' => 'payment',
                 'success_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('cart.index'),
-                'customer_email' => $user->email,
-                'client_reference_id' => $user->id,
+                'customer_email' => Auth::check() ? Auth::user()->email : null,
+                'client_reference_id' => Auth::id() ?? Session::getId(),
                 'line_items' => $cart->items->map(function ($item) {
                     return [
                         'price_data' => [
@@ -234,7 +212,7 @@ class CartController extends Controller
                                 'description' => "Ticket for " . $item->ticket->event_name,
                                 'images' => $item->ticket->generated_ticket_url ? [$item->ticket->generated_ticket_url] : [],
                             ],
-                            'unit_amount' => (int) round($item->price * 100), // Stripe uses cents, ensure it's an integer
+                            'unit_amount' => (int) round($item->price * 100),
                         ],
                         'quantity' => $item->quantity,
                     ];
@@ -242,11 +220,6 @@ class CartController extends Controller
                 'metadata' => [
                     'cart_id' => $cart->cart_id,
                 ],
-            ]);
-
-            \Log::info('Checkout session created', [
-                'client_secret' => substr($checkoutSession->client_secret, 0, 10) . '...',
-                'session_id' => $checkoutSession->id,
             ]);
 
             return Inertia::render('Cart/Checkout', [
@@ -270,6 +243,7 @@ class CartController extends Controller
                 ],
                 'clientSecret' => $checkoutSession->client_secret,
                 'publishableKey' => config('services.stripe.key'),
+                'isGuest' => !Auth::check(),
             ]);
         } catch (\Exception $e) {
             \Log::error('Checkout error: ' . $e->getMessage(), [
@@ -349,6 +323,27 @@ class CartController extends Controller
         } catch (\Exception $e) {
             Log::error('Checkout success error: ' . $e->getMessage());
             return redirect()->route('cart.index')->with('error', 'An error occurred while processing your order. Please contact support.');
+        }
+    }
+
+    // Add the same method as in HandleInertiaRequests middleware
+    private function getCartCount()
+    {
+        try {
+            if (Auth::check()) {
+                $cart = Cart::where('user_id', Auth::id())
+                    ->where('status', 'active')
+                    ->first();
+            } else {
+                $cart = Cart::where('session_id', Session::getId())
+                    ->where('status', 'active')
+                    ->first();
+            }
+
+            return $cart ? CartItem::where('cart_id', $cart->cart_id)->sum('quantity') : 0;
+        } catch (\Exception $e) {
+            Log::error('Error getting cart count: ' . $e->getMessage());
+            return 0;
         }
     }
 }

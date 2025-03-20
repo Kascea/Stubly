@@ -16,7 +16,7 @@ import AppLayout from "@/Layouts/AppLayout";
 import { domToPng } from "modern-screenshot";
 import axios from "axios";
 
-export default function Canvas({ categories, ticket = null, auth }) {
+export default function Canvas({ categories, ticket = null, auth, cartCount }) {
   const isAuthenticated = auth?.user;
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState(null);
@@ -104,12 +104,6 @@ export default function Canvas({ categories, ticket = null, auth }) {
   };
 
   const addTicketToCart = async () => {
-    // If user is not authenticated, redirect to login
-    if (!isAuthenticated) {
-      window.location.href = route("login");
-      return;
-    }
-
     if (ticketRef.current) {
       setIsGenerating(true);
       setStatus(null);
@@ -171,9 +165,6 @@ export default function Canvas({ categories, ticket = null, auth }) {
           quantity: 1,
         });
 
-        // Update cart count
-        await axios.get(route("cart.count"));
-
         setStatus("success");
         setSuccessMessage("Ticket added to cart successfully!");
 
@@ -220,7 +211,24 @@ export default function Canvas({ categories, ticket = null, auth }) {
         </div>
 
         {/* Ticket Visualizer Container - Full width */}
-        <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex items-center justify-center">
+        <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex flex-col items-center justify-center relative">
+          {/* Status Messages */}
+          {status && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-20">
+              {status === "success" && (
+                <Alert className="bg-green-50 border-green-200 text-green-800 shadow-md">
+                  <AlertDescription>{successMessage}</AlertDescription>
+                </Alert>
+              )}
+
+              {status === "error" && (
+                <Alert className="bg-red-50 border-red-200 text-red-800 shadow-md">
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+
           {/* Ticket Visualizer Wrapper - Fixed size without scrolling */}
           <div className="p-4 sm:p-8 w-full max-w-md mx-auto">
             <div className="transform scale-100 transition-transform duration-300">
@@ -270,23 +278,10 @@ export default function Canvas({ categories, ticket = null, auth }) {
             ) : (
               <>
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                {isAuthenticated ? "Add to Cart" : "Sign In to Add to Cart"}
+                Add to Cart
               </>
             )}
           </Button>
-
-          {/* Status Messages */}
-          {status === "success" && (
-            <Alert className="mt-2 bg-green-50 border-green-200 text-green-800">
-              <AlertDescription>{successMessage}</AlertDescription>
-            </Alert>
-          )}
-
-          {status === "error" && (
-            <Alert className="mt-2 bg-red-50 border-red-200 text-red-800">
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          )}
         </div>
       </div>
     </>

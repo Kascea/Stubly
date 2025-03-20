@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import Dropdown from "@/Components/Dropdown";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
@@ -12,14 +12,15 @@ import {
   ListOrderedIcon,
   ShoppingCart,
 } from "lucide-react";
+import axios from "axios";
 
 export default function Navbar({
   auth,
   showingNavigationDropdown,
   setShowingNavigationDropdown,
 }) {
-  // Get cart count from shared data instead of prop
   const { cart } = usePage().props;
+  console.log(cart);
 
   // Helper function to determine if a route is active
   const isActive = (routeName) => {
@@ -126,7 +127,7 @@ export default function Navbar({
               </Link>
             )}
 
-            {/* Cart Icon - Now positioned after auth elements */}
+            {/* Cart Icon - Now using the cartCount state */}
             <Link
               href={route("cart.index")}
               className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100"

@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Cart;
+use App\Models\CartItem;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -30,33 +33,39 @@ class HandleInertiaRequests extends Middleware
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    public function share(Request $request)
+    public function share(Request $request): array
     {
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user(),
             ],
+            'cart' => [
+                'count' => $this->getCartCount(),
+            ],
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
                 'error' => fn() => $request->session()->get('error'),
             ],
-            'cart' => function () use ($request) {
-                if (Auth::check()) {
-                    $cart = Cart::where('user_id', Auth::id())
-                        ->where('status', 'active')
-                        ->first();
-
-                    if ($cart) {
-                        return [
-                            'count' => $cart->items()->sum('quantity'),
-                        ];
-                    }
-                }
-
-                return [
-                    'count' => 0,
-                ];
-            },
         ]);
+    }
+
+    private function getCartCount()
+    {
+        try {
+            if (Auth::check()) {
+                $cart = Cart::where('user_id', Auth::id())
+                    ->where('status', 'active')
+                    ->first();
+            } else {
+                $cart = Cart::where('session_id', Session::getId())
+                    ->where('status', 'active')
+                    ->first();
+            }
+
+            return $cart ? CartItem::where('cart_id', $cart->cart_id)->sum('quantity') : 0;
+        } catch (\Exception $e) {
+            Log::error('Error getting cart count: ' . $e->getMessage());
+            return 0;
+        }
     }
 }
