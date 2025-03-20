@@ -237,7 +237,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
         {isMobile && (
           <button
             onClick={toggleSidebarVisibility}
-            className="fixed bottom-20 right-6 z-40 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center"
+            className="fixed bottom-20 right-6 z-40 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-colors"
           >
             {isSidebarVisible ? (
               <Eye className="h-6 w-6" />
@@ -252,7 +252,14 @@ export default function Canvas({ categories, ticket = null, auth }) {
           <Button
             onClick={addTicketToCart}
             disabled={isGenerating}
-            className="bg-sky-900 hover:bg-sky-800 text-white py-4 px-6 rounded-lg shadow-lg text-sm sm:text-base flex items-center"
+            className={`
+              py-4 px-6 rounded-lg shadow-lg text-sm sm:text-base flex items-center
+              ${
+                isGenerating
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-sky-800 hover:bg-sky-700 text-white transition-colors"
+              }
+            `}
             size="lg"
           >
             {isGenerating ? (

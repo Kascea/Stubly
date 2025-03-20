@@ -94,14 +94,16 @@ export function DateTimePicker({
           className={cn(
             "w-full justify-start text-left font-normal border border-slate-200 bg-white hover:bg-slate-50",
             "focus-visible:ring-1 focus-visible:ring-orange-400 focus-visible:border-orange-400",
-            !selectedDateTime && "text-slate-500"
+            !selectedDateTime && "text-sky-800"
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="mr-2 h-4 w-4 text-sky-800" />
           {selectedDateTime ? (
-            format(selectedDateTime, "MM/dd/yyyy hh:mm aa")
+            <span className="text-sky-900">
+              {format(selectedDateTime, "MM/dd/yyyy hh:mm aa")}
+            </span>
           ) : (
-            <span>Select date and time</span>
+            <span className="text-sky-900">Select date and time</span>
           )}
         </Button>
       </PopoverTrigger>
@@ -124,7 +126,7 @@ export function DateTimePicker({
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
                       isHourSelected(hour) &&
-                        "bg-sky-900 text-white hover:bg-sky-800"
+                        "bg-sky-800 text-white hover:bg-sky-800"
                     )}
                     onClick={() => handleTimeChange("hour", hour.toString())}
                   >
@@ -144,7 +146,7 @@ export function DateTimePicker({
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
                       isMinuteSelected(minute) &&
-                        "bg-sky-900 text-white hover:bg-sky-800"
+                        "bg-sky-800 text-white hover:bg-sky-800"
                     )}
                     onClick={() =>
                       handleTimeChange("minute", minute.toString())
@@ -166,7 +168,7 @@ export function DateTimePicker({
                     className={cn(
                       "sm:w-full shrink-0 aspect-square",
                       isPeriodSelected(period) &&
-                        "bg-sky-900 text-white hover:bg-sky-800"
+                        "bg-sky-800 text-white hover:bg-sky-800"
                     )}
                     onClick={() => handleTimeChange("ampm", period)}
                   >

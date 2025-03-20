@@ -133,7 +133,7 @@ export default function CartIndex({ cart, auth }) {
             {hasItems && (
               <Button
                 variant="outline"
-                className="text-red-500 border-red-200 hover:bg-red-50"
+                className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                 onClick={clearCart}
               >
                 <Trash2 className="h-4 w-4 mr-1" /> Clear Cart
@@ -219,7 +219,7 @@ export default function CartIndex({ cart, auth }) {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-7 w-7 p-0"
+                              className="h-7 w-7 p-0 border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-colors"
                               onClick={() =>
                                 updateQuantity(item, item.quantity - 1)
                               }
@@ -234,7 +234,7 @@ export default function CartIndex({ cart, auth }) {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-7 w-7 p-0"
+                              className="h-7 w-7 p-0 border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-colors"
                               onClick={() =>
                                 updateQuantity(item, item.quantity + 1)
                               }
@@ -253,7 +253,7 @@ export default function CartIndex({ cart, auth }) {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeItem(item)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -274,11 +274,16 @@ export default function CartIndex({ cart, auth }) {
 
                 <div className="flex space-x-2">
                   <Link href={route("canvas")}>
-                    <Button variant="outline">Continue Shopping</Button>
+                    <Button
+                      variant="outline"
+                      className="border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-colors"
+                    >
+                      Continue Shopping
+                    </Button>
                   </Link>
 
                   <Button
-                    className="bg-sky-900 hover:bg-sky-800"
+                    className="bg-sky-800 hover:bg-sky-700 text-white transition-colors"
                     onClick={() => router.post(route("checkout"))}
                   >
                     Checkout <ArrowRight className="ml-2 h-4 w-4" />
@@ -298,7 +303,7 @@ export default function CartIndex({ cart, auth }) {
                 </p>
 
                 <Link href={route("canvas")}>
-                  <Button className="bg-sky-900 hover:bg-sky-800">
+                  <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-colors">
                     Create a Ticket
                   </Button>
                 </Link>
