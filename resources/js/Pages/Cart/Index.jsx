@@ -100,7 +100,10 @@ export default function CartIndex({ cart: initialCart, auth }) {
       setCart((prevCart) => ({
         ...prevCart,
         items: prevCart.items.filter((cartItem) => cartItem.id !== item.id),
+        count: prevCart.count - 1,
       }));
+
+      router.reload({ only: ["cart"] });
 
       toast({
         title: "Ticket removed",
@@ -130,7 +133,10 @@ export default function CartIndex({ cart: initialCart, auth }) {
       setCart((prevCart) => ({
         ...prevCart,
         items: [],
+        count: 0,
       }));
+
+      router.reload({ only: ["cart"] });
 
       toast({
         title: "Cart cleared",
@@ -308,8 +314,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
                   </Link>
 
                   <Button
-                    className="!bg-sky-800 hover:!bg-sky-700 text-white border-0 shadow-none"
-                    style={{ backgroundColor: "#075985" }}
+                    className="bg-sky-800 hover:bg-sky-700 text-white transition-colors"
                     onClick={() => router.post(route("checkout"))}
                   >
                     Checkout <ArrowRight className="ml-2 h-4 w-4" />
@@ -330,10 +335,22 @@ export default function CartIndex({ cart: initialCart, auth }) {
 
                 <Link href={route("canvas")}>
                   <Button
-                    className="!bg-sky-800 hover:!bg-sky-700 text-white border-0 shadow-none"
+                    className="relative !bg-sky-800 hover:!bg-sky-700 text-white border-0
+                      transition-all duration-300 ease-in-out
+                      hover:scale-105 hover:shadow-lg
+                      active:scale-100
+                      flex items-center gap-2
+                      bg-gradient-to-r from-sky-800 to-sky-700
+                      hover:from-sky-700 hover:to-sky-600
+                      overflow-hidden"
                     style={{ backgroundColor: "#075985" }}
                   >
+                    <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
                     Create a Ticket
+                    <div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent 
+                      -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-out"
+                    />
                   </Button>
                 </Link>
               </CardContent>

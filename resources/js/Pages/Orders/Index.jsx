@@ -24,6 +24,7 @@ import {
   ReceiptText,
   ArrowRight,
   Ticket,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 
@@ -105,7 +106,10 @@ export default function OrdersIndex({ orders, auth }) {
 
                   <TableBody>
                     {orders.map((order) => (
-                      <TableRow key={order.order_id}>
+                      <TableRow
+                        key={order.order_id}
+                        className="transition-colors hover:bg-sky-50/50 cursor-pointer"
+                      >
                         <TableCell className="font-medium">
                           {order.order_id}
                         </TableCell>
@@ -125,11 +129,15 @@ export default function OrdersIndex({ orders, auth }) {
 
                         <TableCell>
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(
-                              order.status
-                            )}`}
+                            className={`px-2 py-1 rounded-full text-xs font-medium border
+                              transition-all duration-300 ease-in-out
+                              hover:scale-105
+                              flex items-center gap-1 w-fit
+                              ${getStatusBadge(order.status)}`}
                           >
-                            {getStatusIcon(order.status)}
+                            <span className="transition-transform duration-300 hover:rotate-12">
+                              {getStatusIcon(order.status)}
+                            </span>
                             <span className="ml-1 inline-block">
                               {order.status.charAt(0).toUpperCase() +
                                 order.status.slice(1)}
@@ -142,9 +150,23 @@ export default function OrdersIndex({ orders, auth }) {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-sky-900 hover:text-orange-400 hover:bg-orange-50 transition-colors"
+                              className="text-sky-900 hover:text-sky-700
+                                transition-all duration-300
+                                hover:scale-105
+                                flex items-center gap-2
+                                relative
+                                overflow-hidden
+                                group"
                             >
-                              View <ArrowRight className="ml-1 h-4 w-4" />
+                              View
+                              <ArrowRight
+                                className="ml-1 h-4 w-4 transition-transform duration-300 
+                                group-hover:translate-x-1"
+                              />
+                              <div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-sky-100/30 to-transparent 
+                                -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"
+                              />
                             </Button>
                           </Link>
                         </TableCell>
@@ -162,14 +184,51 @@ export default function OrdersIndex({ orders, auth }) {
                   No orders yet
                 </h3>
                 <p className="text-gray-500 mb-6">
-                  Add some tickets to your cart and complete your purchase
+                  Create a custom ticket or check your cart to complete a
+                  purchase
                 </p>
 
-                <Link href={route("cart.index")}>
-                  <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-colors">
-                    Go to Cart
-                  </Button>
-                </Link>
+                <div className="flex gap-4 items-center">
+                  <Link href={route("canvas")}>
+                    <Button
+                      className="relative !bg-sky-800 hover:!bg-sky-700 text-white border-0
+                        transition-all duration-300 ease-in-out
+                        hover:scale-105 hover:shadow-lg
+                        active:scale-100
+                        flex items-center gap-2
+                        bg-gradient-to-r from-sky-800 to-sky-700
+                        hover:from-sky-700 hover:to-sky-600
+                        overflow-hidden"
+                    >
+                      <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
+                      Create a Ticket
+                      <div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent 
+                        -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-out"
+                      />
+                    </Button>
+                  </Link>
+
+                  <Link href={route("cart.index")}>
+                    <Button
+                      variant="outline"
+                      className="relative border-sky-200 text-sky-800
+                        transition-all duration-300 ease-in-out
+                        hover:scale-105 hover:shadow-lg
+                        active:scale-100
+                        flex items-center gap-2
+                        hover:bg-sky-50
+                        overflow-hidden"
+                    >
+                      <ShoppingBag className="h-4 w-4 transition-transform group-hover:rotate-12" />
+                      View Cart
+                      <div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-sky-100/30 to-transparent 
+                        -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-out"
+                      />
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           )}

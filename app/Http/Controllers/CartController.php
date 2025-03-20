@@ -82,6 +82,7 @@ class CartController extends Controller
                     'template_id' => $ticket->template_id,
                 ];
             }) : [],
+            'count' => $this->getCartCount()
         ];
 
         return Inertia::render('Cart/Index', [
@@ -130,7 +131,11 @@ class CartController extends Controller
         }
 
         return response()->json([
-            'message' => 'Cart cleared'
+            'message' => 'Cart cleared',
+            'cart' => [
+                'count' => 0,
+                'items' => []
+            ]
         ]);
     }
 
