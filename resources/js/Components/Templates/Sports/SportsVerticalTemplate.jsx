@@ -57,17 +57,15 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
               <div className="flex items-center justify-center mt-4 space-x-6">
                 {/* Home Team */}
                 <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
-                    {ticketInfo?.homeTeamLogo ? (
+                  {ticketInfo?.homeTeamLogo ? (
+                    <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
                       <img
                         src={ticketInfo.homeTeamLogo}
                         alt="Home Team"
                         className="w-full h-full object-contain"
                       />
-                    ) : (
-                      <span className="text-2xl font-bold">H</span>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                   <p className="text-sm font-medium mt-2 drop-shadow-md">
                     {ticketInfo?.homeTeam || "HOME"}
                   </p>
@@ -78,17 +76,15 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
 
                 {/* Away Team */}
                 <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
-                    {ticketInfo?.awayTeamLogo ? (
+                  {ticketInfo?.awayTeamLogo ? (
+                    <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
                       <img
                         src={ticketInfo.awayTeamLogo}
                         alt="Away Team"
                         className="w-full h-full object-contain"
                       />
-                    ) : (
-                      <span className="text-2xl font-bold">A</span>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                   <p className="text-sm font-medium mt-2 drop-shadow-md">
                     {ticketInfo?.awayTeam || "AWAY"}
                   </p>
