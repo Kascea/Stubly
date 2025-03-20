@@ -11,6 +11,7 @@ import {
   ShoppingCartIcon,
   ListOrderedIcon,
   ShoppingCart,
+  HelpCircleIcon,
 } from "lucide-react";
 import axios from "axios";
 
@@ -101,6 +102,13 @@ export default function Navbar({
                       <ListOrderedIcon className="w-4 h-4 mr-2 inline" />
                       Order History
                     </Dropdown.Link>
+                    <Dropdown.Link
+                      href={route("support")}
+                      className="text-sky-900 hover:text-orange-400 hover:bg-gray-50"
+                    >
+                      <HelpCircleIcon className="w-4 h-4 mr-2 inline" />
+                      Support
+                    </Dropdown.Link>
 
                     <div className="border-t border-gray-200 my-1"></div>
 
@@ -117,16 +125,25 @@ export default function Navbar({
                 </Dropdown>
               </div>
             ) : (
-              <Link
-                href={route("login")}
-                className="inline-flex items-center rounded-md bg-sky-800 hover:bg-sky-700 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 focus:ring-offset-sky-200 shadow-sm"
-              >
-                <UserIcon className="w-4 h-4 mr-1" />
-                Sign in
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link
+                  href={route("support")}
+                  className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100 inline-flex items-center"
+                >
+                  <HelpCircleIcon className="w-5 h-5 mr-1" />
+                  <span className="text-sm font-medium">Support</span>
+                </Link>
+                <Link
+                  href={route("login")}
+                  className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100 inline-flex items-center"
+                >
+                  <UserIcon className="w-5 h-5 mr-1" />
+                  <span className="text-sm font-medium">Sign in</span>
+                </Link>
+              </div>
             )}
 
-            {/* Cart Icon - Now using the cartCount state */}
+            {/* Cart Icon */}
             <Link
               href={route("cart.index")}
               className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100"

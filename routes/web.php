@@ -11,6 +11,8 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Middleware\VerifyTicketAccess;
+use Inertia\Inertia;
+
 // Public routes
 Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
 
@@ -80,5 +82,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
   Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
   Route::get('/orders/{order}/download', [OrderController::class, 'downloadTickets'])->name('orders.download');
 });
+
+Route::get('/support', function () {
+  return Inertia::render('Support/Index');
+})->name('support');
 
 require __DIR__ . '/auth.php';
