@@ -65,6 +65,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'verify.ticket.owner' => \App\Http\Middleware\VerifyTicketOwner::class,
         'verify.payment' => \App\Http\Middleware\VerifyPayment::class,
+        'verify.ticket.access' => \App\Http\Middleware\VerifyTicketAccess::class,
     ];
 
     protected $routeMiddleware = [

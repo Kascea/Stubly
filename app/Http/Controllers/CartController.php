@@ -15,7 +15,7 @@ use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Storage;
 class CartController extends Controller
 {
     /**
@@ -121,12 +121,13 @@ class CartController extends Controller
     {
         $cart = $this->getCart();
 
-        //Delete all tickets from the cart
-        Ticket::where('cart_id', $cart->cart_id)
-            ->update(['cart_id' => null]);
+        foreach ($cart->tickets as $ticket) {
+            //Delete the generated ticket from R2
+            Storage::disk('r2')->delete($ticket->generated_ticket_path);
 
-        //Delete all tickets from R2
-        Storage::disk('r2')->deleteDirectory($cart->cart_id);
+            //Delete the ticket from the database
+            $ticket->delete();
+        }
 
         return response()->json([
             'message' => 'Cart cleared'

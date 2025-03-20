@@ -212,13 +212,8 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         try {
-            // The middleware has already verified access, so we can proceed with deletion
             if ($ticket->generated_ticket_path) {
                 Storage::disk('r2')->delete($ticket->generated_ticket_path);
-            }
-
-            if ($ticket->background_image_path) {
-                Storage::disk('r2')->delete($ticket->background_image_path);
             }
 
             $ticket->delete();
