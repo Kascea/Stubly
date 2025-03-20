@@ -10,14 +10,17 @@ import {
   UserPlusIcon,
   ShoppingCartIcon,
   ListOrderedIcon,
+  ShoppingCart,
 } from "lucide-react";
 
 export default function Navbar({
   auth,
   showingNavigationDropdown,
   setShowingNavigationDropdown,
-  cartItemCount,
 }) {
+  // Get cart count from shared data instead of prop
+  const { cart } = usePage().props;
+
   // Helper function to determine if a route is active
   const isActive = (routeName) => {
     return route().current(routeName);
@@ -128,10 +131,10 @@ export default function Navbar({
               href={route("cart.index")}
               className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100"
             >
-              <ShoppingCartIcon className="w-5 h-5" />
-              {cartItemCount > 0 && (
+              <ShoppingCart className="w-5 h-5" />
+              {cart.count > 0 && (
                 <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItemCount}
+                  {cart.count}
                 </span>
               )}
             </Link>

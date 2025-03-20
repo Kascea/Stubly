@@ -3,24 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\Cart;
-use App\Models\Ticket;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+use ZipArchive;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
     /**
-     * Display a listing of orders for the current user.
+     * Display a listing of the orders for the authenticated user.
      */
     public function index()
     {
-        $orders = Order::where('user_id', Auth::id())
+        $orders = Auth::user()->orders()
             ->with(['tickets'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'order_id' => $order->order_id,
+                    'created_at' => $order->created_at,
+                    'total_amount' => $order->total_amount,
+                    'status' => $order->status,
+                    'payment_id' => $order->payment_id,
+                    'tickets' => $order->tickets,
+                ];
+            });
 
         return Inertia::render('Orders/Index', [
             'orders' => $orders,
@@ -32,81 +41,109 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        // Ensure the user can only view their own orders
+        // Check if the order belongs to the authenticated user
         if ($order->user_id !== Auth::id()) {
-            abort(403);
+            return redirect()->route('orders.index')
+                ->with('error', 'You do not have permission to view this order.');
         }
 
+        // Load tickets
         $order->load(['tickets']);
 
+        // Format order data for frontend
+        $orderData = [
+            'order_id' => $order->order_id,
+            'created_at' => $order->created_at,
+            'total_amount' => $order->total_amount,
+            'status' => $order->status,
+            'payment_id' => $order->payment_id,
+            'tickets' => $order->tickets->map(function ($ticket) {
+                return [
+                    'id' => $ticket->id,
+                    'ticket_id' => $ticket->ticket_id,
+                    'event_name' => $ticket->event_name,
+                    'event_location' => $ticket->event_location,
+                    'event_datetime' => $ticket->event_datetime,
+                    'section' => $ticket->section,
+                    'row' => $ticket->row,
+                    'seat' => $ticket->seat,
+                    'price' => $ticket->price,
+                    'generated_ticket_url' => $ticket->generated_ticket_url,
+                ];
+            }),
+        ];
+
         return Inertia::render('Orders/Show', [
-            'order' => $order,
+            'order' => $orderData,
         ]);
     }
 
     /**
-     * Checkout the current cart and create an order.
+     * Download all tickets for an order as a ZIP file.
      */
-    public function checkout(Request $request)
+    public function downloadTickets(Order $order)
     {
-        // Ensure the user is authenticated
-        if (!Auth::check()) {
-            return redirect()->route('login')
-                ->with('error', 'Please sign in to complete your purchase');
+        // Check if the order belongs to the authenticated user
+        if ($order->user_id !== Auth::id()) {
+            return redirect()->route('orders.index')
+                ->with('error', 'You do not have permission to download these tickets.');
         }
 
-        // Get the active cart
-        $cart = Cart::where('user_id', Auth::id())
-            ->where('status', 'active')
-            ->with(['items.ticket'])
-            ->first();
+        // Load tickets
+        $order->load(['tickets']);
 
-        if (!$cart || $cart->items->isEmpty()) {
-            return redirect()->route('cart.index')
-                ->with('error', 'Your cart is empty');
+        // Check if there are any tickets to download
+        if ($order->tickets->isEmpty()) {
+            return redirect()->route('orders.show', $order->order_id)
+                ->with('error', 'No tickets available for download.');
         }
 
-        // Calculate the total amount
-        $totalAmount = $cart->items->sum(function ($item) {
-            return $item->price * $item->quantity;
-        });
+        // Create a temporary zip file
+        $zipFileName = 'order_' . $order->order_id . '_tickets.zip';
+        $zipFilePath = storage_path('app/temp/' . $zipFileName);
 
-        DB::beginTransaction();
+        // Ensure the temp directory exists
+        if (!file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
 
-        try {
-            // Create the order
-            $order = Order::create([
-                'user_id' => Auth::id(),
-                'status' => 'pending',
-                'total_amount' => $totalAmount,
-                'billing_email' => Auth::user()->email,
-                'billing_name' => Auth::user()->name,
-            ]);
+        $zip = new ZipArchive();
 
-            // Associate tickets with the order
-            foreach ($cart->items as $item) {
-                // Update the ticket with order information
-                $item->ticket->update([
-                    'order_id' => $order->order_id,
-                    'price' => $item->price,
-                ]);
+        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            // Add each ticket to the zip file
+            foreach ($order->tickets as $ticket) {
+                $ticketUrl = $ticket->generated_ticket_url;
+
+                if ($ticketUrl) {
+                    // Remove the domain part if it's a full URL
+                    $ticketPath = parse_url($ticketUrl, PHP_URL_PATH);
+                    if (empty($ticketPath)) {
+                        $ticketPath = $ticketUrl;
+                    }
+
+                    // Remove leading slash
+                    $ticketPath = ltrim($ticketPath, '/');
+
+                    // Construct the local file path
+                    $localPath = public_path($ticketPath);
+
+                    if (file_exists($localPath)) {
+                        // Add file to zip
+                        $fileName = 'ticket_' . $ticket->event_name . '_' . $ticket->id . '.png';
+                        $fileName = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $fileName);
+                        $zip->addFile($localPath, $fileName);
+                    }
+                }
             }
 
-            // Mark the cart as converted
-            $cart->update([
-                'status' => 'converted',
-            ]);
+            // Close the zip file
+            $zip->close();
 
-            DB::commit();
-
-            // Redirect to payment page (to be implemented)
-            return redirect()->route('payment.process', ['order' => $order->order_id])
-                ->with('success', 'Order created successfully');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Failed to create order: ' . $e->getMessage());
+            // Download the zip file
+            return response()->download($zipFilePath, $zipFileName)->deleteFileAfterSend(true);
+        } else {
+            return redirect()->route('orders.show', $order->order_id)
+                ->with('error', 'Failed to create zip archive for tickets.');
         }
     }
 }

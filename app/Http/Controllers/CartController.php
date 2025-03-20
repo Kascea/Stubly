@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Ticket;
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
+use Stripe\Stripe;
+use Stripe\Checkout\Session as StripeSession;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
@@ -144,6 +149,7 @@ class CartController extends Controller
             'quantity' => $request->quantity,
         ]);
 
+        // Return the updated cart data for Inertia
         return redirect()->back()->with('success', 'Cart updated');
     }
 
@@ -162,17 +168,187 @@ class CartController extends Controller
 
     /**
      * Get the number of items in the cart
+     * This method can be removed if you use Inertia for everything, 
+     * as the cart count would be part of the shared data
      */
-    public function getCartCount()
-    {
-        $cart = $this->getCart();
 
-        $itemCount = 0;
-        if ($cart) {
-            // Sum up the quantities of all items
-            $itemCount = $cart->items()->sum('quantity');
+    /**
+     * Process checkout for cart items
+     */
+    public function checkout(Request $request)
+    {
+        $user = auth()->user();
+
+        // Get active cart with its items and related ticket data
+        $cart = Cart::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->with(['items.ticket'])
+            ->first();
+
+        // Debug the cart to see what's happening
+        \Log::info('Checkout initiated', [
+            'user_id' => $user->id,
+            'cart_exists' => $cart ? true : false,
+            'items_count' => $cart ? $cart->items->count() : 0
+        ]);
+
+        if (!$cart || $cart->items->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty');
         }
 
-        return response()->json(['count' => $itemCount]);
+        try {
+            // Initialize Stripe
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            \Log::info('Stripe API Key set', [
+                'key_length' => strlen(config('services.stripe.secret')),
+                'key_starts_with' => substr(config('services.stripe.secret'), 0, 3)
+            ]);
+
+            // Calculate total
+            $totalAmount = $cart->items->reduce(function ($total, $item) {
+                return $total + ($item->price * $item->quantity);
+            }, 0);
+
+            \Log::info('Creating checkout session', [
+                'total_amount' => $totalAmount,
+                'item_count' => $cart->items->count(),
+                'success_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('cart.index'),
+            ]);
+
+            // Create a Stripe checkout session
+            $checkoutSession = StripeSession::create([
+                'payment_method_types' => ['card'],
+                'mode' => 'payment',
+                'success_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('cart.index'),
+                'customer_email' => $user->email,
+                'client_reference_id' => $user->id,
+                'line_items' => $cart->items->map(function ($item) {
+                    return [
+                        'price_data' => [
+                            'currency' => 'usd',
+                            'product_data' => [
+                                'name' => $item->ticket->event_name,
+                                'description' => "Ticket for " . $item->ticket->event_name,
+                                'images' => $item->ticket->generated_ticket_url ? [$item->ticket->generated_ticket_url] : [],
+                            ],
+                            'unit_amount' => (int) round($item->price * 100), // Stripe uses cents, ensure it's an integer
+                        ],
+                        'quantity' => $item->quantity,
+                    ];
+                })->toArray(),
+                'metadata' => [
+                    'cart_id' => $cart->cart_id,
+                ],
+            ]);
+
+            \Log::info('Checkout session created', [
+                'client_secret' => substr($checkoutSession->client_secret, 0, 10) . '...',
+                'session_id' => $checkoutSession->id,
+            ]);
+
+            return Inertia::render('Cart/Checkout', [
+                'cart' => [
+                    'items' => $cart->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                            'ticket' => [
+                                'event_name' => $item->ticket->event_name,
+                                'event_location' => $item->ticket->event_location ?? 'N/A',
+                                'event_datetime' => $item->ticket->event_datetime ?? now(),
+                                'section' => $item->ticket->section ?? null,
+                                'row' => $item->ticket->row ?? null,
+                                'seat' => $item->ticket->seat ?? null,
+                                'generated_ticket_url' => $item->ticket->generated_ticket_url ?? null,
+                            ],
+                        ];
+                    }),
+                ],
+                'clientSecret' => $checkoutSession->client_secret,
+                'publishableKey' => config('services.stripe.key'),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Checkout error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->route('cart.index')->with('error', 'An error occurred during checkout: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Handle successful checkout
+     */
+    public function checkoutSuccess(Request $request)
+    {
+        $user = auth()->user();
+        $cart = $user->cart;
+
+        if (!$request->session_id) {
+            return redirect()->route('cart.index');
+        }
+
+        try {
+            // Initialize Stripe
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            // Retrieve the session to verify payment
+            $session = StripeSession::retrieve($request->session_id);
+
+            if ($session->payment_status !== 'paid') {
+                return redirect()->route('cart.index')->with('error', 'Payment unsuccessful. Please try again.');
+            }
+
+            // Create an order record
+            $order = Order::create([
+                'user_id' => $user->id,
+                'total_amount' => $session->amount_total / 100, // Convert from cents
+                'payment_id' => $session->payment_intent,
+                'status' => 'completed',
+            ]);
+
+            // Assign tickets to the user and link them to the order
+            foreach ($cart->items as $cartItem) {
+                // For each quantity, we associate the ticket with the order
+                for ($i = 0; $i < $cartItem->quantity; $i++) {
+                    // If quantity > 1, we might need to duplicate the ticket
+                    if ($i === 0) {
+                        // First ticket can just be updated
+                        $cartItem->ticket->update([
+                            'user_id' => $user->id,
+                            'order_id' => $order->order_id,
+                            'is_purchased' => true,
+                            'price' => $cartItem->price
+                        ]);
+                    } else {
+                        // For additional quantities, clone the ticket
+                        $newTicket = $cartItem->ticket->replicate();
+                        $newTicket->user_id = $user->id;
+                        $newTicket->order_id = $order->order_id;
+                        $newTicket->is_purchased = true;
+                        $newTicket->price = $cartItem->price;
+                        $newTicket->save();
+                    }
+                }
+            }
+
+            // Clear the cart
+            $cart->items()->delete();
+
+            return Inertia::render('Cart/CheckoutSuccess', [
+                'orderDetails' => [
+                    'id' => $order->order_id,
+                    'created_at' => $order->created_at,
+                    'total_amount' => $order->total_amount,
+                    'items_count' => $order->tickets->count(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Checkout success error: ' . $e->getMessage());
+            return redirect()->route('cart.index')->with('error', 'An error occurred while processing your order. Please contact support.');
+        }
     }
 }

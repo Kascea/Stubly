@@ -19,7 +19,6 @@ import {
   TableRow,
 } from "@/Components/ui/table";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, X } from "lucide-react";
-import axios from "axios";
 import { router } from "@inertiajs/react";
 import { toast } from "@/Components/ui/toaster";
 
@@ -35,89 +34,81 @@ export default function CartIndex({ cart, auth }) {
       )
     : 0;
 
-  const updateQuantity = async (item, newQuantity) => {
-    try {
-      if (newQuantity < 1) {
-        removeItem(item);
-        return;
-      }
+  const updateQuantity = (item, newQuantity) => {
+    if (newQuantity < 1) {
+      removeItem(item);
+      return;
+    }
 
-      await axios.patch(route("cart.update", item.id), {
+    router.patch(
+      route("cart.update", item.id),
+      {
         quantity: newQuantity,
-      });
-
-      await updateCartCount();
-      router.reload();
-    } catch (error) {
-      console.error("Failed to update item quantity:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update item quantity",
-        variant: "error",
-      });
-    }
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast({
+            title: "Cart updated",
+            description: "Item quantity has been updated",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "Failed to update item quantity",
+            variant: "error",
+          });
+        },
+      }
+    );
   };
 
-  const removeItem = async (item) => {
-    try {
-      await axios.delete(route("cart.remove", item.id));
-      router.visit(route("cart.index"), { preserveScroll: true });
-    } catch (error) {
-      console.error("Failed to remove item:", error);
-      toast({
-        title: "Error",
-        description: "Failed to remove item",
-        variant: "error",
-      });
-    }
+  const removeItem = (item) => {
+    router.delete(
+      route("cart.remove", item.id),
+      {},
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast({
+            title: "Item removed",
+            description: "Item has been removed from your cart",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "Failed to remove item",
+            variant: "error",
+          });
+        },
+      }
+    );
   };
 
-  const clearCart = async () => {
-    try {
-      await axios.delete(route("cart.clear"));
-      await updateCartCount();
-      router.reload();
-    } catch (error) {
-      console.error("Failed to clear cart:", error);
-      toast({
-        title: "Error",
-        description: "Failed to clear cart",
-        variant: "error",
-      });
-    }
+  const clearCart = () => {
+    router.delete(
+      route("cart.clear"),
+      {},
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast({
+            title: "Cart cleared",
+            description: "All items have been removed from your cart",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "Failed to clear cart",
+            variant: "error",
+          });
+        },
+      }
+    );
   };
-
-  const updateCartCount = async () => {
-    try {
-      await axios.get(route("cart.count"));
-    } catch (error) {
-      console.error("Failed to update cart count:", error);
-    }
-  };
-
-  // Add this useEffect to check for infinite loops
-  useEffect(() => {
-    console.log("Cart component mounted at:", new Date().toISOString());
-
-    // Add performance monitoring
-    const originalFetch = window.fetch;
-    window.fetch = function (...args) {
-      console.log("Fetch request to:", args[0]);
-      return originalFetch.apply(this, args);
-    };
-
-    // Add axios request monitoring
-    const requestInterceptor = axios.interceptors.request.use((request) => {
-      console.log("Axios request to:", request.url);
-      return request;
-    });
-
-    return () => {
-      // Clean up
-      window.fetch = originalFetch;
-      axios.interceptors.request.eject(requestInterceptor);
-    };
-  }, []);
 
   return (
     <AppLayout auth={auth}>

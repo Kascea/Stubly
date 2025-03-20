@@ -14,6 +14,17 @@ use App\Http\Controllers\OrderController;
 // Public routes
 Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
 
+// Cart and checkout routes (accessible to guests)
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'addItem'])->name('cart.add');
+Route::patch('/cart/{item}', [CartController::class, 'updateItem'])->name('cart.update');
+Route::delete('/cart/{item}', [CartController::class, 'removeItem'])->name('cart.remove');
+Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+
+// Checkout routes (accessible to guests)
+Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
+Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])->name('cart.checkout.success');
+
 Route::middleware(['auth', 'verified'])->group(function () {
   // Ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
@@ -60,20 +71,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
   // Password routes
   Route::post('/password/set', [PasswordController::class, 'set'])->name('password.set');
 
-  // Cart routes
-  Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-  Route::post('/cart/add', [CartController::class, 'addItem'])->name('cart.add');
-  Route::delete('/cart/items/{item}', [CartController::class, 'removeItem'])->name('cart.remove');
-  Route::patch('/cart/items/{item}', [CartController::class, 'updateItem'])->name('cart.update');
-  Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
-
-  // Order routes
+  // Order routes (remain authenticated)
   Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
   Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-  Route::post('/checkout', [OrderController::class, 'checkout'])->name('checkout');
-
-  // Get cart count for navbar
-  Route::get('/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
+  Route::get('/orders/{order}/download', [OrderController::class, 'downloadTickets'])->name('orders.download');
 });
 
 require __DIR__ . '/auth.php';

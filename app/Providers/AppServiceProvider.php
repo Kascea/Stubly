@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,5 +32,16 @@ class AppServiceProvider extends ServiceProvider
       config(['session.secure' => true]);
       config(['session.same_site' => 'strict']);
     }
+
+    // Add this to debug cart issues
+    DB::listen(function ($query) {
+      if (str_contains($query->sql, 'cart') || str_contains($query->sql, 'ticket')) {
+        Log::info('SQL Query:', [
+          'sql' => $query->sql,
+          'bindings' => $query->bindings,
+          'time' => $query->time
+        ]);
+      }
+    });
   }
 }

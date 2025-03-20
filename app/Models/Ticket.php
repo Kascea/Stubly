@@ -17,20 +17,23 @@ class Ticket extends Model
   protected $keyType = 'string';
 
   protected $fillable = [
-    'user_id',
     'ticket_id',
+    'user_id',
+    'order_id',
     'event_name',
     'event_location',
     'event_datetime',
     'section',
     'row',
     'seat',
-    'generated_ticket_path',
+    'price',
+    'is_purchased',
+    'generated_ticket_url',
     'template_id',
     'ticketable_id',
     'ticketable_type',
-    'order_id',
-    'price',
+    'generated_ticket_path',
+    'background_image_path',
   ];
 
   protected $casts = [
@@ -76,6 +79,9 @@ class Ticket extends Model
     return $this->morphTo();
   }
 
+  /**
+   * Get the user that owns the ticket.
+   */
   public function user()
   {
     return $this->belongsTo(User::class);
@@ -84,6 +90,14 @@ class Ticket extends Model
   public function getRouteKeyName()
   {
     return 'ticket_id';
+  }
+
+  /**
+   * Get the order associated with the ticket.
+   */
+  public function order()
+  {
+    return $this->belongsTo(Order::class, 'order_id', 'order_id');
   }
 
   public function payments()
@@ -119,15 +133,7 @@ class Ticket extends Model
   }
 
   /**
-   * Get the order that this ticket belongs to.
-   */
-  public function order()
-  {
-    return $this->belongsTo(Order::class, 'order_id', 'order_id');
-  }
-
-  /**
-   * Get the cart items for this ticket.
+   * Get the cart items for the ticket.
    */
   public function cartItems()
   {

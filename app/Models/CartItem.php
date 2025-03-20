@@ -12,8 +12,8 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'ticket_id',
-        'price',
         'quantity',
+        'price',
     ];
 
     protected $casts = [
@@ -30,7 +30,7 @@ class CartItem extends Model
     }
 
     /**
-     * Get the ticket that is in the cart.
+     * Get the ticket that belongs to the item.
      */
     public function ticket()
     {
