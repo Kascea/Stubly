@@ -212,30 +212,25 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         try {
-            if (auth()->id() !== $ticket->user_id) {
-                abort(403, 'Unauthorized action.');
-            }
-
-            // Check if ticket is paid
-            $isPaid = Payment::where('ticket_id', $ticket->id)
-                ->where('payment_status', 'paid')
-                ->exists();
-
-            if ($isPaid) {
-                abort(403, 'Cannot delete a paid ticket.');
-            }
-
+            // The middleware has already verified access, so we can proceed with deletion
             if ($ticket->generated_ticket_path) {
                 Storage::disk('r2')->delete($ticket->generated_ticket_path);
             }
 
+            if ($ticket->background_image_path) {
+                Storage::disk('r2')->delete($ticket->background_image_path);
+            }
+
             $ticket->delete();
 
-            return redirect()->route('tickets.index')
-                ->with('success', 'Ticket deleted successfully.');
+            return response()->json([
+                'message' => 'Ticket deleted successfully'
+            ]);
         } catch (\Exception $e) {
-            return redirect()->route('tickets.index')
-                ->with('error', 'Failed to delete ticket.');
+            Log::error('Error deleting ticket: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to delete ticket'
+            ], 500);
         }
     }
 

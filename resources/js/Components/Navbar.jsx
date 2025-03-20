@@ -20,7 +20,6 @@ export default function Navbar({
   setShowingNavigationDropdown,
 }) {
   const { cart } = usePage().props;
-  console.log(cart);
 
   // Helper function to determine if a route is active
   const isActive = (routeName) => {

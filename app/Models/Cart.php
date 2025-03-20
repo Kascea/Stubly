@@ -60,11 +60,11 @@ class Cart extends Model
     }
 
     /**
-     * Get the items for the cart.
+     * Get the tickets in the cart.
      */
-    public function items()
+    public function tickets()
     {
-        return $this->hasMany(CartItem::class, 'cart_id', 'cart_id');
+        return $this->hasMany(Ticket::class, 'cart_id', 'cart_id');
     }
 
     /**
@@ -76,11 +76,11 @@ class Cart extends Model
     }
 
     /**
-     * Get the total number of items in the cart.
+     * Get the total number of tickets in the cart.
      */
-    public function itemCount()
+    public function ticketCount()
     {
-        return $this->items()->count();
+        return $this->tickets()->count();
     }
 
     /**

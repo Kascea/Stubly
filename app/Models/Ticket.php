@@ -19,7 +19,9 @@ class Ticket extends Model
   protected $fillable = [
     'ticket_id',
     'user_id',
+    'session_id',
     'order_id',
+    'cart_id',
     'event_name',
     'event_location',
     'event_datetime',
@@ -133,10 +135,10 @@ class Ticket extends Model
   }
 
   /**
-   * Get the cart items for the ticket.
+   * Get the cart that contains this ticket.
    */
-  public function cartItems()
+  public function cart()
   {
-    return $this->hasMany(CartItem::class, 'ticket_id', 'ticket_id');
+    return $this->belongsTo(Cart::class, 'cart_id', 'cart_id');
   }
 }

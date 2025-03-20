@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use App\Models\Ticket;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -62,7 +63,8 @@ class HandleInertiaRequests extends Middleware
                     ->first();
             }
 
-            return $cart ? CartItem::where('cart_id', $cart->cart_id)->sum('quantity') : 0;
+            // Count tickets directly associated with the cart
+            return $cart ? Ticket::where('cart_id', $cart->cart_id)->count() : 0;
         } catch (\Exception $e) {
             Log::error('Error getting cart count: ' . $e->getMessage());
             return 0;

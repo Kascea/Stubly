@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import { Button } from "@/Components/ui/button";
@@ -18,96 +18,148 @@ import {
   TableHeader,
   TableRow,
 } from "@/Components/ui/table";
-import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, X } from "lucide-react";
+import {
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  ArrowRight,
+  X,
+  Loader2,
+} from "lucide-react";
 import { router } from "@inertiajs/react";
 import { toast } from "@/Components/ui/toaster";
+import axios from "axios";
 
-export default function CartIndex({ cart, auth }) {
-  const { flash = {}, cart: sharedCart } = usePage().props;
+export default function CartIndex({ cart: initialCart, auth }) {
+  const [cart, setCart] = useState(initialCart);
+  const [loadingStates, setLoadingStates] = useState({
+    items: {},
+    clearCart: false,
+  });
+  const { flash = {} } = usePage().props;
   const hasItems = cart.items && cart.items.length > 0;
 
   // Calculate totals
   const subtotal = hasItems
-    ? cart.items.reduce(
-        (total, item) => total + parseFloat(item.price) * item.quantity,
-        0
-      )
+    ? cart.items.reduce((total, item) => total + parseFloat(item.price), 0)
     : 0;
 
-  const updateQuantity = (item, newQuantity) => {
+  const updateQuantity = async (item, newQuantity) => {
     if (newQuantity < 1) {
       removeItem(item);
       return;
     }
 
-    router.patch(
-      route("cart.update", item.id),
-      {
+    setLoadingStates((prev) => ({
+      ...prev,
+      items: { ...prev.items, [item.id]: true },
+    }));
+
+    try {
+      await axios.patch(route("cart.update", item.id), {
         quantity: newQuantity,
+      });
+
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: newQuantity }
+            : cartItem
+        ),
+      }));
+
+      toast({
+        title: "Cart updated",
+        description: "Item quantity has been updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update item quantity",
+        variant: "error",
+      });
+    } finally {
+      setLoadingStates((prev) => ({
+        ...prev,
+        items: { ...prev.items, [item.id]: false },
+      }));
+    }
+  };
+
+  const deleteTicket = async (item) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      items: { ...prev.items, [item.id]: true },
+    }));
+
+    try {
+      await axios.delete(route("tickets.destroy", item.id));
+
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.filter((cartItem) => cartItem.id !== item.id),
+      }));
+
+      toast({
+        title: "Ticket removed",
+        description: "Ticket has been removed from your cart",
+      });
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove ticket",
+        variant: "error",
+      });
+    } finally {
+      setLoadingStates((prev) => ({
+        ...prev,
+        items: { ...prev.items, [item.id]: false },
+      }));
+    }
+  };
+
+  const clearCart = async () => {
+    setLoadingStates((prev) => ({ ...prev, clearCart: true }));
+
+    try {
+      await axios.delete(route("cart.clear"));
+
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: [],
+      }));
+
+      toast({
+        title: "Cart cleared",
+        description: "All items have been removed from your cart",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear cart",
+        variant: "error",
+      });
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, clearCart: false }));
+    }
+  };
+
+  const createSimilarTicket = (ticket) => {
+    router.get(route("canvas"), {
+      template: ticket.template_id,
+      prefill: {
+        eventName: ticket.event_name,
+        eventLocation: ticket.event_location,
+        date: new Date(ticket.event_datetime).toISOString().split("T")[0],
+        time: new Date(ticket.event_datetime).toTimeString().split(" ")[0],
+        section: ticket.section,
+        row: ticket.row,
+        seat: ticket.seat,
       },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          toast({
-            title: "Cart updated",
-            description: "Item quantity has been updated",
-          });
-        },
-        onError: () => {
-          toast({
-            title: "Error",
-            description: "Failed to update item quantity",
-            variant: "error",
-          });
-        },
-      }
-    );
-  };
-
-  const removeItem = (item) => {
-    router.delete(
-      route("cart.remove", item.id),
-      {},
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          toast({
-            title: "Item removed",
-            description: "Item has been removed from your cart",
-          });
-        },
-        onError: () => {
-          toast({
-            title: "Error",
-            description: "Failed to remove item",
-            variant: "error",
-          });
-        },
-      }
-    );
-  };
-
-  const clearCart = () => {
-    router.delete(
-      route("cart.clear"),
-      {},
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          toast({
-            title: "Cart cleared",
-            description: "All items have been removed from your cart",
-          });
-        },
-        onError: () => {
-          toast({
-            title: "Error",
-            description: "Failed to clear cart",
-            variant: "error",
-          });
-        },
-      }
-    );
+    });
   };
 
   return (
@@ -126,8 +178,14 @@ export default function CartIndex({ cart, auth }) {
                 variant="outline"
                 className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                 onClick={clearCart}
+                disabled={loadingStates.clearCart}
               >
-                <Trash2 className="h-4 w-4 mr-1" /> Clear Cart
+                {loadingStates.clearCart ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-1" />
+                )}
+                Clear Cart
               </Button>
             )}
           </div>
@@ -160,8 +218,7 @@ export default function CartIndex({ cart, auth }) {
                       <TableHead>Ticket</TableHead>
                       <TableHead>Event Details</TableHead>
                       <TableHead>Price</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Subtotal</TableHead>
+                      <TableHead>Actions</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -170,9 +227,9 @@ export default function CartIndex({ cart, auth }) {
                     {cart.items.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          {item.ticket.generated_ticket_url ? (
+                          {item.generated_ticket_url ? (
                             <img
-                              src={item.ticket.generated_ticket_url}
+                              src={item.generated_ticket_url}
                               alt="Ticket"
                               className="w-20 h-auto rounded shadow-sm"
                             />
@@ -184,20 +241,15 @@ export default function CartIndex({ cart, auth }) {
                         </TableCell>
 
                         <TableCell>
-                          <div className="font-medium">
-                            {item.ticket.event_name}
-                          </div>
+                          <div className="font-medium">{item.event_name}</div>
                           <div className="text-sm text-gray-500">
-                            {item.ticket.event_location} •{" "}
-                            {new Date(
-                              item.ticket.event_datetime
-                            ).toLocaleDateString()}
+                            {item.event_location} •{" "}
+                            {new Date(item.event_datetime).toLocaleDateString()}
                           </div>
                           <div className="text-xs text-gray-400">
-                            {item.ticket.section &&
-                              `Section ${item.ticket.section}`}
-                            {item.ticket.row && ` • Row ${item.ticket.row}`}
-                            {item.ticket.seat && ` • Seat ${item.ticket.seat}`}
+                            {item.section && `Section ${item.section}`}
+                            {item.row && ` • Row ${item.row}`}
+                            {item.seat && ` • Seat ${item.seat}`}
                           </div>
                         </TableCell>
 
@@ -206,48 +258,30 @@ export default function CartIndex({ cart, auth }) {
                         </TableCell>
 
                         <TableCell>
-                          <div className="flex items-center space-x-1">
+                          <div className="flex space-x-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-7 w-7 p-0 border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-colors"
-                              onClick={() =>
-                                updateQuantity(item, item.quantity - 1)
-                              }
+                              className="border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-colors"
+                              onClick={() => createSimilarTicket(item)}
                             >
-                              <Minus className="h-3 w-3" />
+                              <Plus className="h-4 w-4 mr-1" />
+                              Create Similar
                             </Button>
-
-                            <span className="w-8 text-center">
-                              {item.quantity}
-                            </span>
-
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
-                              className="h-7 w-7 p-0 border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-colors"
-                              onClick={() =>
-                                updateQuantity(item, item.quantity + 1)
-                              }
+                              onClick={() => deleteTicket(item)}
+                              disabled={loadingStates.items[item.id]}
+                              className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                             >
-                              <Plus className="h-3 w-3" />
+                              {loadingStates.items[item.id] ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <X className="h-4 w-4" />
+                              )}
                             </Button>
                           </div>
-                        </TableCell>
-
-                        <TableCell className="font-medium">
-                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-                        </TableCell>
-
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeItem(item)}
-                            className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -274,7 +308,8 @@ export default function CartIndex({ cart, auth }) {
                   </Link>
 
                   <Button
-                    className="bg-sky-800 hover:bg-sky-700 text-white transition-colors"
+                    className="!bg-sky-800 hover:!bg-sky-700 text-white border-0 shadow-none"
+                    style={{ backgroundColor: "#075985" }}
                     onClick={() => router.post(route("checkout"))}
                   >
                     Checkout <ArrowRight className="ml-2 h-4 w-4" />
@@ -294,7 +329,10 @@ export default function CartIndex({ cart, auth }) {
                 </p>
 
                 <Link href={route("canvas")}>
-                  <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-colors">
+                  <Button
+                    className="!bg-sky-800 hover:!bg-sky-700 text-white border-0 shadow-none"
+                    style={{ backgroundColor: "#075985" }}
+                  >
                     Create a Ticket
                   </Button>
                 </Link>

@@ -16,6 +16,9 @@ Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
 
 // Public ticket routes
 Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
+Route::delete('/tickets/{ticket:ticket_id}', [TicketController::class, 'destroy'])
+  ->middleware('verify.ticket.access')  // We'll create this middleware
+  ->name('tickets.destroy');
 
 // Cart and checkout routes (accessible to guests)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -37,12 +40,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');
     Route::get('/duplicate/{ticket:ticket_id}', [TicketController::class, 'duplicate'])->name('duplicate');
     Route::get('/preview/{ticket:ticket_id}', [TicketController::class, 'preview'])->name('preview');
+    Route::delete('/{ticket:ticket_id}', [TicketController::class, 'destroy'])->name('destroy');
 
     //Protected routes
-    Route::delete('/{ticket:ticket_id}', [TicketController::class, 'destroy'])
-      ->middleware(VerifyTicketOwner::class)
-      ->name('destroy');
-
     Route::get('/{ticket:ticket_id}/download', [TicketController::class, 'download'])
       ->middleware([VerifyTicketOwner::class, VerifyPayment::class])
       ->name('download');

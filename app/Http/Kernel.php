@@ -66,4 +66,9 @@ class Kernel extends HttpKernel
         'verify.ticket.owner' => \App\Http\Middleware\VerifyTicketOwner::class,
         'verify.payment' => \App\Http\Middleware\VerifyPayment::class,
     ];
+
+    protected $routeMiddleware = [
+        // ... other middleware ...
+        'verify.ticket.access' => \App\Http\Middleware\VerifyTicketAccess::class,
+    ];
 }

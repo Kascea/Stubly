@@ -14,6 +14,7 @@ use Inertia\Inertia;
 use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -65,9 +66,22 @@ class CartController extends Controller
     {
         $cart = $this->getCart();
 
-        // Load cart items with their tickets
+        // Map the tickets to include all needed fields directly
         $cartData = [
-            'items' => $cart ? $cart->items->load('ticket') : [],
+            'items' => $cart ? $cart->tickets()->with(['template', 'user'])->get()->map(function ($ticket) {
+                return [
+                    'id' => $ticket->ticket_id,
+                    'event_name' => $ticket->event_name,
+                    'event_location' => $ticket->event_location,
+                    'event_datetime' => $ticket->event_datetime,
+                    'section' => $ticket->section,
+                    'row' => $ticket->row,
+                    'seat' => $ticket->seat,
+                    'generated_ticket_url' => $ticket->generated_ticket_url,
+                    'price' => $ticket->price,
+                    'template_id' => $ticket->template_id,
+                ];
+            }) : [],
         ];
 
         return Inertia::render('Cart/Index', [
@@ -82,77 +96,22 @@ class CartController extends Controller
     {
         $request->validate([
             'ticket_id' => 'required|exists:tickets,ticket_id',
-            'quantity' => 'integer|min:1|max:10',
         ]);
 
         $cart = $this->getCart();
         $ticket = Ticket::where('ticket_id', $request->ticket_id)->firstOrFail();
 
-        // Set a default price - you'll want to customize this
-        $price = 9.99;
-
-        // Check if the item is already in cart
-        $existingItem = CartItem::where('cart_id', $cart->cart_id)
-            ->where('ticket_id', $ticket->ticket_id)
-            ->first();
-
-        if ($existingItem) {
-            // Update quantity if the item already exists
-            $existingItem->update([
-                'quantity' => $existingItem->quantity + ($request->quantity ?? 1),
-            ]);
-        } else {
-            // Create a new cart item
-            CartItem::create([
-                'cart_id' => $cart->cart_id,
-                'ticket_id' => $ticket->ticket_id,
-                'price' => $price,
-                'quantity' => $request->quantity ?? 1,
-            ]);
+        // Check if ticket is already in a cart
+        if ($ticket->cart_id) {
+            return redirect()->back()->with('error', 'Ticket is already in a cart');
         }
+
+        // Add ticket to cart
+        $ticket->update([
+            'cart_id' => $cart->cart_id
+        ]);
 
         return redirect()->back()->with('success', 'Ticket added to cart');
-    }
-
-    /**
-     * Remove an item from the cart
-     */
-    public function removeItem(Request $request, CartItem $item)
-    {
-        $cart = $this->getCart();
-
-        // Make sure the item belongs to the current cart
-        if ($item->cart_id !== $cart->cart_id) {
-            return redirect()->back()->with('error', 'Item not found in your cart');
-        }
-
-        $item->delete();
-
-        return redirect()->back()->with('success', 'Item removed from cart');
-    }
-
-    /**
-     * Update cart item quantity
-     */
-    public function updateItem(Request $request, CartItem $item)
-    {
-        $request->validate([
-            'quantity' => 'required|integer|min:1|max:10',
-        ]);
-
-        $cart = $this->getCart();
-
-        // Make sure the item belongs to the current cart
-        if ($item->cart_id !== $cart->cart_id) {
-            return redirect()->back()->with('error', 'Item not found in your cart');
-        }
-
-        $item->update([
-            'quantity' => $request->quantity,
-        ]);
-
-        // Return the updated cart data for Inertia
-        return redirect()->back()->with('success', 'Cart updated');
     }
 
     /**
@@ -162,10 +121,16 @@ class CartController extends Controller
     {
         $cart = $this->getCart();
 
-        // Delete all cart items
-        CartItem::where('cart_id', $cart->cart_id)->delete();
+        //Delete all tickets from the cart
+        Ticket::where('cart_id', $cart->cart_id)
+            ->update(['cart_id' => null]);
 
-        return redirect()->back()->with('success', 'Cart cleared');
+        //Delete all tickets from R2
+        Storage::disk('r2')->deleteDirectory($cart->cart_id);
+
+        return response()->json([
+            'message' => 'Cart cleared'
+        ]);
     }
 
     /**
@@ -173,28 +138,17 @@ class CartController extends Controller
      */
     public function checkout(Request $request)
     {
-        // Get active cart with its items and related ticket data
         $cart = $this->getCart();
 
-        // Debug the cart to see what's happening
-        \Log::info('Checkout initiated', [
-            'user_id' => Auth::id() ?? 'guest',
-            'cart_exists' => $cart ? true : false,
-            'items_count' => $cart ? $cart->items->count() : 0
-        ]);
-
-        if (!$cart || $cart->items->isEmpty()) {
+        if (!$cart || $cart->tickets->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty');
         }
 
         try {
-            // Initialize Stripe
             Stripe::setApiKey(config('services.stripe.secret'));
 
-            // Calculate total
-            $totalAmount = $cart->items->reduce(function ($total, $item) {
-                return $total + ($item->price * $item->quantity);
-            }, 0);
+            // Calculate total - simplified since no quantity
+            $totalAmount = $cart->tickets->sum('price');
 
             $checkoutSession = StripeSession::create([
                 'payment_method_types' => ['card'],
@@ -203,18 +157,18 @@ class CartController extends Controller
                 'cancel_url' => route('cart.index'),
                 'customer_email' => Auth::check() ? Auth::user()->email : null,
                 'client_reference_id' => Auth::id() ?? Session::getId(),
-                'line_items' => $cart->items->map(function ($item) {
+                'line_items' => $cart->tickets->map(function ($ticket) {
                     return [
                         'price_data' => [
                             'currency' => 'usd',
                             'product_data' => [
-                                'name' => $item->ticket->event_name,
-                                'description' => "Ticket for " . $item->ticket->event_name,
-                                'images' => $item->ticket->generated_ticket_url ? [$item->ticket->generated_ticket_url] : [],
+                                'name' => $ticket->event_name,
+                                'description' => "Ticket for " . $ticket->event_name,
+                                'images' => $ticket->generated_ticket_url ? [$ticket->generated_ticket_url] : [],
                             ],
-                            'unit_amount' => (int) round($item->price * 100),
+                            'unit_amount' => (int) round($ticket->price * 100),
                         ],
-                        'quantity' => $item->quantity,
+                        'quantity' => 1,
                     ];
                 })->toArray(),
                 'metadata' => [
@@ -224,11 +178,11 @@ class CartController extends Controller
 
             return Inertia::render('Cart/Checkout', [
                 'cart' => [
-                    'items' => $cart->items->map(function ($item) {
+                    'items' => $cart->tickets->map(function ($item) {
                         return [
-                            'id' => $item->id,
-                            'quantity' => $item->quantity,
-                            'price' => $item->price,
+                            'id' => $item->pivot->id,
+                            'quantity' => $item->pivot->quantity,
+                            'price' => $item->pivot->price,
                             'ticket' => [
                                 'event_name' => $item->ticket->event_name,
                                 'event_location' => $item->ticket->event_location ?? 'N/A',
@@ -285,32 +239,32 @@ class CartController extends Controller
             ]);
 
             // Assign tickets to the user and link them to the order
-            foreach ($cart->items as $cartItem) {
+            foreach ($cart->tickets as $cartItem) {
                 // For each quantity, we associate the ticket with the order
-                for ($i = 0; $i < $cartItem->quantity; $i++) {
+                for ($i = 0; $i < $cartItem->pivot->quantity; $i++) {
                     // If quantity > 1, we might need to duplicate the ticket
                     if ($i === 0) {
                         // First ticket can just be updated
-                        $cartItem->ticket->update([
+                        $cartItem->pivot->update([
                             'user_id' => $user->id,
                             'order_id' => $order->order_id,
                             'is_purchased' => true,
-                            'price' => $cartItem->price
+                            'price' => $cartItem->pivot->price
                         ]);
                     } else {
                         // For additional quantities, clone the ticket
-                        $newTicket = $cartItem->ticket->replicate();
+                        $newTicket = $cartItem->replicate();
                         $newTicket->user_id = $user->id;
                         $newTicket->order_id = $order->order_id;
                         $newTicket->is_purchased = true;
-                        $newTicket->price = $cartItem->price;
+                        $newTicket->price = $cartItem->pivot->price;
                         $newTicket->save();
                     }
                 }
             }
 
             // Clear the cart
-            $cart->items()->delete();
+            $cart->tickets()->detach();
 
             return Inertia::render('Cart/CheckoutSuccess', [
                 'orderDetails' => [
@@ -340,7 +294,7 @@ class CartController extends Controller
                     ->first();
             }
 
-            return $cart ? CartItem::where('cart_id', $cart->cart_id)->sum('quantity') : 0;
+            return $cart ? $cart->tickets()->count() : 0;
         } catch (\Exception $e) {
             Log::error('Error getting cart count: ' . $e->getMessage());
             return 0;
