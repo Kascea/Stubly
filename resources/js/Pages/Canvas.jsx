@@ -256,29 +256,30 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
         )}
 
         {/* Add to Cart Button - Fixed at bottom right */}
-        <div className="fixed bottom-6 right-6 z-10">
+        <div className="fixed bottom-8 right-8 z-20">
           <Button
             onClick={addTicketToCart}
             disabled={isGenerating}
             className={`
-              py-4 px-6 rounded-lg shadow-lg text-sm sm:text-base flex items-center
+              py-6 px-8 rounded-xl shadow-xl text-base sm:text-lg font-semibold flex items-center
+              transform hover:scale-105 transition-all duration-300
               ${
                 isGenerating
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-sky-800 hover:bg-sky-700 text-white transition-colors"
+                  : "bg-sky-800 hover:bg-sky-700 text-white border-2 border-sky-600"
               }
             `}
-            size="lg"
+            size="xl"
           >
             {isGenerating ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Creating...
+                <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                <span className="text-lg">Creating...</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Add to Cart
+                <ShoppingCart className="mr-3 h-6 w-6" />
+                <span className="text-lg">Add to Cart</span>
               </>
             )}
           </Button>

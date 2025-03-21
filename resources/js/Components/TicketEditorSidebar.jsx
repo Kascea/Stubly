@@ -1,8 +1,4 @@
-import React, { useState } from "react";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import { DateTimePicker } from "@/Components/ui/datetimepicker";
+import { useState, useEffect } from "react";
 import {
   Loader2,
   TicketPlus,
@@ -22,22 +18,8 @@ import {
   Check,
   Eye,
 } from "lucide-react";
-import { Alert, AlertDescription } from "@/Components/ui/alert";
-import { domToPng } from "modern-screenshot";
-import axios from "axios";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/Components/ui/select";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
-
-// Import ticket type components
-import SportsTicketFields from "@/Components/TicketTypes/SportsTicketFields";
-import ConcertTicketFields from "@/Components/TicketTypes/ConcertTicketFields";
 
 // Import tab content components
 import TemplatesTabContent from "@/Components/TicketEditorTabs/TemplatesTabContent";
@@ -48,9 +30,7 @@ import AppearanceTabContent from "@/Components/TicketEditorTabs/AppearanceTabCon
 export default function TicketEditorSidebar({
   ticketInfo,
   setTicketInfo,
-  ticketRef,
   categories = [],
-  isAuthenticated = false,
   onToggleExpand,
   isMobile = false,
 }) {
@@ -60,7 +40,7 @@ export default function TicketEditorSidebar({
   const [isPanelExpanded, setIsPanelExpanded] = useState(true);
 
   // Initialize with provided categories
-  React.useEffect(() => {
+  useEffect(() => {
     if (categories && categories.length > 0) {
       // Set default category
       const defaultCategory = categories[0];
@@ -298,7 +278,7 @@ export default function TicketEditorSidebar({
             {/* Collapse button - only show on desktop */}
             {!isMobile && (
               <button
-                className="w-8 h-8 bg-white hover:bg-orange-50 flex items-center justify-center rounded-bl-md absolute right-0 top-0 transition-colors border-l border-b border-gray-200 shadow-sm z-10"
+                className="w-8 h-8 bg-white hover:bg-orange-50 flex items-center justify-center rounded-bl-md absolute right-0 top-0 transition-colors border-l border-b border-gray-200 shadow-sm z-50"
                 onClick={() => handlePanelExpansion(false)}
                 title="Collapse panel"
               >
@@ -360,7 +340,7 @@ export default function TicketEditorSidebar({
           /* Expand button - only show on desktop */
           !isMobile && (
             <button
-              className="w-8 h-8 bg-white hover:bg-orange-50 flex items-center justify-center rounded-br-md absolute left-20 top-0 transition-colors border-r border-b border-gray-200 shadow-sm"
+              className="w-8 h-8 bg-white hover:bg-orange-50 flex items-center justify-center rounded-br-md fixed left-20 top-16 transition-colors border-r border-b border-gray-200 shadow-sm z-50"
               onClick={() => handlePanelExpansion(true)}
               title="Expand panel"
             >
