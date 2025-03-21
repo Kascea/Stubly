@@ -40,9 +40,9 @@ export default function CartIndex({ cart: initialCart, auth }) {
   const { flash = {} } = usePage().props;
   const hasItems = cart.items && cart.items.length > 0;
 
-  // Calculate totals
+  // Calculate only subtotal
   const subtotal = hasItems
-    ? cart.items.reduce((total, item) => total + parseFloat(item.price), 0)
+    ? cart.items.reduce((total, item) => total + 2.99, 0)
     : 0;
 
   const updateQuantity = async (item, newQuantity) => {
@@ -259,9 +259,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
                           </div>
                         </TableCell>
 
-                        <TableCell>
-                          ${parseFloat(item.price).toFixed(2)}
-                        </TableCell>
+                        <TableCell>$2.99</TableCell>
 
                         <TableCell>
                           <div className="flex space-x-2">
@@ -297,9 +295,16 @@ export default function CartIndex({ cart: initialCart, auth }) {
 
               <CardFooter className="flex flex-col sm:flex-row justify-between border-t pt-6">
                 <div className="mb-4 sm:mb-0">
-                  <div className="text-lg font-semibold">
-                    Total:{" "}
-                    <span className="text-sky-900">${subtotal.toFixed(2)}</span>
+                  <div className="space-y-1">
+                    <div className="text-lg font-semibold">
+                      Subtotal:{" "}
+                      <span className="text-sky-900">
+                        ${subtotal.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Taxes will be calculated at checkout
+                    </div>
                   </div>
                 </div>
 
@@ -313,12 +318,11 @@ export default function CartIndex({ cart: initialCart, auth }) {
                     </Button>
                   </Link>
 
-                  <Button
-                    className="bg-sky-800 hover:bg-sky-700 text-white transition-colors"
-                    onClick={() => router.post(route("checkout"))}
-                  >
-                    Checkout <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  <Link href={route("cart.checkout")}>
+                    <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-colors">
+                      Checkout <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
               </CardFooter>
             </Card>

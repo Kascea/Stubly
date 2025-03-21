@@ -2,111 +2,92 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Ticket;
+use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use App\Models\Payment;
-use Log;
-use Stripe\Stripe;
-use Stripe\Checkout\Session as StripeSession;
-use Stripe\Price;
+use Laravel\Cashier\Cashier;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    public function __construct()
+    /**
+     * Handle Stripe webhook events
+     */
+    public function handleWebhook(Request $request)
     {
-        Stripe::setApiKey(config('services.stripe.secret'));
+        $payload = $request->all();
+        $method = 'handle' . str_replace('.', '', ucwords($payload['type'], '.'));
+
+        if (method_exists($this, $method)) {
+            try {
+                return $this->$method($payload);
+            } catch (\Exception $e) {
+                Log::error('Webhook error: ' . $e->getMessage(), [
+                    'event' => $payload['type'],
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        }
+
+        return response()->json(['message' => 'Webhook received but not handled'], 200);
     }
 
-    public function checkout(Ticket $ticket)
+    /**
+     * Handle checkout.session.completed event
+     */
+    protected function handleCheckoutSessionCompleted(array $payload)
     {
-        try {
-            $user = Auth::user();
-            $priceId = 'price_1Qkvg8F2EeTXNFyLCOk7YxA0';
+        $session = $payload['data']['object'];
 
-            $session = StripeSession::create([
-                'line_items' => [
-                    [
-                        'price' => $priceId,
-                        'quantity' => 1,
-                    ]
-                ],
-                'mode' => 'payment',
-                'ui_mode' => 'embedded',
-                'client_reference_id' => $ticket->ticket_id,
-                'customer_email' => $user->email,
-                'payment_method_types' => ['card',],
-                'return_url' => route('payment.success', [
-                    'ticket' => $ticket->ticket_id,
-                ]),
+        // Find the order by payment intent
+        $order = Order::where('payment_intent', $session['payment_intent'])->first();
+
+        if ($order) {
+            $order->update([
+                'status' => 'completed',
+                'payment_method' => $session['payment_method'] ?? null,
             ]);
-
-            $price = Price::retrieve($priceId);
-            $amount = $price->unit_amount / 100; // Convert from cents to dollars
-
-            // Create payment record
-            $payment = Payment::create([
-                'user_id' => $user->id,
-                'ticket_id' => $ticket->ticket_id,
-                'stripe_session_id' => $session->id,
-                'amount' => $amount,
-                'payment_status' => 'pending'
-            ]);
-
-            return Inertia::render('Tickets/Checkout', [
-                'ticket' => $ticket,
-                'clientSecret' => $session->client_secret,
-                'publishableKey' => config('services.stripe.key'),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error creating Stripe Checkout Session: ' . $e->getMessage());
-            return redirect()->back()->with('error', $e->getMessage());
         }
+
+        return response()->json(['message' => 'Webhook handled successfully']);
     }
 
-    public function success(Request $request, Ticket $ticket)
+    /**
+     * Handle payment_intent.payment_failed event
+     */
+    protected function handlePaymentIntentPaymentFailed(array $payload)
     {
-        try {
-            $payment = Payment::where('ticket_id', $ticket->ticket_id)
-                ->where('payment_status', 'pending')
-                ->latest()
-                ->firstOrFail();
+        $paymentIntent = $payload['data']['object'];
 
-            $sessionId = $payment->stripe_session_id;
+        // Find the order by payment intent
+        $order = Order::where('payment_intent', $paymentIntent['id'])->first();
 
-            if (!$sessionId) {
-                return redirect()->route('payment.checkout', ['ticket' => $ticket->ticket_id])
-                    ->with('error', 'Payment session not found');
-            }
-
-            $session = StripeSession::retrieve($sessionId);
-
-            if ($session->payment_status === 'paid') {
-                $payment->update([
-                    'payment_status' => 'paid',
-                    'paid_at' => now()
-                ]);
-
-                $ticket->update([
-                    'status' => 'paid'
-                ]);
-
-                return redirect()->route('tickets.preview', ['ticket' => $ticket->ticket_id])
-                    ->with('flash', [
-                        'type' => 'success',
-                        'title' => 'Purchase successful!',
-                        'message' => 'You can now download your ticket.'
-                    ]);
-            }
-
-            return redirect()->route('payment.checkout', ['ticket' => $ticket->ticket_id])
-                ->with('error', 'Payment not completed');
-        } catch (\Exception $e) {
-            Log::error('Error processing payment: ' . $e->getMessage());
-            return redirect()->route('payment.checkout', ['ticket' => $ticket->ticket_id])
-                ->with('error', $e->getMessage());
+        if ($order) {
+            $order->update([
+                'status' => 'failed',
+            ]);
         }
+
+        return response()->json(['message' => 'Webhook handled successfully']);
+    }
+
+    /**
+     * Handle payment_intent.succeeded event
+     */
+    protected function handlePaymentIntentSucceeded(array $payload)
+    {
+        $paymentIntent = $payload['data']['object'];
+
+        // Find the order by payment intent
+        $order = Order::where('payment_intent', $paymentIntent['id'])->first();
+
+        if ($order) {
+            $order->update([
+                'status' => 'completed',
+                'payment_method' => $paymentIntent['payment_method'] ?? null,
+            ]);
+        }
+
+        return response()->json(['message' => 'Webhook handled successfully']);
     }
 }

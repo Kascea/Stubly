@@ -34,6 +34,9 @@ Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])->nam
 // Add this with your other public cart routes
 Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 
+// Add these two routes for checkout
+Route::get('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+
 Route::middleware(['auth', 'verified'])->group(function () {
   // Authenticated ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
@@ -45,24 +48,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route::get('/{ticket:ticket_id}/download', [TicketController::class, 'download'])
     //   ->middleware([VerifyTicketOwner::class, VerifyPayment::class])
     //   ->name('download');
-  });
-
-  // Payment routes
-  Route::prefix('payment')->name('payment.')->group(function () {
-    // Checkout Routes
-    Route::get('/checkout/{ticket:ticket_id}', [PaymentController::class, 'checkout'])
-      ->middleware(VerifyTicketOwner::class)
-      ->name('checkout');
-
-    // Success/Return URL after payment
-    Route::get('/success/{ticket:ticket_id}', [PaymentController::class, 'success'])
-      ->middleware(VerifyTicketOwner::class)
-      ->name('success');
-
-    // Status check endpoint for the frontend
-    Route::post('/status', [PaymentController::class, 'status'])
-      ->middleware(['auth'])
-      ->name('status');
   });
 
   // Profile routes

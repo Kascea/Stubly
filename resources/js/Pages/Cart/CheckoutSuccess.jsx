@@ -20,8 +20,10 @@ export default function CheckoutSuccess({ orderDetails, auth }) {
                 Order Confirmed!
               </h1>
               <p className="text-gray-600 mb-6">
-                Thank you for your purchase. Your tickets are now available in
-                your account.
+                Thank you for your purchase.{" "}
+                {!orderDetails.is_guest
+                  ? "Your tickets are now available in your account."
+                  : "Your tickets have been sent to your email."}
               </p>
 
               {orderDetails && (
@@ -40,25 +42,42 @@ export default function CheckoutSuccess({ orderDetails, auth }) {
                     <div>
                       ${parseFloat(orderDetails.total_amount).toFixed(2)}
                     </div>
+                    {orderDetails.is_guest && (
+                      <>
+                        <div className="text-gray-500">Email:</div>
+                        <div>{orderDetails.customer_email}</div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
 
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link href={route("orders.show", orderDetails.id)}>
-                  <Button className="bg-sky-800 hover:bg-sky-700 text-white w-full transition-colors">
-                    <ReceiptText className="mr-2 h-4 w-4" /> View Order Details
-                  </Button>
-                </Link>
+                {!orderDetails.is_guest ? (
+                  <>
+                    <Link href={route("orders.show", orderDetails.id)}>
+                      <Button className="bg-sky-800 hover:bg-sky-700 text-white w-full transition-colors">
+                        <ReceiptText className="mr-2 h-4 w-4" /> View Order
+                        Details
+                      </Button>
+                    </Link>
 
-                <Link href={route("dashboard")}>
-                  <Button
-                    variant="outline"
-                    className="w-full border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-colors"
-                  >
-                    <Ticket className="mr-2 h-4 w-4" /> View My Tickets
-                  </Button>
-                </Link>
+                    <Link href={route("dashboard")}>
+                      <Button
+                        variant="outline"
+                        className="w-full border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-colors"
+                      >
+                        <Ticket className="mr-2 h-4 w-4" /> View My Tickets
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <Link href="/">
+                    <Button className="bg-sky-800 hover:bg-sky-700 text-white w-full transition-colors">
+                      <Home className="mr-2 h-4 w-4" /> Return to Home
+                    </Button>
+                  </Link>
+                )}
               </div>
             </CardContent>
 

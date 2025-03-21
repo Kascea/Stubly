@@ -28,7 +28,6 @@ class Ticket extends Model
     'section',
     'row',
     'seat',
-    'price',
     'is_purchased',
     'generated_ticket_url',
     'template_id',
@@ -40,7 +39,6 @@ class Ticket extends Model
 
   protected $casts = [
     'event_datetime' => 'datetime',
-    'price' => 'decimal:2',
   ];
 
   protected $appends = [

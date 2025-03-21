@@ -16,6 +16,8 @@ use Stripe\Checkout\Session as StripeSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Cashier\Cashier;
+
 class CartController extends Controller
 {
     /**
@@ -140,10 +142,11 @@ class CartController extends Controller
     }
 
     /**
-     * Process checkout for cart items
+     * Show the checkout page with Stripe Embedded Checkout
      */
     public function checkout(Request $request)
     {
+        Stripe::setApiKey(config('cashier.secret'));
         $cart = $this->getCart();
 
         if (!$cart || $cart->tickets->isEmpty()) {
@@ -151,32 +154,23 @@ class CartController extends Controller
         }
 
         try {
-            Stripe::setApiKey(config('services.stripe.secret'));
+            $ticketCount = $cart->tickets->count();
+            $priceId = 'price_1QzqEhF2EeTXNFyLXKCFBWDw';
 
-            // Calculate total - simplified since no quantity
-            $totalAmount = $cart->tickets->sum('price');
-
+            // Create checkout session first
             $checkoutSession = StripeSession::create([
+                'ui_mode' => 'embedded',
                 'payment_method_types' => ['card'],
                 'mode' => 'payment',
-                'success_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('cart.index'),
+                'return_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
                 'customer_email' => Auth::check() ? Auth::user()->email : null,
                 'client_reference_id' => Auth::id() ?? Session::getId(),
-                'line_items' => $cart->tickets->map(function ($ticket) {
-                    return [
-                        'price_data' => [
-                            'currency' => 'usd',
-                            'product_data' => [
-                                'name' => $ticket->event_name,
-                                'description' => "Ticket for " . $ticket->event_name,
-                                'images' => $ticket->generated_ticket_url ? [$ticket->generated_ticket_url] : [],
-                            ],
-                            'unit_amount' => (int) round($ticket->price * 100),
-                        ],
-                        'quantity' => 1,
-                    ];
-                })->toArray(),
+                'line_items' => [
+                    [
+                        'price' => $priceId,
+                        'quantity' => $ticketCount,
+                    ]
+                ],
                 'metadata' => [
                     'cart_id' => $cart->cart_id,
                 ],
@@ -184,29 +178,29 @@ class CartController extends Controller
 
             return Inertia::render('Cart/Checkout', [
                 'cart' => [
-                    'items' => $cart->tickets->map(function ($item) {
+                    'items' => $cart->tickets->map(function ($ticket) {
                         return [
-                            'id' => $item->pivot->id,
-                            'quantity' => $item->pivot->quantity,
-                            'price' => $item->pivot->price,
+                            'id' => $ticket->ticket_id,
+                            'quantity' => 1,
+                            'price' => $ticket->price,
                             'ticket' => [
-                                'event_name' => $item->ticket->event_name,
-                                'event_location' => $item->ticket->event_location ?? 'N/A',
-                                'event_datetime' => $item->ticket->event_datetime ?? now(),
-                                'section' => $item->ticket->section ?? null,
-                                'row' => $item->ticket->row ?? null,
-                                'seat' => $item->ticket->seat ?? null,
-                                'generated_ticket_url' => $item->ticket->generated_ticket_url ?? null,
+                                'event_name' => $ticket->event_name,
+                                'event_location' => $ticket->event_location ?? 'N/A',
+                                'event_datetime' => $ticket->event_datetime ?? now(),
+                                'section' => $ticket->section ?? null,
+                                'row' => $ticket->row ?? null,
+                                'seat' => $ticket->seat ?? null,
+                                'generated_ticket_url' => $ticket->generated_ticket_url ?? null,
                             ],
                         ];
                     }),
                 ],
                 'clientSecret' => $checkoutSession->client_secret,
-                'publishableKey' => config('services.stripe.key'),
+                'publishableKey' => config('cashier.key'),
                 'isGuest' => !Auth::check(),
             ]);
         } catch (\Exception $e) {
-            \Log::error('Checkout error: ' . $e->getMessage(), [
+            Log::error('Checkout error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->route('cart.index')->with('error', 'An error occurred during checkout: ' . $e->getMessage());
@@ -218,71 +212,99 @@ class CartController extends Controller
      */
     public function checkoutSuccess(Request $request)
     {
-        $user = auth()->user();
-        $cart = $user->cart;
-
         if (!$request->session_id) {
             return redirect()->route('cart.index');
         }
 
         try {
-            // Initialize Stripe
-            Stripe::setApiKey(config('services.stripe.secret'));
-
-            // Retrieve the session to verify payment
-            $session = StripeSession::retrieve($request->session_id);
+            // Retrieve the session using Cashier
+            $session = Cashier::stripe()->checkout->sessions->retrieve($request->session_id);
 
             if ($session->payment_status !== 'paid') {
                 return redirect()->route('cart.index')->with('error', 'Payment unsuccessful. Please try again.');
             }
 
-            // Create an order record
-            $order = Order::create([
-                'user_id' => $user->id,
-                'total_amount' => $session->amount_total / 100, // Convert from cents
-                'payment_id' => $session->payment_intent,
-                'status' => 'completed',
-            ]);
+            // Get cart and lock it for update
+            $cart = Cart::where('cart_id', $session->metadata->cart_id)
+                ->where('status', 'active')
+                ->with(['tickets'])
+                ->lockForUpdate()
+                ->first();
 
-            // Assign tickets to the user and link them to the order
-            foreach ($cart->tickets as $cartItem) {
-                // For each quantity, we associate the ticket with the order
-                for ($i = 0; $i < $cartItem->pivot->quantity; $i++) {
-                    // If quantity > 1, we might need to duplicate the ticket
-                    if ($i === 0) {
-                        // First ticket can just be updated
-                        $cartItem->pivot->update([
-                            'user_id' => $user->id,
-                            'order_id' => $order->order_id,
-                            'is_purchased' => true,
-                            'price' => $cartItem->pivot->price
-                        ]);
-                    } else {
-                        // For additional quantities, clone the ticket
-                        $newTicket = $cartItem->replicate();
-                        $newTicket->user_id = $user->id;
-                        $newTicket->order_id = $order->order_id;
-                        $newTicket->is_purchased = true;
-                        $newTicket->price = $cartItem->pivot->price;
-                        $newTicket->save();
-                    }
-                }
+            if (!$cart) {
+                Log::error('Cart not found or already processed', [
+                    'session_id' => $request->session_id,
+                    'cart_id' => $session->metadata->cart_id
+                ]);
+                return redirect()->route('cart.index')->with('error', 'Cart not found or already processed');
             }
 
-            // Clear the cart
-            $cart->tickets()->detach();
+            // Wrap everything in a transaction
+            return DB::transaction(function () use ($cart, $session) {
+                try {
+                    $ticketCount = $cart->tickets->count();
 
-            return Inertia::render('Cart/CheckoutSuccess', [
-                'orderDetails' => [
-                    'id' => $order->order_id,
-                    'created_at' => $order->created_at,
-                    'total_amount' => $order->total_amount,
-                    'items_count' => $order->tickets->count(),
-                ],
-            ]);
+                    if ($ticketCount === 0) {
+                        throw new \Exception('Cart is empty');
+                    }
+
+                    // Create the order after successful payment
+                    $order = Order::create([
+                        'user_id' => auth()->id(),
+                        'customer_email' => $session->customer_details->email,
+                        'total_amount' => $session->amount_total / 100,
+                        'payment_intent' => $session->payment_intent,
+                        'payment_method' => $session->payment_method ?? null,
+                        'status' => 'completed',
+                    ]);
+
+                    // Bulk update tickets
+                    Ticket::whereIn('ticket_id', $cart->tickets->pluck('ticket_id'))
+                        ->update([
+                            'order_id' => $order->order_id,
+                            'is_purchased' => true,
+                            'user_id' => auth()->id(),
+                            'cart_id' => null
+                        ]);
+
+                    // Mark cart as completed and delete
+                    $cart->update(['status' => 'completed']);
+                    $cart->delete();
+
+                    return Inertia::render('Cart/CheckoutSuccess', [
+                        'orderDetails' => [
+                            'id' => $order->order_id,
+                            'created_at' => $order->created_at,
+                            'total_amount' => $order->total_amount,
+                            'items_count' => $ticketCount,
+                            'customer_email' => $session->customer_details->email,
+                            'is_guest' => !auth()->check(),
+                        ],
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Transaction error in checkout success: ' . $e->getMessage(), [
+                        'session_id' => $session->id,
+                        'cart_id' => $cart->cart_id,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw $e;
+                }
+            });
+
         } catch (\Exception $e) {
-            Log::error('Checkout success error: ' . $e->getMessage());
-            return redirect()->route('cart.index')->with('error', 'An error occurred while processing your order. Please contact support.');
+            Log::error('Checkout success error: ' . $e->getMessage(), [
+                'session_id' => $request->session_id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $errorMessage = match (true) {
+                $e instanceof \Laravel\Cashier\Exceptions\IncompletePayment => 'Your payment was not completed. Please try again.',
+                $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException => 'Order not found. Please contact support.',
+                $e->getMessage() === 'Cart is empty' => 'Your cart appears to be empty. Please try again.',
+                default => 'An error occurred while processing your order. Please contact support.'
+            };
+
+            return redirect()->route('cart.index')->with('error', $errorMessage);
         }
     }
 
