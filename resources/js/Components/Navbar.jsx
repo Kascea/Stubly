@@ -21,8 +21,6 @@ export default function Navbar({
   setShowingNavigationDropdown,
 }) {
   const { cart } = usePage().props;
-  console.log("Cart count from shared data:", cart.count);
-  console.log("Current route:", route().current());
 
   // Helper function to determine if a route is active
   const isActive = (routeName) => {
@@ -105,7 +103,7 @@ export default function Navbar({
                       Order History
                     </Dropdown.Link>
                     <Dropdown.Link
-                      href={route("support")}
+                      href={route("support.index")}
                       className="text-sky-900 hover:text-orange-400 hover:bg-gray-50"
                     >
                       <HelpCircleIcon className="w-4 h-4 mr-2 inline" />
@@ -129,7 +127,7 @@ export default function Navbar({
             ) : (
               <div className="flex items-center space-x-4">
                 <Link
-                  href={route("support")}
+                  href={route("support.index")}
                   className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100 inline-flex items-center"
                 >
                   <HelpCircleIcon className="w-5 h-5 mr-1" />

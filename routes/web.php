@@ -10,6 +10,10 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Middleware\VerifyTicketAccess;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
+use App\Http\Controllers\SupportController;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RefundRequest;
 
 // Public routes
 Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
@@ -30,10 +34,6 @@ Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 // Checkout routes (accessible to guests)
 Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
 Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])->name('cart.checkout.success');
-
-// Add this with your other public cart routes
-Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
-
 // Add these two routes for checkout
 Route::get('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 
@@ -66,8 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
   Route::get('/orders/{order}/download', [OrderController::class, 'downloadTickets'])->name('orders.download');
 });
 
-Route::get('/support', function () {
-  return Inertia::render('Support/Index');
-})->name('support');
+// Support routes
+Route::prefix('support')->group(function () {
+  Route::get('/', [SupportController::class, 'index'])->name('support.index');
+  Route::get('/refund', [SupportController::class, 'refundForm'])->name('support.refund.form');
+  Route::post('/refund', [SupportController::class, 'submitRefund'])->name('support.refund.submit');
+});
 
 require __DIR__ . '/auth.php';

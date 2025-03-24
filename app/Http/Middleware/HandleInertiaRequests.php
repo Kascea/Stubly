@@ -53,16 +53,6 @@ class HandleInertiaRequests extends Middleware
     private function getCartCount()
     {
         try {
-            // Force recalculation for these specific routes
-            $forceRecalculate = in_array(request()->route()->getName(), [
-                'cart.checkout',
-                'cart.checkout.success'
-            ]);
-
-            if (Session::has('cart_count') && !$forceRecalculate) {
-                return Session::get('cart_count');
-            }
-
             if (Auth::check()) {
                 $cart = Cart::where('user_id', Auth::id())
                     ->where('status', 'active')
@@ -73,12 +63,7 @@ class HandleInertiaRequests extends Middleware
                     ->first();
             }
 
-            $count = $cart ? Ticket::where('cart_id', $cart->cart_id)->count() : 0;
-
-            // Always update the session value
-            Session::put('cart_count', $count);
-
-            return $count;
+            return $cart ? Ticket::where('cart_id', $cart->cart_id)->count() : 0;
         } catch (\Exception $e) {
             Log::error('Error getting cart count: ' . $e->getMessage());
             return 0;
