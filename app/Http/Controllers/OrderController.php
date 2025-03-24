@@ -27,7 +27,12 @@ class OrderController extends Controller
                     'total_amount' => $order->total_amount,
                     'status' => $order->status,
                     'payment_id' => $order->payment_id,
-                    'tickets' => $order->tickets,
+                    'tickets' => $order->tickets->map(function ($ticket) {
+                        return [
+                            'ticket_id' => $ticket->ticket_id,
+                            'generated_ticket_url' => $ticket->generated_ticket_url,
+                        ];
+                    }),
                 ];
             });
 

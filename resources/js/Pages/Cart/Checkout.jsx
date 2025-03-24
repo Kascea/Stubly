@@ -86,16 +86,40 @@ export default function CartCheckout({
                       key={item.id}
                       className="flex justify-between py-2 border-b"
                     >
-                      <div>
+                      <div className="space-y-1">
                         <div className="font-medium">
                           {item.ticket.event_name}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          Qty: {item.quantity}
+                        <div className="text-sm text-gray-500 space-y-0.5">
+                          {item.ticket.event_datetime && (
+                            <div>
+                              {new Date(
+                                item.ticket.event_datetime
+                              ).toLocaleDateString()}{" "}
+                              at{" "}
+                              {new Date(
+                                item.ticket.event_datetime
+                              ).toLocaleTimeString()}
+                            </div>
+                          )}
+                          {item.ticket.event_location && (
+                            <div>{item.ticket.event_location}</div>
+                          )}
+                          {(item.ticket.section ||
+                            item.ticket.row ||
+                            item.ticket.seat) && (
+                            <div>
+                              {item.ticket.section &&
+                                `Section ${item.ticket.section}`}
+                              {item.ticket.row && ` • Row ${item.ticket.row}`}
+                              {item.ticket.seat &&
+                                ` • Seat ${item.ticket.seat}`}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="font-medium">
-                        ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                        ${parseFloat(item.price).toFixed(2)}
                       </div>
                     </div>
                   ))}
@@ -103,11 +127,13 @@ export default function CartCheckout({
                   <div className="pt-2">
                     <div className="flex justify-between mb-2">
                       <div>Subtotal</div>
-                      <div>${subtotal.toFixed(2)}</div>
+                      <div>${cart.subtotal?.toFixed(2)}</div>
                     </div>
                     <div className="flex justify-between font-bold text-lg pt-2 border-t">
                       <div>Total</div>
-                      <div className="text-sky-900">${subtotal.toFixed(2)}</div>
+                      <div className="text-sky-900">
+                        ${cart.total?.toFixed(2)}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

@@ -55,9 +55,10 @@ export default function CheckoutSuccess({ orderDetails, auth }) {
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 {!orderDetails.is_guest ? (
                   <>
-                    <Link href={route("orders.index")}>
+                    <Link href={route("orders.show", orderDetails.id)}>
                       <Button className="bg-sky-800 hover:bg-sky-700 text-white w-full transition-colors">
-                        <ReceiptText className="mr-2 h-4 w-4" /> View Orders
+                        <ReceiptText className="mr-2 h-4 w-4" /> View Order
+                        Details
                       </Button>
                     </Link>
 

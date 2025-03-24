@@ -156,7 +156,7 @@ export default function OrderShow({ order, auth }) {
                       href={route("orders.download", order.order_id)}
                       className="inline-flex items-center text-sky-600 hover:text-sky-800 transition-colors"
                     >
-                      <Download className="mr-1 h-4 w-4" /> Download All Tickets
+                      <Download className="mr-1 h-4 w-4" /> Download Tickets
                     </Link>
                   </div>
                   <div className="text-right">

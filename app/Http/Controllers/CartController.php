@@ -157,6 +157,10 @@ class CartController extends Controller
             $ticketCount = $cart->tickets->count();
             $priceId = 'price_1QzqEhF2EeTXNFyLXKCFBWDw';
 
+            // Retrieve price from Stripe to ensure we have the correct amount
+            $price = \Stripe\Price::retrieve($priceId);
+            $unitPrice = $price->unit_amount / 100; // Convert from cents to dollars
+
             // Create checkout session first
             $checkoutSession = StripeSession::create([
                 'ui_mode' => 'embedded',
@@ -178,22 +182,22 @@ class CartController extends Controller
 
             return Inertia::render('Cart/Checkout', [
                 'cart' => [
-                    'items' => $cart->tickets->map(function ($ticket) {
+                    'items' => $cart->tickets->map(function ($ticket) use ($unitPrice) {
                         return [
                             'id' => $ticket->ticket_id,
-                            'quantity' => 1,
-                            'price' => $ticket->price,
+                            'price' => $unitPrice,
                             'ticket' => [
                                 'event_name' => $ticket->event_name,
                                 'event_location' => $ticket->event_location ?? 'N/A',
-                                'event_datetime' => $ticket->event_datetime ?? now(),
-                                'section' => $ticket->section ?? null,
-                                'row' => $ticket->row ?? null,
-                                'seat' => $ticket->seat ?? null,
-                                'generated_ticket_url' => $ticket->generated_ticket_url ?? null,
+                                'event_datetime' => $ticket->event_datetime,
+                                'section' => $ticket->section,
+                                'row' => $ticket->row,
+                                'seat' => $ticket->seat,
                             ],
                         ];
                     }),
+                    'subtotal' => $unitPrice * $ticketCount,
+                    'total' => $unitPrice * $ticketCount,
                 ],
                 'clientSecret' => $checkoutSession->client_secret,
                 'publishableKey' => config('cashier.key'),
@@ -212,13 +216,6 @@ class CartController extends Controller
      */
     public function checkoutSuccess(Request $request)
     {
-        // If we have stored order details in the session, display those
-        if ($request->session()->has('last_successful_order')) {
-            return Inertia::render('Cart/CheckoutSuccess', [
-                'orderDetails' => $request->session()->get('last_successful_order')
-            ]);
-        }
-
         if (!$request->session_id) {
             return redirect()->route('cart.index');
         }
@@ -247,7 +244,7 @@ class CartController extends Controller
             }
 
             // Wrap everything in a transaction
-            return DB::transaction(function () use ($cart, $session, $request) {
+            return DB::transaction(function () use ($cart, $session) {
                 try {
                     $ticketCount = $cart->tickets->count();
 
@@ -277,21 +274,18 @@ class CartController extends Controller
                     $cart->update(['status' => 'completed']);
                     $cart->delete();
 
-                    // Store order details in session for subsequent views
-                    $orderDetails = [
-                        'id' => $order->order_id,
-                        'created_at' => $order->created_at,
-                        'total_amount' => $order->total_amount,
-                        'items_count' => $ticketCount,
-                        'customer_email' => $session->customer_details->email,
-                        'is_guest' => !auth()->check(),
-                    ];
-
-                    $request->session()->put('last_successful_order', $orderDetails);
-
+                    // Return to confirmation page with order details
                     return Inertia::render('Cart/CheckoutSuccess', [
-                        'orderDetails' => $orderDetails
+                        'orderDetails' => [
+                            'id' => $order->order_id,
+                            'created_at' => $order->created_at,
+                            'total_amount' => $order->total_amount,
+                            'items_count' => $ticketCount,
+                            'customer_email' => $session->customer_details->email,
+                            'is_guest' => !auth()->check(),
+                        ]
                     ]);
+
                 } catch (\Exception $e) {
                     Log::error('Transaction error in checkout success: ' . $e->getMessage(), [
                         'session_id' => $session->id,
