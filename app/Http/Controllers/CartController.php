@@ -180,8 +180,11 @@ class CartController extends Controller
                 ],
             ]);
 
+            // Store the cart count in the session
+            Session::put('cart_count', $ticketCount);
+
             return Inertia::render('Cart/Checkout', [
-                'cart' => [
+                'checkoutData' => [
                     'items' => $cart->tickets->map(function ($ticket) use ($unitPrice) {
                         return [
                             'id' => $ticket->ticket_id,
@@ -244,7 +247,7 @@ class CartController extends Controller
             }
 
             // Wrap everything in a transaction
-            return DB::transaction(function () use ($cart, $session) {
+            return DB::transaction(function () use ($cart, $session, $request) {
                 try {
                     $ticketCount = $cart->tickets->count();
 
@@ -274,8 +277,17 @@ class CartController extends Controller
                     $cart->update(['status' => 'completed']);
                     $cart->delete();
 
+                    // Clear the cart count in the session
+                    Session::put('cart_count', 0);
+
+                    // Ensure the cart count is zero in shared data
+                    $request->session()->put('cart_count', 0);
+
+                    // Force the session to be saved immediately
+                    $request->session()->save();
+
                     // Return to confirmation page with order details
-                    return Inertia::render('Cart/CheckoutSuccess', [
+                    $response = Inertia::render('Cart/CheckoutSuccess', [
                         'orderDetails' => [
                             'id' => $order->order_id,
                             'created_at' => $order->created_at,
@@ -285,6 +297,9 @@ class CartController extends Controller
                             'is_guest' => !auth()->check(),
                         ]
                     ]);
+
+                    // Ensure the response includes the updated session
+                    return $response->withSession($request->session());
 
                 } catch (\Exception $e) {
                     Log::error('Transaction error in checkout success: ' . $e->getMessage(), [

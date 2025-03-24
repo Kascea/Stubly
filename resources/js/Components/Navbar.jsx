@@ -21,6 +21,8 @@ export default function Navbar({
   setShowingNavigationDropdown,
 }) {
   const { cart } = usePage().props;
+  console.log("Cart count from shared data:", cart.count);
+  console.log("Current route:", route().current());
 
   // Helper function to determine if a route is active
   const isActive = (routeName) => {

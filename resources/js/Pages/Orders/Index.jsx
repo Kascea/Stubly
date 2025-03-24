@@ -97,7 +97,7 @@ export default function OrdersIndex({ orders, auth }) {
                     <TableRow>
                       <TableHead>Order ID</TableHead>
                       <TableHead>Date</TableHead>
-                      <TableHead>Items</TableHead>
+                      <TableHead>Ts</TableHead>
                       <TableHead>Total</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead></TableHead>

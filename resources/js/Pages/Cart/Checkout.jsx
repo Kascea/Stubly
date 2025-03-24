@@ -17,7 +17,7 @@ import {
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 
 export default function CartCheckout({
-  cart,
+  checkoutData,
   clientSecret,
   publishableKey,
   auth,
@@ -27,8 +27,8 @@ export default function CartCheckout({
 
   // Calculate totals
   const subtotal =
-    cart.items && cart.items.length > 0
-      ? cart.items.reduce(
+    checkoutData.items && checkoutData.items.length > 0
+      ? checkoutData.items.reduce(
           (total, item) => total + parseFloat(item.price) * item.quantity,
           0
         )
@@ -76,12 +76,13 @@ export default function CartCheckout({
                 <CardHeader>
                   <CardTitle>Order Summary</CardTitle>
                   <CardDescription>
-                    {cart.items?.length}{" "}
-                    {cart.items?.length === 1 ? "item" : "items"} in your cart
+                    {checkoutData.items?.length}{" "}
+                    {checkoutData.items?.length === 1 ? "item" : "items"} in
+                    your cart
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {cart.items?.map((item) => (
+                  {checkoutData.items?.map((item) => (
                     <div
                       key={item.id}
                       className="flex justify-between py-2 border-b"
@@ -127,12 +128,12 @@ export default function CartCheckout({
                   <div className="pt-2">
                     <div className="flex justify-between mb-2">
                       <div>Subtotal</div>
-                      <div>${cart.subtotal?.toFixed(2)}</div>
+                      <div>${checkoutData.subtotal?.toFixed(2)}</div>
                     </div>
                     <div className="flex justify-between font-bold text-lg pt-2 border-t">
                       <div>Total</div>
                       <div className="text-sky-900">
-                        ${cart.total?.toFixed(2)}
+                        ${checkoutData.total?.toFixed(2)}
                       </div>
                     </div>
                   </div>
