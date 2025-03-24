@@ -212,6 +212,13 @@ class CartController extends Controller
      */
     public function checkoutSuccess(Request $request)
     {
+        // If we have stored order details in the session, display those
+        if ($request->session()->has('last_successful_order')) {
+            return Inertia::render('Cart/CheckoutSuccess', [
+                'orderDetails' => $request->session()->get('last_successful_order')
+            ]);
+        }
+
         if (!$request->session_id) {
             return redirect()->route('cart.index');
         }
@@ -240,7 +247,7 @@ class CartController extends Controller
             }
 
             // Wrap everything in a transaction
-            return DB::transaction(function () use ($cart, $session) {
+            return DB::transaction(function () use ($cart, $session, $request) {
                 try {
                     $ticketCount = $cart->tickets->count();
 
@@ -262,8 +269,7 @@ class CartController extends Controller
                     Ticket::whereIn('ticket_id', $cart->tickets->pluck('ticket_id'))
                         ->update([
                             'order_id' => $order->order_id,
-                            'is_purchased' => true,
-                            'user_id' => auth()->id(),
+                            'user_id' => auth()->id() ?? null,
                             'cart_id' => null
                         ]);
 
@@ -271,15 +277,20 @@ class CartController extends Controller
                     $cart->update(['status' => 'completed']);
                     $cart->delete();
 
+                    // Store order details in session for subsequent views
+                    $orderDetails = [
+                        'id' => $order->order_id,
+                        'created_at' => $order->created_at,
+                        'total_amount' => $order->total_amount,
+                        'items_count' => $ticketCount,
+                        'customer_email' => $session->customer_details->email,
+                        'is_guest' => !auth()->check(),
+                    ];
+
+                    $request->session()->put('last_successful_order', $orderDetails);
+
                     return Inertia::render('Cart/CheckoutSuccess', [
-                        'orderDetails' => [
-                            'id' => $order->order_id,
-                            'created_at' => $order->created_at,
-                            'total_amount' => $order->total_amount,
-                            'items_count' => $ticketCount,
-                            'customer_email' => $session->customer_details->email,
-                            'is_guest' => !auth()->check(),
-                        ],
+                        'orderDetails' => $orderDetails
                     ]);
                 } catch (\Exception $e) {
                     Log::error('Transaction error in checkout success: ' . $e->getMessage(), [

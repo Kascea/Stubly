@@ -139,4 +139,12 @@ class Ticket extends Model
   {
     return $this->belongsTo(Cart::class, 'cart_id', 'cart_id');
   }
+
+  /**
+   * Check if the ticket has been purchased
+   */
+  public function isPurchased()
+  {
+    return !is_null($this->order_id);
+  }
 }
