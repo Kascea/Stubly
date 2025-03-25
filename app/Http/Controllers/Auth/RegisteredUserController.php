@@ -46,6 +46,6 @@ class RegisteredUserController extends Controller
 
     Auth::login($user, $request->remember);
 
-    return redirect(route('canvas', absolute: false));
+    return redirect(route('verification.notice', absolute: false));
   }
 }

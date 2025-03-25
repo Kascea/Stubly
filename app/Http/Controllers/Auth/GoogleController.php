@@ -33,14 +33,19 @@ class GoogleController extends Controller
       $user = User::where('email', $googleUser->email)->first();
 
       if (!$user) {
+        // Create a new user with verified email
         $user = User::create([
           'name' => $googleUser->name,
           'email' => $googleUser->email,
           'password' => Hash::make(Str::random(32)),
-          'email_verified_at' => now(),
+          'email_verified_at' => now(), // Mark as verified immediately
         ]);
 
         event(new Registered($user));
+      } else if (is_null($user->email_verified_at)) {
+        // If user exists but email not verified, mark it as verified now
+        $user->email_verified_at = now();
+        $user->save();
       }
 
       // Create or update social auth record

@@ -22,6 +22,9 @@ class VerifyEmailController extends Controller
       event(new Verified($request->user()));
     }
 
+    // Clear any verification pending notices after successful verification
+    session()->flash('status', 'email-verified');
+
     return redirect()->intended(route('canvas', absolute: false) . '?verified=1');
   }
 }

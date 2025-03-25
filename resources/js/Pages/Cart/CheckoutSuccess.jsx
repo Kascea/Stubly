@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import axios from "axios";
-import CheckoutSuccessLayout from "@/Layouts/CheckoutSuccessLayout";
+import AppLayout from "@/Layouts/AppLayout";
 
 export default function CheckoutSuccess({ orderDetails, auth }) {
   const [resendStatus, setResendStatus] = useState(null);
@@ -64,7 +64,7 @@ export default function CheckoutSuccess({ orderDetails, auth }) {
   };
 
   return (
-    <CheckoutSuccessLayout auth={auth}>
+    <AppLayout auth={auth}>
       <Head title="Order Confirmed" />
       <div className="py-12">
         <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
@@ -192,6 +192,6 @@ export default function CheckoutSuccess({ orderDetails, auth }) {
           </Card>
         </div>
       </div>
-    </CheckoutSuccessLayout>
+    </AppLayout>
   );
 }

@@ -60,8 +60,8 @@ export default function UpdateProfileInformation({
             />
           </svg>
           <div className="text-sm text-sky-900/70">
-            You're signed in with Google. Some profile information is managed
-            through your Google account.
+            You're signed in with Google. Your email address is managed through
+            your Google account.
           </div>
         </div>
       )}
@@ -123,7 +123,7 @@ export default function UpdateProfileInformation({
                   href={route("verification.send")}
                   method="post"
                   as="button"
-                  className="rounded-md text-sm text-sky-900/70 underline hover:text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                  className="rounded-md text-sm text-sky-900/70 underline hover:text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ml-2"
                 >
                   Click here to re-send the verification email.
                 </Link>
@@ -140,7 +140,7 @@ export default function UpdateProfileInformation({
         <div className="flex items-center gap-4">
           <Button
             variant="primary"
-            disabled={processing || (isGoogleUser && true)}
+            disabled={processing || (isGoogleUser && data.name === user.name)}
           >
             Save
           </Button>

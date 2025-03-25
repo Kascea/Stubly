@@ -15,16 +15,19 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isSocialUser = $this->user()->social_id !== null; // Adjust based on how you track social users
+
+        if ($isSocialUser) {
+            // Just validate name for social users
+            return [
+                'name' => ['required', 'string', 'max:255'],
+            ];
+        }
+
+        // Standard validation for regular users
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
-            ],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
         ];
     }
 }
