@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import {
@@ -20,9 +20,20 @@ import {
   SelectValue,
 } from "@/Components/ui/select";
 import { Label } from "@/Components/ui/label";
-import { ArrowLeftIcon, InfoIcon, Mail, Package, FileText } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  InfoIcon,
+  Mail,
+  Package,
+  FileText,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
+import { Alert, AlertDescription } from "@/Components/ui/alert";
 
 export default function RefundRequest() {
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const { data, setData, post, processing, errors, reset } = useForm({
     order_id: "",
     email: "",
@@ -33,7 +44,14 @@ export default function RefundRequest() {
   const handleSubmit = (e) => {
     e.preventDefault();
     post(route("support.refund.submit"), {
-      onSuccess: () => reset(),
+      onSuccess: () => {
+        reset();
+        setShowSuccess(true);
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          setShowSuccess(false);
+        }, 5000);
+      },
     });
   };
 
@@ -51,6 +69,16 @@ export default function RefundRequest() {
               <ArrowLeftIcon className="mr-1 h-4 w-4" /> Back to Support
             </Link>
           </div>
+
+          {showSuccess && (
+            <Alert className="mb-6 bg-green-50 border-green-200 text-green-800">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <AlertDescription className="flex items-center">
+                Your refund request has been submitted successfully! We'll
+                review it and get back to you shortly.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <Card>
             <CardHeader>
@@ -206,7 +234,14 @@ export default function RefundRequest() {
                     className="w-full bg-sky-800 hover:bg-sky-700 text-white transition-colors"
                     disabled={processing}
                   >
-                    {processing ? "Processing..." : "Submit Refund Request"}
+                    {processing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Submit Refund Request"
+                    )}
                   </Button>
                 </div>
               </form>

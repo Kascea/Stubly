@@ -35,8 +35,9 @@ class SupportController extends Controller
         ]);
 
         // Send the email directly to the business owner
-        Mail::to('Cole@stubly.shop')->send(new RefundMail($request->all()));
+        Mail::to('cole@stubly.shop')->send(new RefundMail($request->all()));
 
+        // Using Inertia's redirect method with flash message
         return redirect()->route('support.index')
             ->with('success', 'Your refund request has been sent. We\'ll get back to you shortly.');
     }

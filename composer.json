@@ -16,6 +16,7 @@
         "laravel/socialite": "^5.16",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "^3.29",
+        "resend/resend-laravel": "^0.17.0",
         "sentry/sentry-laravel": "^4.12",
         "tightenco/ziggy": "^2.0"
     },

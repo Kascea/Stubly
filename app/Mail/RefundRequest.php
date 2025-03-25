@@ -29,6 +29,16 @@ class RefundRequest extends Mailable
     }
 
     /**
+     * Build the message.
+     */
+    public function build()
+    {
+        return $this->subject('Refund Request')
+            ->markdown('emails.refund-request')
+            ->with('data', $this->data);
+    }
+
+    /**
      * Get the message envelope.
      */
     public function envelope(): Envelope

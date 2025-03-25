@@ -73,4 +73,8 @@ Route::prefix('support')->group(function () {
   Route::post('/refund', [SupportController::class, 'submitRefund'])->name('support.refund.submit');
 });
 
+Route::get('/admin/orders/{order}', function ($order) {
+  // Your order view logic here
+})->name('admin.orders.show');
+
 require __DIR__ . '/auth.php';

@@ -1,5 +1,5 @@
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import {
   Card,
@@ -14,15 +14,26 @@ import {
   ArrowRightIcon,
   HelpCircleIcon,
   UserIcon,
+  CheckCircle,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/Components/ui/alert";
 
 export default function Support() {
+  const { flash } = usePage().props;
+
   return (
     <AppLayout>
       <Head title="Support" />
 
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+          {flash.success && (
+            <Alert className="mb-6 bg-green-50 border border-green-200 text-green-800 flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
+              <AlertDescription>{flash.success}</AlertDescription>
+            </Alert>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl font-semibold text-sky-900">

@@ -67,6 +67,14 @@
     </div>
     @endif
 
+    @if(isset($data['order_id']) && !empty($data['order_id']))
+    <p>
+        <a href="{{ config('app.url') }}/orders/{{ $data['order_id'] }}" style="display: inline-block; background-color: #0369a1; color: white; padding: 10px 15px; text-decoration: none; border-radius: 3px;">
+            View Order
+        </a>
+    </p>
+    @endif
+
     <p>You can reply directly to this email to contact the customer.</p>
 </body>
 </html> 
