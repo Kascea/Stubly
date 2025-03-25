@@ -37,7 +37,8 @@ Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])->nam
 // Add these two routes for checkout
 Route::get('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// Auth protected routes
+Route::middleware(['auth'])->group(function () {
   // Authenticated ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');
@@ -64,7 +65,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
   Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
   Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
   Route::get('/orders/{order}/download', [OrderController::class, 'downloadTickets'])->name('orders.download');
+  Route::post('/orders/{order}/resend-confirmation', [OrderController::class, 'resendConfirmation'])
+    ->name('orders.resend-confirmation');
 });
+
+// Routes that work for both guests and authenticated users
+Route::post('/orders/{order}/resend-confirmation', [OrderController::class, 'resendConfirmation'])
+  ->name('orders.resend-confirmation');
 
 // Support routes
 Route::prefix('support')->group(function () {
@@ -73,8 +80,5 @@ Route::prefix('support')->group(function () {
   Route::post('/refund', [SupportController::class, 'submitRefund'])->name('support.refund.submit');
 });
 
-Route::get('/admin/orders/{order}', function ($order) {
-  // Your order view logic here
-})->name('admin.orders.show');
 
 require __DIR__ . '/auth.php';

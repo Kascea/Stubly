@@ -1,13 +1,70 @@
-import React from "react";
-import AppLayout from "@/Layouts/AppLayout";
+import React, { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
 import { Card, CardContent, CardFooter } from "@/Components/ui/card";
-import { CheckCircle2, Home, Ticket, ReceiptText } from "lucide-react";
+import {
+  CheckCircle2,
+  Home,
+  Ticket,
+  ReceiptText,
+  Mail,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/Components/ui/button";
+import axios from "axios";
+import CheckoutSuccessLayout from "@/Layouts/CheckoutSuccessLayout";
 
 export default function CheckoutSuccess({ orderDetails, auth }) {
+  const [resendStatus, setResendStatus] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+
+  const handleResend = async (e) => {
+    e.preventDefault();
+
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    setResendStatus(null);
+    setStatusMessage("");
+
+    try {
+      // Make AJAX request - CSRF is handled automatically
+      const response = await axios.post(
+        route("orders.resend-confirmation", orderDetails.id),
+        { email: orderDetails.customer_email }
+      );
+
+      // Set success status and message
+      setResendStatus("success");
+      setStatusMessage(
+        response.data.message ||
+          "Order confirmation email has been resent. Please allow a few minutes for delivery and check your spam folder."
+      );
+    } catch (error) {
+      console.error("Error resending email:", error);
+
+      // Get error message from response if available
+      const errorMsg =
+        error.response?.data?.error ||
+        "Failed to resend email. Please try again later.";
+
+      // Set error status and message
+      setResendStatus("error");
+      setStatusMessage(errorMsg);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Determine button text based on status
+  const getButtonText = () => {
+    if (isProcessing) return "Sending...";
+    if (resendStatus === "success") return "Email Resent!";
+    return "Didn't receive the email? Resend confirmation";
+  };
+
   return (
-    <AppLayout auth={auth}>
+    <CheckoutSuccessLayout auth={auth}>
       <Head title="Order Confirmed" />
       <div className="py-12">
         <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
@@ -81,12 +138,60 @@ export default function CheckoutSuccess({ orderDetails, auth }) {
               </div>
             </CardContent>
 
-            <CardFooter className="border-t pt-4 text-center text-sm text-gray-500">
-              A confirmation email has been sent to your email address.
+            <CardFooter className="border-t pt-4 text-center text-sm text-gray-500 flex flex-col gap-4">
+              <div>
+                A confirmation email has been sent to your email address.
+                <span className="block mt-1">
+                  Please allow a few minutes for delivery and check your spam
+                  folder.
+                </span>
+              </div>
+
+              {statusMessage && (
+                <div
+                  className={`mt-2 text-sm p-2 rounded ${
+                    resendStatus === "success"
+                      ? "bg-green-50 text-green-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {resendStatus === "success" ? (
+                    <CheckCircle2 className="h-4 w-4 inline mr-1" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 inline mr-1" />
+                  )}
+                  {statusMessage}
+                </div>
+              )}
+
+              <div className="mt-2">
+                <Button
+                  onClick={handleResend}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isProcessing || resendStatus === "success"}
+                  className={`text-xs ${
+                    resendStatus === "success"
+                      ? "text-green-600 hover:text-green-800"
+                      : resendStatus === "error"
+                      ? "text-red-600 hover:text-red-800"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  {isProcessing && (
+                    <span className="mr-2 h-4 w-4 animate-spin">⟳</span>
+                  )}
+                  {resendStatus === "success" && (
+                    <Mail className="mr-2 h-4 w-4" />
+                  )}
+                  {getButtonText()}
+                </Button>
+              </div>
             </CardFooter>
           </Card>
         </div>
       </div>
-    </AppLayout>
+    </CheckoutSuccessLayout>
   );
 }

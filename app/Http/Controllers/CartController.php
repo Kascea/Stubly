@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Cashier\Cashier;
+use App\Mail\OrderConfirmation;
+use Illuminate\Support\Facades\Mail;
 
 class CartController extends Controller
 {
@@ -166,7 +168,7 @@ class CartController extends Controller
                 'ui_mode' => 'embedded',
                 'payment_method_types' => ['card'],
                 'mode' => 'payment',
-                'return_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'return_url' => route('cart.checkout.success'),
                 'customer_email' => Auth::check() ? Auth::user()->email : null,
                 'client_reference_id' => Auth::id() ?? Session::getId(),
                 'line_items' => [
@@ -179,6 +181,9 @@ class CartController extends Controller
                     'cart_id' => $cart->cart_id,
                 ],
             ]);
+
+            // Store the session ID in Laravel session
+            $request->session()->put('stripe_session_id', $checkoutSession->id);
 
             return Inertia::render('Cart/Checkout', [
                 'checkoutData' => [
@@ -216,13 +221,16 @@ class CartController extends Controller
      */
     public function checkoutSuccess(Request $request)
     {
-        if (!$request->session_id) {
+        // Get session ID from Laravel session instead of URL
+        $sessionId = $request->session()->get('stripe_session_id');
+
+        if (!$sessionId) {
             return redirect()->route('cart.index');
         }
 
         try {
             // Retrieve the session using Cashier
-            $session = Cashier::stripe()->checkout->sessions->retrieve($request->session_id);
+            $session = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
 
             if ($session->payment_status !== 'paid') {
                 return redirect()->route('cart.index')->with('error', 'Payment unsuccessful. Please try again.');
@@ -237,7 +245,7 @@ class CartController extends Controller
 
             if (!$cart) {
                 Log::error('Cart not found or already processed', [
-                    'session_id' => $request->session_id,
+                    'session_id' => $sessionId,
                     'cart_id' => $session->metadata->cart_id
                 ]);
                 return redirect()->route('cart.index')->with('error', 'Cart not found or already processed');
@@ -262,17 +270,27 @@ class CartController extends Controller
                         'status' => 'completed',
                     ]);
 
+                    // Get the tickets for the email
+                    $tickets = $cart->tickets;
+
                     // Bulk update tickets
-                    Ticket::whereIn('ticket_id', $cart->tickets->pluck('ticket_id'))
+                    Ticket::whereIn('ticket_id', $tickets->pluck('ticket_id'))
                         ->update([
                             'order_id' => $order->order_id,
                             'user_id' => auth()->id() ?? null,
                             'cart_id' => null
                         ]);
 
+                    // Send order confirmation email
+                    Mail::to($session->customer_details->email)
+                        ->send(new OrderConfirmation($order, $tickets));
+
                     // Mark cart as completed and delete
                     $cart->update(['status' => 'completed']);
                     $cart->delete();
+
+                    // At the end of successful checkout, clear the session ID
+                    $request->session()->forget('stripe_session_id');
 
                     // Return to confirmation page with order details
                     return Inertia::render('Cart/CheckoutSuccess', [
@@ -283,6 +301,9 @@ class CartController extends Controller
                             'items_count' => $ticketCount,
                             'customer_email' => $session->customer_details->email,
                             'is_guest' => !auth()->check(),
+                        ],
+                        'cart' => [
+                            'count' => 0,
                         ]
                     ]);
 
@@ -298,9 +319,12 @@ class CartController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Checkout success error: ' . $e->getMessage(), [
-                'session_id' => $request->session_id,
+                'session_id' => $sessionId,
                 'trace' => $e->getTraceAsString()
             ]);
+
+            // Clear the session ID in case of error too
+            $request->session()->forget('stripe_session_id');
 
             $errorMessage = match (true) {
                 $e instanceof \Laravel\Cashier\Exceptions\IncompletePayment => 'Your payment was not completed. Please try again.',
