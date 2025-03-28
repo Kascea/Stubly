@@ -189,7 +189,7 @@ export default function OrdersIndex({ orders, auth }) {
                 </p>
 
                 <div className="flex gap-4 items-center">
-                  <Link href={route("canvas")}>
+                  <Link href={route("canvas")} prefetch>
                     <Button
                       className="relative !bg-sky-800 hover:!bg-sky-700 text-white border-0
                         transition-all duration-300 ease-in-out
@@ -209,7 +209,7 @@ export default function OrdersIndex({ orders, auth }) {
                     </Button>
                   </Link>
 
-                  <Link href={route("cart.index")}>
+                  <Link href={route("cart.index")} prefetch>
                     <Button
                       variant="outline"
                       className="relative border-sky-200 text-sky-800

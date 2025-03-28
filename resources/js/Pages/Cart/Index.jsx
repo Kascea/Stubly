@@ -318,7 +318,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
                     </Button>
                   </Link>
 
-                  <Link href={route("cart.checkout")}>
+                  <Link href={route("cart.checkout")} prefetch>
                     <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-colors">
                       Checkout <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -337,7 +337,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
                   Add some custom tickets to get started
                 </p>
 
-                <Link href={route("canvas")}>
+                <Link href={route("canvas")} prefetch>
                   <Button
                     className="relative !bg-sky-800 hover:!bg-sky-700 text-white border-0
                       transition-all duration-300 ease-in-out
