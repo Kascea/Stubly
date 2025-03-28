@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Cashier\Cashier;
 use App\Mail\OrderConfirmation;
 use Illuminate\Support\Facades\Mail;
+use App\Jobs\ProcessOrderConfirmation;
 
 class CartController extends Controller
 {
@@ -281,9 +282,8 @@ class CartController extends Controller
                             'cart_id' => null
                         ]);
 
-                    // Send order confirmation email
-                    Mail::to($session->customer_details->email)
-                        ->send(new OrderConfirmation($order, $tickets));
+                    // Replace the Mail::to line with:
+                    ProcessOrderConfirmation::dispatch($order, $session->customer_details->email, $tickets);
 
                     // Mark cart as completed and delete
                     $cart->update(['status' => 'completed']);
