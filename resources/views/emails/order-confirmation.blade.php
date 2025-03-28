@@ -193,6 +193,10 @@
             <div class="note">
                 <strong>Important:</strong> Your tickets are available in your account. If you have any questions or need assistance, please contact our support team at <a href="mailto:cole@stubly.shop">cole@stubly.shop</a>.
             </div>
+
+            <div class="note" style="margin-top: 20px; padding: 15px; background-color: #f0f7ff; border-left: 4px solid #0369a1; font-size: 14px;">
+                <p><strong>Your Tickets PDF:</strong> We've attached a PDF document to this email containing all your tickets. You can print them at home or present them on your mobile device for entry.</p>
+            </div>
         </div>
         
         <div class="footer">

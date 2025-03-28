@@ -13,7 +13,7 @@ use App\Models\Order;
 
 class User extends Authenticatable
 {
-  /** @use HasFactory<\Database\Factories\UserFactory> */
+
   use HasFactory, Notifiable;
 
   public $incrementing = false;

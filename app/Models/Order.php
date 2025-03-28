@@ -25,6 +25,7 @@ class Order extends Model
         'payment_intent',
         'payment_method',
         'billing_name',
+        'pdf_path',
     ];
 
     protected $casts = [
