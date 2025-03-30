@@ -180,29 +180,6 @@ class OrderController extends Controller
             }
         }
 
-        // Rate limiting - allow 3 requests per hour per order
-        $key = 'resend_confirmation_' . $order->order_id;
-        $maxAttempts = 3;
-        $decayMinutes = 60; // 1 hour
-
-        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
-            $seconds = RateLimiter::availableIn($key);
-            $minutes = ceil($seconds / 60);
-
-            $timeMessage = $minutes > 1
-                ? "{$minutes} minutes"
-                : ($seconds > 60 ? "1 minute" : "{$seconds} seconds");
-
-            $errorMessage = "Too many attempts. Please wait {$timeMessage} before requesting another email.";
-
-            return $request->wantsJson()
-                ? response()->json(['error' => $errorMessage], 429)
-                : redirect()->back()->with('error', $errorMessage);
-        }
-
-        // Hit the rate limiter
-        RateLimiter::hit($key, $decayMinutes * 60); // Convert minutes to seconds
-
         // Load tickets
         $order->load(['tickets']);
 
