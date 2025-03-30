@@ -169,26 +169,26 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                 <div className="flex flex-col items-center">
                   <p className="text-xs text-gray-500 uppercase">Section</p>
                   <p className="text-3xl font-bold">
-                    {ticketInfo?.section || "244"}
+                    {ticketInfo?.section || "TBD"}
                   </p>
                 </div>
                 <div className="flex flex-col items-center">
                   <p className="text-xs text-gray-500 uppercase">Row</p>
                   <p className="text-3xl font-bold">
-                    {ticketInfo?.row || "21"}
+                    {ticketInfo?.row || "TBD"}
                   </p>
                 </div>
                 <div className="flex flex-col items-center">
                   <p className="text-xs text-gray-500 uppercase">Seat</p>
                   <p className="text-3xl font-bold">
-                    {ticketInfo?.seat || "5"}
+                    {ticketInfo?.seat || "TBD"}
                   </p>
                 </div>
               </div>
 
               {/* Additional match details */}
               <div className="text-xs text-center mb-3 text-gray-600 uppercase tracking-wider">
-                <p>{ticketInfo?.eventName || "Team vs Team"}</p>
+                <p>{ticketInfo?.eventName || "TBD"}</p>
                 <p>
                   {ticketInfo?.date
                     ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
@@ -197,7 +197,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                         day: "numeric",
                         year: "numeric",
                       })
-                    : "Sunday, January 17, 2025"}
+                    : "TBD"}
                 </p>
                 <p>
                   Start Time:{" "}
@@ -210,7 +210,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                           hour12: true,
                         }
                       )
-                    : "12:00 PM"}
+                    : "TBD"}
                 </p>
               </div>
 

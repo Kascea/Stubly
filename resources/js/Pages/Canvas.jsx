@@ -162,7 +162,6 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
         // Add the created ticket to cart
         await axios.post(route("cart.add"), {
           ticket_id: response.data.ticket.ticket_id,
-          quantity: 1,
         });
 
         setStatus("success");

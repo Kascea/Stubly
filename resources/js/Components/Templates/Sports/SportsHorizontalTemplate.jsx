@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 
 const generateBarcodePattern = () => {
   const bars = [];
@@ -14,396 +14,221 @@ const generateBarcodePattern = () => {
 };
 
 const SportsHorizontalTemplate = forwardRef(({ ticketInfo }, ref) => {
-  // Format date and time
-  const formattedDate = ticketInfo?.date
-    ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "TBD";
-
-  const formattedTime = ticketInfo?.time
-    ? new Date(`${ticketInfo.time}`).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    : "TBD";
-
-  // Get accent color (previously dividerColor)
-  const accentColor =
-    ticketInfo?.accentColor || ticketInfo?.dividerColor || "#0c4a6e";
-
   return (
-    <div className="flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div
         ref={ref}
-        className="relative overflow-hidden bg-white shadow-lg rounded-lg"
+        className="relative overflow-hidden bg-white shadow-lg shadow-sky-900/25"
         style={{
-          aspectRatio: "7/3",
           width: "100%",
-          maxWidth: "700px",
-          height: "auto",
+          maxWidth: "40rem",
+          aspectRatio: "7/3",
         }}
       >
-        {/* Background Image or Gradient */}
+        {/* Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center bg-gradient-to-br from-sky-300 to-orange-300"
           style={{
             backgroundImage: ticketInfo?.backgroundImage
               ? `url(${ticketInfo.backgroundImage})`
-              : ticketInfo?.background_url
-              ? `url(${ticketInfo.background_url})`
               : undefined,
-            backgroundColor:
-              !ticketInfo?.backgroundImage && !ticketInfo?.background_url
-                ? "#f8fafc"
-                : undefined,
           }}
         >
-          {/* Overlay for better text readability */}
-          {(ticketInfo?.backgroundImage || ticketInfo?.background_url) && (
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
-          )}
+          <div className="absolute inset-0 bg-black/60" />
         </div>
 
-        {/* Main Content Container */}
-        <div className="relative h-full flex">
-          {/* Left Section (2/3) */}
-          <div className="w-2/3 p-6 flex flex-col justify-between relative">
-            {/* Top Section with Event Details */}
-            <div className="flex justify-between items-start">
-              {/* Event Info */}
-              <div className="max-w-[70%]">
-                <h1
-                  className={`text-3xl font-bold mb-1 leading-tight ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-white"
-                      : "text-gray-800"
-                  }`}
-                >
-                  {ticketInfo?.eventName || "Event Name"}
-                </h1>
-                <p
-                  className={`text-lg ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-300"
-                      : "text-gray-600"
-                  }`}
-                >
-                  {ticketInfo?.eventLocation || "Event Location"}
+        {/* Content Container */}
+        <div className="relative text-white h-full flex">
+          {/* Main Content - Left side (75%) */}
+          <div className="w-[75%] p-6 flex flex-col">
+            {/* Admit One Banner */}
+            <div className="mb-3">
+              <div className="bg-white/10 backdrop-blur-sm py-1 px-6 rounded inline-block">
+                <p className="font-bold tracking-widest text-sm">ADMIT ONE</p>
+              </div>
+            </div>
+
+            {/* Event Title */}
+            <h1 className="text-4xl font-bold mb-4 leading-tight drop-shadow-md">
+              {ticketInfo?.eventName || "Event Name"}
+            </h1>
+
+            {/* Team Logos and Names */}
+            <div className="flex items-center justify-center space-x-10 mb-6">
+              {/* Home Team */}
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
+                  {ticketInfo?.homeTeamLogo ? (
+                    <img
+                      src={ticketInfo.homeTeamLogo || "/placeholder.svg"}
+                      alt="Home Team"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : null}
+                </div>
+                <p className="text-sm font-medium mt-2 drop-shadow-md">
+                  {ticketInfo?.homeTeam || "HOME"}
                 </p>
-                <div
-                  className={`mt-2 ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-300"
-                      : "text-gray-600"
-                  }`}
-                >
-                  <p className="text-sm">
-                    {formattedDate} • {formattedTime}
+              </div>
+
+              {/* VS */}
+              <div className="text-2xl font-bold drop-shadow-md">VS</div>
+
+              {/* Away Team */}
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-black/30 backdrop-blur-sm shadow-lg">
+                  {ticketInfo?.awayTeamLogo ? (
+                    <img
+                      src={ticketInfo.awayTeamLogo || "/placeholder.svg"}
+                      alt="Away Team"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : null}
+                </div>
+                <p className="text-sm font-medium mt-2 drop-shadow-md">
+                  {ticketInfo?.awayTeam || "AWAY"}
+                </p>
+              </div>
+            </div>
+
+            {/* Event Information */}
+            <div className="bg-white/10 backdrop-blur-sm p-4 rounded mt-auto">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-xs text-gray-300">DATE</p>
+                  <p className="font-medium">
+                    {ticketInfo?.date
+                      ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "TBD"}
                   </p>
                 </div>
-              </div>
-
-              {/* Team Logos */}
-              <div className="flex items-center space-x-2">
-                {ticketInfo?.homeTeamLogo && (
-                  <div className="h-14 w-14 bg-white rounded-full p-1 shadow-md flex items-center justify-center">
-                    <img
-                      src={ticketInfo.homeTeamLogo}
-                      alt="Home Team"
-                      className="max-h-10 max-w-10 object-contain"
-                    />
-                  </div>
-                )}
-                {ticketInfo?.homeTeam && ticketInfo?.awayTeam && (
-                  <div
-                    className={`text-lg font-bold ${
-                      ticketInfo?.backgroundImage || ticketInfo?.background_url
-                        ? "text-white"
-                        : "text-gray-800"
-                    }`}
-                  >
-                    VS
-                  </div>
-                )}
-                {ticketInfo?.awayTeamLogo && (
-                  <div className="h-14 w-14 bg-white rounded-full p-1 shadow-md flex items-center justify-center">
-                    <img
-                      src={ticketInfo.awayTeamLogo}
-                      alt="Away Team"
-                      className="max-h-10 max-w-10 object-contain"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Middle Section - Teams */}
-            <div className="my-4">
-              <div
-                className={`flex items-center justify-center space-x-4 ${
-                  ticketInfo?.backgroundImage || ticketInfo?.background_url
-                    ? "text-white"
-                    : "text-gray-800"
-                }`}
-              >
-                {ticketInfo?.homeTeam && (
-                  <div className="text-center">
-                    <h2 className="text-2xl font-bold">
-                      {ticketInfo.homeTeam}
-                    </h2>
-                    <p
-                      className={`text-sm ${
-                        ticketInfo?.backgroundImage ||
-                        ticketInfo?.background_url
-                          ? "text-gray-300"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      HOME
-                    </p>
-                  </div>
-                )}
-
-                {ticketInfo?.homeTeam && ticketInfo?.awayTeam && (
-                  <div className="text-3xl font-light px-4">vs</div>
-                )}
-
-                {ticketInfo?.awayTeam && (
-                  <div className="text-center">
-                    <h2 className="text-2xl font-bold">
-                      {ticketInfo.awayTeam}
-                    </h2>
-                    <p
-                      className={`text-sm ${
-                        ticketInfo?.backgroundImage ||
-                        ticketInfo?.background_url
-                          ? "text-gray-300"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      AWAY
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Section - Seating Info */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <p
-                  className={`text-xs ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-400"
-                      : "text-gray-500"
-                  }`}
-                >
-                  SECTION
-                </p>
-                <div
-                  className={`${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "bg-white/10 backdrop-blur-sm text-white"
-                      : "bg-gray-100 text-gray-800"
-                  } px-4 py-2 rounded font-medium`}
-                  style={{ borderLeft: `3px solid ${accentColor}` }}
-                >
-                  {ticketInfo?.section || "Section"}
+                <div>
+                  <p className="text-xs text-gray-300">TIME</p>
+                  <p className="font-medium">
+                    {ticketInfo?.time
+                      ? new Date(`${ticketInfo.time}`).toLocaleTimeString(
+                          "en-US",
+                          {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          }
+                        )
+                      : "TBD"}
+                  </p>
                 </div>
-              </div>
-              <div>
-                <p
-                  className={`text-xs ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-400"
-                      : "text-gray-500"
-                  }`}
-                >
-                  ROW
-                </p>
-                <div
-                  className={`${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "bg-white/10 backdrop-blur-sm text-white"
-                      : "bg-gray-100 text-gray-800"
-                  } px-4 py-2 rounded font-medium`}
-                  style={{ borderLeft: `3px solid ${accentColor}` }}
-                >
-                  {ticketInfo?.row || "Row"}
-                </div>
-              </div>
-              <div>
-                <p
-                  className={`text-xs ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-400"
-                      : "text-gray-500"
-                  }`}
-                >
-                  SEAT
-                </p>
-                <div
-                  className={`${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "bg-white/10 backdrop-blur-sm text-white"
-                      : "bg-gray-100 text-gray-800"
-                  } px-4 py-2 rounded font-medium`}
-                  style={{ borderLeft: `3px solid ${accentColor}` }}
-                >
-                  {ticketInfo?.seat || "Seat"}
+                <div>
+                  <p className="text-xs text-gray-300">LOCATION</p>
+                  <p className="font-medium">
+                    {ticketInfo?.eventLocation || "Event Location"}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Divider Line */}
+          {/* Vertical Perforation Line */}
           <div className="relative">
+            {/* Colored Divider Line */}
             <div
-              className="absolute top-0 bottom-0 left-0 w-0.5"
-              style={{ backgroundColor: accentColor }}
-            ></div>
+              className="h-full w-3"
+              style={{
+                backgroundColor: ticketInfo?.dividerColor || "#0c4a6e",
+              }}
+            />
 
             {/* Perforation Line */}
-            <div className="absolute top-0 bottom-0 left-1 flex flex-col justify-between py-2">
-              {[...Array(20)].map((_, i) => (
-                <div key={i} className="w-2 h-2 rounded-full bg-white/80" />
+            <div className="absolute top-0 bottom-0 -left-1.5 flex flex-col">
+              {[...Array(40)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-3 border-t border-dashed border-gray-400"
+                  style={{ height: "2.5%" }}
+                />
               ))}
             </div>
           </div>
 
-          {/* Right Section (1/3) - Ticket Stub */}
-          <div className="w-1/3 p-5 flex flex-col justify-between relative">
-            <div
-              className={`absolute top-0 left-0 right-0 h-2`}
-              style={{ backgroundColor: accentColor }}
-            ></div>
-
-            {/* Stub Content */}
-            <div className="text-center mb-2">
-              <p
-                className={`text-xs ${
-                  ticketInfo?.backgroundImage || ticketInfo?.background_url
-                    ? "text-gray-400"
-                    : "text-gray-500"
-                }`}
-              >
-                ADMIT ONE
-              </p>
-              <h2
-                className={`text-lg font-bold ${
-                  ticketInfo?.backgroundImage || ticketInfo?.background_url
-                    ? "text-white"
-                    : "text-gray-800"
-                }`}
-              >
-                {ticketInfo?.eventName || "Event Name"}
-              </h2>
-            </div>
-
-            {/* Teams in Stub */}
-            {(ticketInfo?.homeTeam || ticketInfo?.awayTeam) && (
+          {/* Stub Content - Right side (25%) with vertical text */}
+          <div className="w-[25%] bg-white p-4 text-gray-800 flex flex-col justify-between relative">
+            {/* Vertical Text */}
+            <div className="absolute top-0 bottom-0 left-0 w-8 flex items-center justify-center">
               <div
-                className={`text-center text-sm ${
-                  ticketInfo?.backgroundImage || ticketInfo?.background_url
-                    ? "text-white"
-                    : "text-gray-700"
-                }`}
+                className="transform -rotate-90 whitespace-nowrap text-gray-500 font-medium tracking-widest text-sm"
+                style={{
+                  transformOrigin: "center",
+                  width: "100%",
+                  position: "absolute",
+                  textAlign: "center",
+                }}
               >
-                {ticketInfo?.homeTeam && ticketInfo?.awayTeam ? (
-                  <p>
-                    {ticketInfo.homeTeam} vs {ticketInfo.awayTeam}
-                  </p>
-                ) : (
-                  <p>{ticketInfo?.homeTeam || ticketInfo?.awayTeam}</p>
-                )}
-              </div>
-            )}
-
-            {/* Seating in Stub */}
-            <div className="space-y-1 mb-2">
-              <div className="flex justify-between">
-                <p
-                  className={`text-xs ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-400"
-                      : "text-gray-500"
-                  }`}
-                >
-                  SECTION
-                </p>
-                <p
-                  className={`${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-white"
-                      : "text-gray-800"
-                  }`}
-                >
-                  {ticketInfo?.section || "Section"}
-                </p>
-              </div>
-              <div className="flex justify-between">
-                <p
-                  className={`text-xs ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-400"
-                      : "text-gray-500"
-                  }`}
-                >
-                  ROW
-                </p>
-                <p
-                  className={`${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-white"
-                      : "text-gray-800"
-                  }`}
-                >
-                  {ticketInfo?.row || "Row"}
-                </p>
-              </div>
-              <div className="flex justify-between">
-                <p
-                  className={`text-xs ${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-gray-400"
-                      : "text-gray-500"
-                  }`}
-                >
-                  SEAT
-                </p>
-                <p
-                  className={`${
-                    ticketInfo?.backgroundImage || ticketInfo?.background_url
-                      ? "text-white"
-                      : "text-gray-800"
-                  }`}
-                >
-                  {ticketInfo?.seat || "Seat"}
-                </p>
+                {ticketInfo?.eventName
+                  ? `${ticketInfo.eventName} • `
+                  : "TBD • "}
+                {ticketInfo?.date
+                  ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    }) + " • "
+                  : "TBD • "}
+                {ticketInfo?.time
+                  ? new Date(`${ticketInfo.time}`).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : "TBD"}
               </div>
             </div>
 
-            {/* Barcode */}
-            <div className="flex flex-col items-center mt-auto">
-              <img
-                src={generateBarcodePattern()}
-                alt="Barcode"
-                className="w-full max-w-[120px] mx-auto"
-              />
-              <p
-                className={`text-xs mt-1 ${
-                  ticketInfo?.backgroundImage || ticketInfo?.background_url
-                    ? "text-gray-300"
-                    : "text-gray-600"
-                }`}
-              >
-                {Math.random().toString(36).substr(2, 10).toUpperCase()}
-              </p>
+            {/* Main Stub Content - shifted right to make room for vertical text */}
+            <div className="ml-8 flex flex-col h-full justify-between">
+              <div className="text-center mb-2">
+                <p className="text-sm text-gray-600 uppercase tracking-wider font-medium">
+                  {ticketInfo?.eventName || "Team vs Team"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 mb-4">
+                <div className="flex flex-col items-center">
+                  <p className="text-xs text-gray-500 uppercase">SECTION</p>
+                  <p className="text-3xl font-bold">
+                    {ticketInfo?.section || "TBD"}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center">
+                  <p className="text-xs text-gray-500 uppercase">ROW</p>
+                  <p className="text-3xl font-bold">
+                    {ticketInfo?.row || "TBD"}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center">
+                  <p className="text-xs text-gray-500 uppercase">SEAT</p>
+                  <p className="text-3xl font-bold">
+                    {ticketInfo?.seat || "TBD"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center mt-auto">
+                <div className="border-t border-dashed border-gray-300 w-full mb-2 pt-2">
+                  <p className="text-xs text-center text-gray-500 mb-1">
+                    VOID IF DETACHED
+                  </p>
+                </div>
+                <img
+                  src={generateBarcodePattern() || "/placeholder.svg"}
+                  alt="Barcode"
+                  className="w-full"
+                />
+                <p className="text-xs mt-1 text-gray-600">
+                  {Math.random().toString(36).substr(2, 8).toUpperCase()}
+                </p>
+              </div>
             </div>
           </div>
         </div>

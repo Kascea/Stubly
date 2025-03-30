@@ -33,7 +33,7 @@ class OrderConfirmation extends Mailable
     public function build()
     {
         $mail = $this->subject('Your Stubly Order Confirmation #' . $this->order->order_id)
-            ->markdown('emails.order-confirmation', [
+            ->view('emails.order-confirmation', [
                 'order' => $this->order,
                 'tickets' => $this->tickets,
                 'hasAccount' => !is_null($this->order->user_id),
