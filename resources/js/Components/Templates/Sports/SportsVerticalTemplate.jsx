@@ -5,11 +5,11 @@ const generateBarcodePattern = () => {
   for (let i = 0; i < 30; i++) {
     const width = Math.random() > 0.7 ? 3 : 1;
     bars.push(
-      `<rect x="${i * 3}" y="0" width="${width}" height="30" fill="black" />`
+      `<rect x="${i * 3}" y="0" width="${width}" height="30" fill="black" />`,
     );
   }
   return `data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30" viewBox="0 0 100 30">${bars.join(
-    ""
+    "",
   )}</svg>`;
 };
 
@@ -106,9 +106,9 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                               weekday: "short",
                               month: "short",
                               day: "numeric",
-                            }
+                            },
                           )
-                        : "TBD"}
+                        : "N/A"}
                     </p>
                   </div>
                   <div>
@@ -121,9 +121,9 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                               hour: "numeric",
                               minute: "2-digit",
                               hour12: true,
-                            }
+                            },
                           )
-                        : "TBD"}
+                        : "N/A"}
                     </p>
                   </div>
                 </div>
@@ -169,26 +169,26 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                 <div className="flex flex-col items-center">
                   <p className="text-xs text-gray-500 uppercase">Section</p>
                   <p className="text-3xl font-bold">
-                    {ticketInfo?.section || "TBD"}
+                    {ticketInfo?.section || "N/A"}
                   </p>
                 </div>
                 <div className="flex flex-col items-center">
                   <p className="text-xs text-gray-500 uppercase">Row</p>
                   <p className="text-3xl font-bold">
-                    {ticketInfo?.row || "TBD"}
+                    {ticketInfo?.row || "N/A"}
                   </p>
                 </div>
                 <div className="flex flex-col items-center">
                   <p className="text-xs text-gray-500 uppercase">Seat</p>
                   <p className="text-3xl font-bold">
-                    {ticketInfo?.seat || "TBD"}
+                    {ticketInfo?.seat || "N/A"}
                   </p>
                 </div>
               </div>
 
               {/* Additional match details */}
               <div className="text-xs text-center mb-3 text-gray-600 uppercase tracking-wider">
-                <p>{ticketInfo?.eventName || "TBD"}</p>
+                <p>{ticketInfo?.eventName || "N/A"}</p>
                 <p>
                   {ticketInfo?.date
                     ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
@@ -197,7 +197,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                         day: "numeric",
                         year: "numeric",
                       })
-                    : "TBD"}
+                    : "N/A"}
                 </p>
                 <p>
                   Start Time:{" "}
@@ -208,9 +208,9 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
-                        }
+                        },
                       )
-                    : "TBD"}
+                    : "N/A"}
                 </p>
               </div>
 

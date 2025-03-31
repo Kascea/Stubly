@@ -18,13 +18,13 @@ export default function ConcertTicketFields({ ticketInfo, setTicketInfo }) {
 
       <div className="space-y-3">
         <div>
-          <Label htmlFor="artist" className="text-sky-900">
+          <Label htmlFor="artistName" className="text-sky-900">
             Artist/Band
           </Label>
           <Input
-            id="artist"
-            name="artist"
-            value={ticketInfo.artist || ""}
+            id="artistName"
+            name="artistName"
+            value={ticketInfo.artistName || ""}
             onChange={handleChange}
             placeholder="Artist or Band Name"
             className="mt-1"
