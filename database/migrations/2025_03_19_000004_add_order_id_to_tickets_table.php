@@ -11,10 +11,13 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->string('order_id')->nullable()->after('user_id');
-            $table->decimal('price', 10, 2)->default(0)->after('template_id');
-
-            $table->foreign('order_id')->references('order_id')->on('orders')->onDelete('set null');
+            if (!Schema::hasColumn('tickets', 'order_id')) {
+                $table->string('order_id', 20)->nullable()->after('user_id');
+                $table->foreign('order_id')->references('order_id')->on('orders')->onDelete('set null');
+            }
+            if (!Schema::hasColumn('tickets', 'price')) {
+                $table->decimal('price', 10, 2)->default(0)->after('template_id');
+            }
         });
     }
 
@@ -24,8 +27,17 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->dropForeign(['order_id']);
-            $table->dropColumn(['order_id', 'price']);
+            $columnsToDrop = [];
+            if (Schema::hasColumn('tickets', 'order_id')) {
+                $table->dropForeign(['order_id']);
+                $columnsToDrop[] = 'order_id';
+            }
+            if (Schema::hasColumn('tickets', 'price')) {
+                $columnsToDrop[] = 'price';
+            }
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
         });
     }
 };

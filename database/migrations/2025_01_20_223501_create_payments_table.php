@@ -8,10 +8,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('user_id');
-            $table->uuid('ticket_id');
-            $table->string('stripe_session_id')->unique();
+            $table->string('id', 36)->primary();
+            $table->string('user_id', 36);
+            $table->string('ticket_id', 20);
+            $table->string('stripe_session_id', 191)->unique();
             $table->decimal('amount', 10, 2);
             $table->string('payment_status')->default('pending');
             $table->timestamp('paid_at')->nullable();

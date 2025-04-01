@@ -11,13 +11,15 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            // Add template_name column, but keep the template column for backward compatibility
-            $table->string('template_id')->nullable()->after('template');
+            if (!Schema::hasColumn('tickets', 'template_id')) {
+                // Needs length matching templates.id
+                $table->string('template_id', 50)->nullable()->after('template');
 
-            $table->foreign('template_id')
-                ->references('id')
-                ->on('templates')
-                ->onDelete('set null');
+                $table->foreign('template_id')
+                    ->references('id')
+                    ->on('templates')
+                    ->onDelete('set null');
+            }
         });
     }
 
@@ -27,8 +29,10 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->dropForeign(['template_id']);
-            $table->dropColumn('template_id');
+            if (Schema::hasColumn('tickets', 'template_id')) {
+                $table->dropForeign(['template_id']);
+                $table->dropColumn('template_id');
+            }
         });
     }
 };

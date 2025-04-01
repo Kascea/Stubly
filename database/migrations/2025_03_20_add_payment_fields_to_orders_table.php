@@ -8,12 +8,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            // Add new payment fields if they don't exist
-            if (!Schema::hasColumn('orders', 'payment_intent')) {
-                $table->string('payment_intent')->nullable()->after('total_amount');
-            }
+            // payment_intent_id should exist from create_orders_table
+            // Add payment_method if it doesn't exist
             if (!Schema::hasColumn('orders', 'payment_method')) {
-                $table->string('payment_method')->nullable()->after('payment_intent');
+                // This might be the Stripe PaymentMethod ID (pm_...)
+                $table->string('payment_method', 191)->nullable()->after('payment_intent_id');
+            }
+            // Drop the redundant columns added by the original migration if they exist
+            if (Schema::hasColumn('orders', 'payment_intent')) {
+                $table->dropColumn('payment_intent');
             }
         });
     }
@@ -21,7 +24,13 @@ return new class extends Migration {
     public function down()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn(['payment_intent', 'payment_method']);
+            if (Schema::hasColumn('orders', 'payment_method')) {
+                $table->dropColumn('payment_method');
+            }
+            // Add back the redundant payment_intent if needed for rollback consistency
+            if (!Schema::hasColumn('orders', 'payment_intent')) {
+                $table->string('payment_intent')->nullable();
+            }
         });
     }
 };

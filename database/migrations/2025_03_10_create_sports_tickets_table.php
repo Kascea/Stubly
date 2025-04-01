@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->string('sport_type')->nullable();
             $table->string('team_home')->nullable();
             $table->string('team_away')->nullable();
+            $table->string('home_team_logo')->nullable();
+            $table->string('away_team_logo')->nullable();
             $table->string('league')->nullable();
             $table->string('season')->nullable();
             $table->timestamps();

@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('cart_items', function (Blueprint $table) {
             $table->id();
-            $table->string('cart_id');
-            $table->uuid('ticket_id');
+            $table->string('cart_id', 20);
+            $table->string('ticket_id', 20);
             $table->decimal('price', 10, 2);
             $table->integer('quantity')->default(1);
             $table->timestamps();

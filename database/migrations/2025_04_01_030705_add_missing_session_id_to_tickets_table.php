@@ -10,9 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('orders', 'pdf_path')) {
-                $table->string('pdf_path')->nullable()->after('status');
+        Schema::table('tickets', function (Blueprint $table) {
+            if (!Schema::hasColumn('tickets', 'session_id')) {
+                $table->string('session_id', 191)->nullable();
             }
         });
     }
@@ -22,9 +22,9 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            if (Schema::hasColumn('orders', 'pdf_path')) {
-                $table->dropColumn('pdf_path');
+        Schema::table('tickets', function (Blueprint $table) {
+            if (Schema::hasColumn('tickets', 'session_id')) {
+                $table->dropColumn('session_id');
             }
         });
     }

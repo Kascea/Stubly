@@ -8,16 +8,15 @@ return new class extends Migration {
   public function up(): void
   {
     Schema::create('tickets', function (Blueprint $table) {
-      $table->uuid('ticket_id')->primary();
-      $table->uuid('user_id');
+      $table->string('ticket_id', 20)->primary();
+      $table->string('user_id', 36)->nullable();
       $table->string('event_name');
       $table->string('event_location');
       $table->dateTime('event_datetime');
       $table->string('section')->nullable();
       $table->string('row')->nullable();
       $table->string('seat')->nullable();
-      $table->text('background_image')->nullable();
-      $table->string('generated_ticket_path');
+      $table->string('generated_ticket_path')->nullable();
       $table->timestamps();
 
       $table->foreign('user_id')

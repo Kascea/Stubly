@@ -11,7 +11,16 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->dropColumn(['background_filename', 'background_image_path']);
+            $columnsToDrop = [];
+            if (Schema::hasColumn('tickets', 'background_filename')) {
+                $columnsToDrop[] = 'background_filename';
+            }
+            if (Schema::hasColumn('tickets', 'background_image_path')) {
+                $columnsToDrop[] = 'background_image_path';
+            }
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
         });
     }
 
@@ -20,8 +29,12 @@ return new class extends Migration {
     public function down()
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->string('background_filename')->nullable();
-            $table->string('background_image_path')->nullable();
+            if (!Schema::hasColumn('tickets', 'background_filename')) {
+                $table->string('background_filename')->nullable();
+            }
+            if (!Schema::hasColumn('tickets', 'background_image_path')) {
+                $table->text('background_image_path')->nullable(); // Use text like before
+            }
         });
     }
 };

@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('concert_tickets', function (Blueprint $table) {
             $table->id();
-            $table->string('artist')->nullable();
+            $table->string('artist_name')->nullable();
             $table->string('tour_name')->nullable();
             $table->string('genre')->nullable();
             $table->string('opening_act')->nullable();

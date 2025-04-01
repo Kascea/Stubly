@@ -266,7 +266,7 @@ class CartController extends Controller
                         'user_id' => auth()->id(),
                         'customer_email' => $session->customer_details->email,
                         'total_amount' => $session->amount_total / 100,
-                        'payment_intent' => $session->payment_intent,
+                        'payment_intent_id' => $session->payment_intent,
                         'payment_method' => $session->payment_method ?? null,
                         'status' => 'completed',
                     ]);

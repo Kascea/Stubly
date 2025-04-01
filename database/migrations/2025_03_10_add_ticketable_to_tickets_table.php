@@ -11,9 +11,19 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->unsignedBigInteger('ticketable_id')->nullable();
-            $table->string('ticketable_type')->nullable();
-            $table->index(['ticketable_id', 'ticketable_type']);
+            if (!Schema::hasColumn('tickets', 'ticketable_id')) {
+                $table->unsignedBigInteger('ticketable_id')->nullable();
+            }
+            if (!Schema::hasColumn('tickets', 'ticketable_type')) {
+                $table->string('ticketable_type')->nullable();
+            }
+            if (Schema::hasColumns('tickets', ['ticketable_id', 'ticketable_type'])) {
+                $sm = Schema::getConnection()->getDoctrineSchemaManager();
+                $indexes = $sm->listTableIndexes('tickets');
+                if (!array_key_exists('tickets_ticketable_id_ticketable_type_index', $indexes)) {
+                    $table->index(['ticketable_id', 'ticketable_type']);
+                }
+            }
         });
     }
 
@@ -23,8 +33,18 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->dropIndex(['ticketable_id', 'ticketable_type']);
-            $table->dropColumn(['ticketable_id', 'ticketable_type']);
+            $columnsToDrop = [];
+            if (Schema::hasColumns('tickets', ['ticketable_id', 'ticketable_type'])) {
+                $sm = Schema::getConnection()->getDoctrineSchemaManager();
+                $indexes = $sm->listTableIndexes('tickets');
+                if (array_key_exists('tickets_ticketable_id_ticketable_type_index', $indexes)) {
+                    $table->dropIndex(['ticketable_id', 'ticketable_type']);
+                }
+                $columnsToDrop = ['ticketable_id', 'ticketable_type'];
+            }
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
         });
     }
 };

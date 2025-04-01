@@ -11,8 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('templates', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('category_id');
+            $table->string('id', 50)->primary();
+            $table->string('name');
+            $table->string('category_id', 50);
             $table->boolean('supports_background_image')->default(false);
             $table->timestamps();
 

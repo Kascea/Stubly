@@ -9,10 +9,10 @@ return new class extends Migration {
     {
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->uuid('user_id')->nullable();  // Changed from foreignId to uuid
+            $table->string('user_id', 36)->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->text('payload');
+            $table->longText('payload');
             $table->integer('last_activity')->index();
 
             $table->foreign('user_id')

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Template;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CategoryTemplateSeeder extends Seeder
 {
@@ -19,11 +20,14 @@ class CategoryTemplateSeeder extends Seeder
             'concerts',
         ];
 
-        foreach ($categories as $category) {
-            Category::create(['id' => $category]);
+        foreach ($categories as $categoryName) {
+            Category::create([
+                'id' => $categoryName,
+                'name' => Str::ucfirst($categoryName)
+            ]);
 
             // Create templates for each category
-            $this->createTemplatesForCategory($category);
+            $this->createTemplatesForCategory($categoryName);
         }
     }
 
@@ -36,10 +40,12 @@ class CategoryTemplateSeeder extends Seeder
         $templates = [
             [
                 'id' => "{$categoryId}-vertical",
+                'name' => Str::ucfirst($categoryId) . ' Vertical',
                 'supports_background_image' => true,
             ],
             [
                 'id' => "{$categoryId}-horizontal",
+                'name' => Str::ucfirst($categoryId) . ' Horizontal',
                 'supports_background_image' => true,
             ],
         ];
@@ -47,6 +53,7 @@ class CategoryTemplateSeeder extends Seeder
         foreach ($templates as $templateData) {
             Template::create([
                 'id' => $templateData['id'],
+                'name' => $templateData['name'],
                 'category_id' => $categoryId,
                 'supports_background_image' => $templateData['supports_background_image'],
             ]);

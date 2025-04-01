@@ -11,9 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('carts', function (Blueprint $table) {
-            $table->string('cart_id')->primary();
-            $table->uuid('user_id')->nullable();
-            $table->string('session_id')->nullable()->index();
+            $table->string('cart_id', 20)->primary();
+            $table->string('user_id', 36)->nullable();
+            $table->string('session_id', 191)->nullable()->index();
             $table->string('status')->default('active'); // active, converted, abandoned
             $table->timestamp('expires_at');
             $table->timestamps();

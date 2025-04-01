@@ -11,7 +11,10 @@ return new class extends Migration {
   public function up(): void
   {
     Schema::table('tickets', function (Blueprint $table) {
-      $table->string('background_filename')->nullable()->after('background_image');
+      // Add the column if it doesn't exist - handles potential re-runs
+      if (!Schema::hasColumn('tickets', 'background_filename')) {
+        $table->string('background_filename')->nullable()->after('seat'); // Assume it was after seat based on structure
+      }
     });
   }
 
@@ -21,7 +24,10 @@ return new class extends Migration {
   public function down(): void
   {
     Schema::table('tickets', function (Blueprint $table) {
-      //
+      // Only drop if it exists
+      if (Schema::hasColumn('tickets', 'background_filename')) {
+        $table->dropColumn('background_filename');
+      }
     });
   }
 };

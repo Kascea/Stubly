@@ -12,16 +12,24 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            // First add the new column
-            $table->string('background_image_path')->nullable();
+            // Add the new column if it doesn't exist
+            if (!Schema::hasColumn('tickets', 'background_image_path')) {
+                // Assuming path is a string, potentially long
+                $table->text('background_image_path')->nullable();
+            }
         });
 
-        // Copy data from old column to new
-        DB::statement('UPDATE tickets SET background_image_path = background_image');
+        // Copy data only if both columns exist
+        if (Schema::hasColumn('tickets', 'background_image') && Schema::hasColumn('tickets', 'background_image_path')) {
+            DB::statement('UPDATE tickets SET background_image_path = background_image WHERE background_image IS NOT NULL');
+        }
+
 
         Schema::table('tickets', function (Blueprint $table) {
-            // Then drop the old column
-            $table->dropColumn('background_image');
+            // Then drop the old column if it exists
+            if (Schema::hasColumn('tickets', 'background_image')) {
+                $table->dropColumn('background_image');
+            }
         });
     }
 
@@ -31,14 +39,22 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            // Reverse the process
-            $table->string('background_image')->nullable();
+            // Add the old column back if it doesn't exist
+            if (!Schema::hasColumn('tickets', 'background_image')) {
+                $table->text('background_image')->nullable();
+            }
         });
 
-        DB::statement('UPDATE tickets SET background_image = background_image_path');
+        // Copy data back only if both columns exist
+        if (Schema::hasColumn('tickets', 'background_image') && Schema::hasColumn('tickets', 'background_image_path')) {
+            DB::statement('UPDATE tickets SET background_image = background_image_path WHERE background_image_path IS NOT NULL');
+        }
 
         Schema::table('tickets', function (Blueprint $table) {
-            $table->dropColumn('background_image_path');
+            // Drop the new column if it exists
+            if (Schema::hasColumn('tickets', 'background_image_path')) {
+                $table->dropColumn('background_image_path');
+            }
         });
     }
 };

@@ -8,17 +8,20 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->string('cart_id')->nullable();
-            $table->foreign('cart_id')->references('cart_id')->on('carts')->onDelete('set null');
+            if (!Schema::hasColumn('tickets', 'cart_id')) {
+                $table->string('cart_id', 20)->nullable();
+                $table->foreign('cart_id')->references('cart_id')->on('carts')->onDelete('set null');
+            }
         });
     }
 
     public function down()
     {
-
         Schema::table('tickets', function (Blueprint $table) {
-            $table->dropForeign(['cart_id']);
-            $table->dropColumn('cart_id');
+            if (Schema::hasColumn('tickets', 'cart_id')) {
+                $table->dropForeign(['cart_id']);
+                $table->dropColumn('cart_id');
+            }
         });
     }
 };

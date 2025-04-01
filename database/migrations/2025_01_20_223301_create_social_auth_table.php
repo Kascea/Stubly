@@ -12,9 +12,9 @@ return new class extends Migration {
   {
     Schema::create('social_auth', function (Blueprint $table) {
       $table->id();
-      $table->string('provider');
-      $table->string('provider_id');
-      $table->uuid('user_id');
+      $table->string('provider', 191);
+      $table->string('provider_id', 191);
+      $table->string('user_id', 36);
       $table->timestamps();
       $table->unique(['provider', 'provider_id']);
       $table->index(['user_id', 'provider']);
