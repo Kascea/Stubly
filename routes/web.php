@@ -80,5 +80,8 @@ Route::prefix('support')->group(function () {
   Route::post('/refund', [SupportController::class, 'submitRefund'])->name('support.refund.submit');
 });
 
+// Only for testing - remove before deploying to production
+Route::get('/test/resend-order/{order}', [OrderController::class, 'resendConfirmation'])
+  ->name('orders.resend-confirmation');
 
 require __DIR__ . '/auth.php';

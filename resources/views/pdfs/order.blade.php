@@ -17,7 +17,7 @@
             </div>
 
             @foreach($tickets as $index => $ticket)
-            <div style="margin:0 auto;width:7in">
+            <div style="margin:0 auto;width:7in;margin-bottom:30px;">
               <div style="border:2px dashed rgb(156,163,175);background-color:rgb(249,250,251);height:3in;width:100%;position:relative;overflow:hidden">
                 @if(isset($ticketImages[$index]))
                 <img 
@@ -38,6 +38,12 @@
                 <p style="color:rgb(107,114,128)">Ticket image not available</p>
                 @endif
               </div>
+              
+              @if(count($tickets) > 1)
+              <div style="text-align:center;margin-top:5px;font-size:12px;color:#666;">
+                Ticket {{ $index + 1 }} of {{ count($tickets) }}
+              </div>
+              @endif
             </div>
             @endforeach
 
