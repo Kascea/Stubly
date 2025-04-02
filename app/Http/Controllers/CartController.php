@@ -231,14 +231,14 @@ class CartController extends Controller
 
         try {
             // Retrieve the session using Cashier
-            $session = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
+            $stripeSession = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
 
-            if ($session->payment_status !== 'paid') {
+            if ($stripeSession->payment_status !== 'paid') {
                 return redirect()->route('cart.index')->with('error', 'Payment unsuccessful. Please try again.');
             }
 
             // Get cart and lock it for update
-            $cart = Cart::where('cart_id', $session->metadata->cart_id)
+            $cart = Cart::where('cart_id', $stripeSession->metadata->cart_id)
                 ->where('status', 'active')
                 ->with(['tickets'])
                 ->lockForUpdate()
@@ -247,13 +247,13 @@ class CartController extends Controller
             if (!$cart) {
                 Log::error('Cart not found or already processed', [
                     'session_id' => $sessionId,
-                    'cart_id' => $session->metadata->cart_id
+                    'cart_id' => $stripeSession->metadata->cart_id
                 ]);
                 return redirect()->route('cart.index')->with('error', 'Cart not found or already processed');
             }
 
             // Wrap everything in a transaction
-            return DB::transaction(function () use ($cart, $session, $request) {
+            return DB::transaction(function () use ($cart, $stripeSession, $request) {
                 try {
                     $ticketCount = $cart->tickets->count();
 
@@ -264,10 +264,10 @@ class CartController extends Controller
                     // Create the order after successful payment
                     $order = Order::create([
                         'user_id' => auth()->id(),
-                        'customer_email' => $session->customer_details->email,
-                        'total_amount' => $session->amount_total / 100,
-                        'payment_intent_id' => $session->payment_intent,
-                        'payment_method' => $session->payment_method ?? null,
+                        'customer_email' => $stripeSession->customer_details->email,
+                        'total_amount' => $stripeSession->amount_total / 100,
+                        'payment_intent_id' => $stripeSession->payment_intent,
+                        'payment_method' => $stripeSession->payment_method ?? null,
                         'status' => 'completed',
                     ]);
 
@@ -283,7 +283,7 @@ class CartController extends Controller
                         ]);
 
                     // Replace the Mail::to line with:
-                    ProcessOrderConfirmation::dispatch($order, $session->customer_details->email, $tickets);
+                    ProcessOrderConfirmation::dispatch($order, $stripeSession->customer_details->email, $tickets);
 
                     // Mark cart as completed and delete
                     $cart->update(['status' => 'completed']);
@@ -299,7 +299,7 @@ class CartController extends Controller
                             'created_at' => $order->created_at,
                             'total_amount' => $order->total_amount,
                             'items_count' => $ticketCount,
-                            'customer_email' => $session->customer_details->email,
+                            'customer_email' => $stripeSession->customer_details->email,
                             'is_guest' => !auth()->check(),
                         ],
                         'cart' => [
@@ -309,7 +309,7 @@ class CartController extends Controller
 
                 } catch (\Exception $e) {
                     Log::error('Transaction error in checkout success: ' . $e->getMessage(), [
-                        'session_id' => $session->id,
+                        'session_id' => $stripeSession->id,
                         'cart_id' => $cart->cart_id,
                         'trace' => $e->getTraceAsString()
                     ]);

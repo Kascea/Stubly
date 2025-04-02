@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderConfirmation;
 use Illuminate\Support\Facades\RateLimiter;
+use App\Jobs\ProcessOrderConfirmation;
 
 class OrderController extends Controller
 {
@@ -191,11 +192,10 @@ class OrderController extends Controller
         }
 
         try {
-            // Send order confirmation email
-            Mail::to($order->customer_email)
-                ->send(new OrderConfirmation($order, $order->tickets));
+            // Dispatch the job to regenerate PDF and send the email
+            ProcessOrderConfirmation::dispatch($order, $order->customer_email, $order->tickets);
 
-            $successMessage = 'Order confirmation email has been resent. Please allow a few minutes for delivery and check your spam folder.';
+            $successMessage = 'Order confirmation email has been queued for resending. Please allow a few minutes for delivery and check your spam folder.';
 
             return $request->wantsJson()
                 ? response()->json(['message' => $successMessage])

@@ -51,6 +51,9 @@ class ProcessOrderConfirmation implements ShouldQueue
     {
         $ticketImages = [];
 
+        // Load the template relationship for all tickets
+        $this->tickets->load('template');
+
         // Retrieve ticket images from R2 and convert to base64 for PDF embedding
         foreach ($this->tickets as $ticket) {
             if ($ticket->generated_ticket_path && Storage::disk('r2')->exists($ticket->generated_ticket_path)) {
