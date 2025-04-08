@@ -45,7 +45,6 @@ export default function Navbar({
             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
               <Link
                 href={route("canvas")}
-                prefetch
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${
                   isActive("canvas")
                     ? "border-orange-400 text-sky-900"
@@ -147,7 +146,6 @@ export default function Navbar({
             <Link
               href={route("cart.index")}
               className="relative p-2 text-sky-900 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-100"
-              prefetch
             >
               <ShoppingCart className="w-5 h-5" />
               {cart.count > 0 && (
