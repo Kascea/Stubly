@@ -15,6 +15,7 @@ import {
 import AppLayout from "@/Layouts/AppLayout";
 import { domToPng } from "modern-screenshot";
 import axios from "axios";
+import FreeTicketPromo from "@/Components/FreeTicketPromo";
 
 export default function Canvas({ categories, ticket = null, auth, cartCount }) {
   const isAuthenticated = auth?.user;
@@ -22,12 +23,14 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
   const [status, setStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isPromoDismissed, setIsPromoDismissed] = useState(false);
+  const [isPromoDismissing, setIsPromoDismissing] = useState(false);
 
   // Use smaller breakpoint for mobile (640px instead of 768px)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
-    window.innerWidth >= 640
+    window.innerWidth >= 640,
   );
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
@@ -89,7 +92,7 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
           template_id: null,
           isPaid: false,
           dividerColor: "#0c4a6e",
-        }
+        },
   );
   const ticketRef = useRef(null);
 
@@ -101,6 +104,14 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
   // Toggle sidebar visibility on mobile
   const toggleSidebarVisibility = () => {
     setIsSidebarVisible(!isSidebarVisible);
+  };
+
+  // Handle promo dismissal with animation
+  const handlePromoDismiss = () => {
+    setIsPromoDismissing(true);
+    setTimeout(() => {
+      setIsPromoDismissed(true);
+    }, 300); // Match the transition duration
   };
 
   const addTicketToCart = async () => {
@@ -124,7 +135,7 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
 
         // Get the selected category
         const selectedCategory = categories.find((c) =>
-          c.templates.some((t) => t.id === ticketInfo.template)
+          c.templates.some((t) => t.id === ticketInfo.template),
         )?.id;
 
         // Base ticket data for all ticket types
@@ -174,7 +185,7 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
         setStatus("error");
         setErrorMessage(
           error.response?.data?.message ||
-            "An error occurred while creating your ticket."
+            "An error occurred while creating your ticket.",
         );
       } finally {
         setIsGenerating(false);
@@ -211,22 +222,41 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
 
         {/* Ticket Visualizer Container - Full width */}
         <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex flex-col items-center justify-center relative">
-          {/* Status Messages */}
-          {status && (
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-20">
-              {status === "success" && (
-                <Alert className="bg-green-50 border-green-200 text-green-800 shadow-md">
-                  <AlertDescription>{successMessage}</AlertDescription>
-                </Alert>
-              )}
+          {/* Status Messages and Promo */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-20 space-y-3">
+            {/* Free Ticket Promo for Guest Users */}
+            {!isAuthenticated && !isPromoDismissed && (
+              <div
+                className={`transition-all duration-300 ease-in-out ${
+                  isPromoDismissing
+                    ? "opacity-0 transform -translate-y-2 scale-95"
+                    : "opacity-100 transform translate-y-0 scale-100"
+                }`}
+              >
+                <FreeTicketPromo
+                  showSignUpLink={true}
+                  onDismiss={handlePromoDismiss}
+                />
+              </div>
+            )}
 
-              {status === "error" && (
-                <Alert className="bg-red-50 border-red-200 text-red-800 shadow-md">
-                  <AlertDescription>{errorMessage}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
+            {/* Status Messages */}
+            {status && (
+              <>
+                {status === "success" && (
+                  <Alert className="bg-green-50 border-green-200 text-green-800 shadow-md">
+                    <AlertDescription>{successMessage}</AlertDescription>
+                  </Alert>
+                )}
+
+                {status === "error" && (
+                  <Alert className="bg-red-50 border-red-200 text-red-800 shadow-md">
+                    <AlertDescription>{errorMessage}</AlertDescription>
+                  </Alert>
+                )}
+              </>
+            )}
+          </div>
 
           {/* Ticket Visualizer Wrapper - Fixed size without scrolling */}
           <div className="p-4 sm:p-8 w-full max-w-md mx-auto">

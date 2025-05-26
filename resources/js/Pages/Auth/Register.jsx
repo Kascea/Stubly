@@ -4,6 +4,7 @@ import { Input } from "@/Components/ui/input";
 import InputError from "@/Components/InputError";
 import { Button } from "@/Components/ui/button";
 import AuthLayout from "@/Layouts/AuthLayout";
+import FreeTicketPromo from "@/Components/FreeTicketPromo";
 
 export default function Register() {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -22,7 +23,7 @@ export default function Register() {
     <AuthLayout title="Create your account">
       <Head title="Register" />
 
-      <form onSubmit={submit} className="space-y-6">
+      <form onSubmit={submit} className="space-y-4">
         <div>
           <Input
             id="name"
@@ -32,7 +33,7 @@ export default function Register() {
             autoComplete="name"
             onChange={(e) => setData("name", e.target.value)}
           />
-          <InputError message={errors.name} className="mt-2" />
+          <InputError message={errors.name} className="mt-1" />
         </div>
 
         <div>
@@ -45,7 +46,7 @@ export default function Register() {
             autoComplete="username"
             onChange={(e) => setData("email", e.target.value)}
           />
-          <InputError message={errors.email} className="mt-2" />
+          <InputError message={errors.email} className="mt-1" />
         </div>
 
         <div>
@@ -58,7 +59,7 @@ export default function Register() {
             autoComplete="new-password"
             onChange={(e) => setData("password", e.target.value)}
           />
-          <InputError message={errors.password} className="mt-2" />
+          <InputError message={errors.password} className="mt-1" />
         </div>
 
         <div>
@@ -71,8 +72,10 @@ export default function Register() {
             autoComplete="new-password"
             onChange={(e) => setData("password_confirmation", e.target.value)}
           />
-          <InputError message={errors.password_confirmation} className="mt-2" />
+          <InputError message={errors.password_confirmation} className="mt-1" />
         </div>
+
+        <FreeTicketPromo />
 
         <div className="text-xs text-gray-600 text-center">
           By signing up, you agree to our{" "}
@@ -99,7 +102,7 @@ export default function Register() {
         </Button>
       </form>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200" />
@@ -113,7 +116,7 @@ export default function Register() {
 
         <Link
           href={route("google.login")}
-          className="mt-6 w-full bg-white flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+          className="mt-4 w-full bg-white flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
@@ -135,9 +138,16 @@ export default function Register() {
           </svg>
           Sign in with Google
         </Link>
+
+        <Link
+          href={route("canvas")}
+          className="mt-3 w-full bg-white flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors font-medium"
+        >
+          Continue as Guest
+        </Link>
       </div>
 
-      <p className="mt-8 text-center text-sm text-sky-900/70">
+      <p className="mt-6 text-center text-sm text-sky-900/70">
         Already have an account?{" "}
         <Link
           href={route("login")}

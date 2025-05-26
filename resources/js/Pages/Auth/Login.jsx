@@ -129,6 +129,13 @@ export default function Login({ status, canResetPassword }) {
           </svg>
           Sign in with Google
         </Link>
+
+        <Link
+          href={route("canvas")}
+          className="mt-4 w-full bg-white flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors font-medium"
+        >
+          Continue as Guest
+        </Link>
       </div>
 
       <p className="mt-8 text-center text-sm text-sky-900/70">
