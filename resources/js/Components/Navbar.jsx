@@ -12,6 +12,7 @@ import {
   ListOrderedIcon,
   ShoppingCart,
   HelpCircleIcon,
+  Plus,
 } from "lucide-react";
 import axios from "axios";
 
@@ -42,18 +43,16 @@ export default function Navbar({
               </Link>
             </div>
 
-            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <Link
-                href={route("canvas")}
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${
-                  isActive("canvas")
-                    ? "border-orange-400 text-sky-900"
-                    : "border-transparent text-gray-500 hover:text-sky-900 hover:border-gray-300"
-                }`}
-              >
-                <TicketIcon className="w-4 h-4 mr-2" />
-                Create Ticket
-              </Link>
+            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex sm:items-center">
+              {!isActive("canvas") && (
+                <Link
+                  href={route("canvas")}
+                  className="group inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
+                >
+                  <Plus className="w-4 h-4 mr-2 transition-all duration-300 group-hover:scale-125 group-hover:rotate-90" />
+                  Start Creating
+                </Link>
+              )}
             </div>
           </div>
 
@@ -199,20 +198,17 @@ export default function Navbar({
         } sm:hidden`}
       >
         <div className="pt-2 pb-3 space-y-1">
-          <ResponsiveNavLink
-            href={route("canvas")}
-            active={isActive("canvas")}
-            className="flex items-center"
-          >
-            <TicketIcon className="w-4 h-4 mr-2" />
-            <span
-              className={
-                isActive("canvas") ? "text-orange-400" : "text-sky-900"
-              }
-            >
-              Create Ticket
-            </span>
-          </ResponsiveNavLink>
+          {!isActive("canvas") && (
+            <div className="px-4 pb-2">
+              <Link
+                href={route("canvas")}
+                className="group inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
+              >
+                <Plus className="w-4 h-4 mr-2 transition-all duration-300 group-hover:scale-125 group-hover:rotate-90" />
+                Start Creating
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Cart Link */}
           <ResponsiveNavLink
