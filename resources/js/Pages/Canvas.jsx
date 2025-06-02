@@ -259,12 +259,31 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
           </div>
 
           {/* Ticket Visualizer Wrapper - Fixed size without scrolling */}
-          <div className="p-4 sm:p-8 w-full max-w-md mx-auto">
-            <div className="transform scale-100 transition-transform duration-300">
+          <div className="p-4 sm:p-8 w-full h-full flex items-center justify-center">
+            <div
+              className="w-full flex items-center justify-center"
+              style={{
+                maxWidth: ticketInfo.template?.includes("horizontal")
+                  ? "100%"
+                  : "28rem",
+                height: ticketInfo.template?.includes("horizontal")
+                  ? "400px"
+                  : "600px",
+                maxHeight: "80vh",
+              }}
+            >
               <TicketVisualizer
                 ref={ticketRef}
                 template={ticketInfo.template}
                 ticketInfo={ticketInfo}
+                containerWidth={
+                  ticketInfo.template?.includes("horizontal") ? "100%" : "28rem"
+                }
+                containerHeight={
+                  ticketInfo.template?.includes("horizontal")
+                    ? "400px"
+                    : "600px"
+                }
               />
             </div>
           </div>
