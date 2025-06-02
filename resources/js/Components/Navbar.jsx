@@ -225,6 +225,13 @@ export default function Navbar({
                 <ListOrderedIcon className="w-4 h-4 mr-2" />
                 Order History
               </ResponsiveNavLink>
+              <ResponsiveNavLink
+                href={route("support.index")}
+                className="text-sky-900 hover:text-orange-400 flex items-center"
+              >
+                <HelpCircleIcon className="w-4 h-4 mr-2" />
+                Support
+              </ResponsiveNavLink>
 
               <div className="border-t border-gray-200 my-1 mx-4"></div>
 
@@ -244,6 +251,13 @@ export default function Navbar({
         {!auth?.user && (
           <div className="pt-4 pb-1 border-t border-gray-200">
             <div className="mt-3 space-y-1">
+              <ResponsiveNavLink
+                href={route("support.index")}
+                className="text-sky-900 hover:text-orange-400 flex items-center"
+              >
+                <HelpCircleIcon className="w-4 h-4 mr-2" />
+                Support
+              </ResponsiveNavLink>
               <ResponsiveNavLink
                 href={route("login")}
                 className="text-sky-900 hover:text-orange-400 flex items-center"
