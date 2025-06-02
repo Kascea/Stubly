@@ -22,9 +22,10 @@ const SportsHorizontalTemplate = forwardRef(
           className="relative overflow-hidden bg-white shadow-lg shadow-sky-900/25"
           style={{
             width: "100%",
-            height: containerHeight || "400px",
-            aspectRatio: isHorizontal ? "7/3" : undefined,
+            height: "auto",
+            aspectRatio: "7/3",
             maxWidth: "100%",
+            maxHeight: containerHeight || "400px",
           }}
         >
           {/* Background Image */}

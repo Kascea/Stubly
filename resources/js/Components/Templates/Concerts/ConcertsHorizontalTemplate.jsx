@@ -12,9 +12,11 @@ const ConcertsHorizontalTemplate = forwardRef(
           ref={ref}
           className="relative w-full overflow-hidden shadow-xl bg-white"
           style={{
-            height: containerHeight || "400px",
-            aspectRatio: isHorizontal ? "7/3" : undefined,
+            width: "100%",
+            height: "auto",
+            aspectRatio: "7/3",
             maxWidth: "100%",
+            maxHeight: containerHeight || "400px",
           }}
         >
           <div className="flex h-full">

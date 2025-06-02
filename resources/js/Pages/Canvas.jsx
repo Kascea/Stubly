@@ -265,10 +265,10 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
               style={{
                 maxWidth: ticketInfo.template?.includes("horizontal")
                   ? "100%"
-                  : "28rem",
+                  : "400px",
                 height: ticketInfo.template?.includes("horizontal")
                   ? "400px"
-                  : "600px",
+                  : "900px",
                 maxHeight: "80vh",
               }}
             >
@@ -277,12 +277,12 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
                 template={ticketInfo.template}
                 ticketInfo={ticketInfo}
                 containerWidth={
-                  ticketInfo.template?.includes("horizontal") ? "100%" : "28rem"
+                  ticketInfo.template?.includes("horizontal") ? "100%" : "400px"
                 }
                 containerHeight={
                   ticketInfo.template?.includes("horizontal")
                     ? "400px"
-                    : "600px"
+                    : "900px"
                 }
               />
             </div>

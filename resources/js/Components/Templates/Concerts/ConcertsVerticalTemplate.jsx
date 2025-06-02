@@ -21,11 +21,13 @@ const ConcertsVerticalTemplate = forwardRef(
       <div className="w-full h-full flex items-center justify-center">
         <div
           ref={ref}
-          className="relative w-64 overflow-hidden bg-white shadow-lg shadow-purple-900/30"
+          className="relative overflow-hidden bg-white shadow-lg shadow-purple-900/30"
           style={{
+            width: "100%",
+            maxWidth: containerWidth || "400px",
             aspectRatio: "2 / 5.5",
             maxHeight: containerHeight || "40rem",
-            height: containerHeight || "auto",
+            height: "auto",
           }}
         >
           {/* Background with multiple design elements */}

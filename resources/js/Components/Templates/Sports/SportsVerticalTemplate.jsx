@@ -19,11 +19,13 @@ const SportsVerticalTemplate = forwardRef(
       <div className="w-full h-full flex items-center justify-center">
         <div
           ref={ref}
-          className="relative w-80 overflow-hidden bg-white shadow-lg shadow-sky-900/25"
+          className="relative overflow-hidden bg-white shadow-lg shadow-sky-900/25"
           style={{
+            width: "100%",
+            maxWidth: containerWidth || "400px",
             aspectRatio: "3/7",
             maxHeight: containerHeight || "40rem",
-            height: containerHeight || "auto",
+            height: "auto",
           }}
         >
           {/* Background Image */}
