@@ -258,50 +258,17 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
             )}
           </div>
 
-          {/* Ticket Visualizer Wrapper - Fixed size without scrolling */}
+          {/* Ticket Visualizer Wrapper - Responsive sizing */}
           <div className="p-4 sm:p-8 w-full h-full flex items-center justify-center">
-            <div
-              className="w-full flex items-center justify-center"
-              style={{
-                maxWidth: ticketInfo.template?.includes("horizontal")
-                  ? "100%"
-                  : "400px",
-                height: ticketInfo.template?.includes("horizontal")
-                  ? "400px"
-                  : "900px",
-                maxHeight: "80vh",
-              }}
-            >
-              <TicketVisualizer
-                ref={ticketRef}
-                template={ticketInfo.template}
-                ticketInfo={ticketInfo}
-                containerWidth={
-                  ticketInfo.template?.includes("horizontal") ? "100%" : "400px"
-                }
-                containerHeight={
-                  ticketInfo.template?.includes("horizontal")
-                    ? "400px"
-                    : "900px"
-                }
-              />
-            </div>
+            <TicketVisualizer
+              ref={ticketRef}
+              template={ticketInfo.template}
+              ticketInfo={ticketInfo}
+              containerWidth="100%"
+              containerHeight="100%"
+            />
           </div>
         </div>
-
-        {/* Mobile Toggle Button - Show/Hide Sidebar */}
-        {isMobile && (
-          <button
-            onClick={toggleSidebarVisibility}
-            className="fixed bottom-20 right-6 z-40 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-colors"
-          >
-            {isSidebarVisible ? (
-              <Eye className="h-6 w-6" />
-            ) : (
-              <Edit className="h-6 w-6" />
-            )}
-          </button>
-        )}
 
         {/* Add to Cart Button - Fixed at bottom right */}
         <div className="fixed bottom-8 right-8 z-20">

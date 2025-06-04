@@ -16,16 +16,12 @@ const generateBarcodePattern = () => {
 const SportsVerticalTemplate = forwardRef(
   ({ ticketInfo, containerWidth, containerHeight }, ref) => {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center p-4">
         <div
           ref={ref}
-          className="relative overflow-hidden bg-white shadow-lg shadow-sky-900/25"
+          className="relative overflow-hidden bg-white shadow-lg shadow-sky-900/25 w-full h-full"
           style={{
-            width: "100%",
-            maxWidth: containerWidth || "400px",
             aspectRatio: "3/7",
-            maxHeight: containerHeight || "40rem",
-            height: "auto",
           }}
         >
           {/* Background Image */}
