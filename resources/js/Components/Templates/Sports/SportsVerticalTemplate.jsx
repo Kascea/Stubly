@@ -1,17 +1,5 @@
 import React, { forwardRef } from "react";
-
-const generateBarcodePattern = () => {
-  const bars = [];
-  for (let i = 0; i < 30; i++) {
-    const width = Math.random() > 0.7 ? 3 : 1;
-    bars.push(
-      `<rect x="${i * 3}" y="0" width="${width}" height="30" fill="black" />`,
-    );
-  }
-  return `data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30" viewBox="0 0 100 30">${bars.join(
-    "",
-  )}</svg>`;
-};
+import { generateBarcodePattern } from "@/utils/barcode";
 
 const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
   return (

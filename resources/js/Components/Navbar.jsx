@@ -35,7 +35,7 @@ export default function Navbar({
             <div className="shrink-0 flex items-center">
               <Link href="/">
                 <img
-                  src="/images/logo-no-background.png"
+                  src="/images/logo-no-background.webp"
                   alt="Stubly"
                   className="h-9 w-auto"
                 />

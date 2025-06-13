@@ -23,38 +23,6 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Use smaller breakpoint for mobile (640px instead of 768px)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
-  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(
-    window.innerWidth >= 640
-  );
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-
-  // Check for screen size on resize
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 640;
-      const smallScreen = window.innerWidth < 1024;
-
-      setIsMobile(mobile);
-      setIsSmallScreen(smallScreen);
-
-      // On desktop, sidebar should always be expanded by default
-      if (!mobile && !isSidebarExpanded) {
-        setIsSidebarExpanded(true);
-      }
-
-      // Reset sidebar visibility when switching between mobile and desktop
-      if (!mobile) {
-        setIsSidebarVisible(true);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isSidebarExpanded]);
-
   const [ticketInfo, setTicketInfo] = useState(
     ticket
       ? {
@@ -89,19 +57,9 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
           template_id: null,
           isPaid: false,
           dividerColor: "#0c4a6e",
-        }
+        },
   );
   const ticketRef = useRef(null);
-
-  // Handle sidebar expansion state
-  const handleSidebarToggle = (isExpanded) => {
-    setIsSidebarExpanded(isExpanded);
-  };
-
-  // Toggle sidebar visibility on mobile
-  const toggleSidebarVisibility = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
 
   const addTicketToCart = async () => {
     if (ticketRef.current) {
@@ -124,7 +82,7 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
 
         // Get the selected category
         const selectedCategory = categories.find((c) =>
-          c.templates.some((t) => t.id === ticketInfo.template)
+          c.templates.some((t) => t.id === ticketInfo.template),
         )?.id;
 
         // Base ticket data for all ticket types
@@ -174,7 +132,7 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
         setStatus("error");
         setErrorMessage(
           error.response?.data?.message ||
-            "An error occurred while creating your ticket."
+            "An error occurred while creating your ticket.",
         );
       } finally {
         setIsGenerating(false);
@@ -187,29 +145,17 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
     <>
       <Head title="Design Your Ticket" />
 
-      <div className="flex flex-col sm:flex-row h-[calc(100vh-65px)] relative overflow-hidden">
-        {/* Sidebar - On left for large screens, overlay for small screens */}
-        <div
-          className={`
-            ${
-              isSmallScreen
-                ? "absolute inset-y-0 left-0 z-30"
-                : "relative order-first"
-            } 
-            ${isMobile ? (isSidebarVisible ? "block" : "hidden") : ""}
-            transition-all duration-300 ease-in-out
-          `}
-        >
+      <div className="flex h-[calc(100vh-65px)] relative overflow-hidden">
+        {/* Sidebar */}
+        <div className="relative">
           <TicketEditorSidebar
             ticketInfo={ticketInfo}
             setTicketInfo={setTicketInfo}
             categories={categories}
-            onToggleExpand={handleSidebarToggle}
-            isMobile={isMobile}
           />
         </div>
 
-        {/* Ticket Visualizer Container - Full width */}
+        {/* Ticket Visualizer Container */}
         <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex flex-col items-center justify-center relative">
           {/* Status Messages */}
           {status && (
@@ -228,8 +174,8 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
             </div>
           )}
 
-          {/* Ticket Visualizer Wrapper - Fixed size without scrolling */}
-          <div className="p-4 sm:p-8 w-full max-w-md mx-auto">
+          {/* Ticket Visualizer Wrapper */}
+          <div className="p-8 w-full max-w-md mx-auto">
             <div className="transform scale-100 transition-transform duration-300">
               <TicketVisualizer
                 ref={ticketRef}
@@ -240,27 +186,13 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
           </div>
         </div>
 
-        {/* Mobile Toggle Button - Show/Hide Sidebar */}
-        {isMobile && (
-          <button
-            onClick={toggleSidebarVisibility}
-            className="fixed bottom-20 right-6 z-40 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-colors"
-          >
-            {isSidebarVisible ? (
-              <Eye className="h-6 w-6" />
-            ) : (
-              <Edit className="h-6 w-6" />
-            )}
-          </button>
-        )}
-
         {/* Add to Cart Button - Fixed at bottom right */}
         <div className="fixed bottom-8 right-8 z-20">
           <Button
             onClick={addTicketToCart}
             disabled={isGenerating}
             className={`
-              py-6 px-8 rounded-xl shadow-xl text-base sm:text-lg font-semibold flex items-center
+              py-6 px-8 rounded-xl shadow-xl text-lg font-semibold flex items-center
               transform hover:scale-105 transition-all duration-300
               ${
                 isGenerating

@@ -7,7 +7,7 @@ export default function AuthLayout({ children, title }) {
       <div>
         <Link href="/" className="flex items-center">
           <img
-            src="/images/logo-no-background.png"
+            src="/images/logo-no-background.webp"
             alt="Stubly"
             className="h-10 w-auto"
           />

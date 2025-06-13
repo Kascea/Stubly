@@ -36,27 +36,12 @@ class CategoryTemplateSeeder extends Seeder
      */
     private function createTemplatesForCategory(string $categoryId): void
     {
-        // Each category gets a vertical and horizontal template
-        $templates = [
-            [
-                'id' => "{$categoryId}-vertical",
-                'name' => Str::ucfirst($categoryId) . ' Vertical',
-                'supports_background_image' => true,
-            ],
-            [
-                'id' => "{$categoryId}-horizontal",
-                'name' => Str::ucfirst($categoryId) . ' Horizontal',
-                'supports_background_image' => true,
-            ],
-        ];
-
-        foreach ($templates as $templateData) {
-            Template::create([
-                'id' => $templateData['id'],
-                'name' => $templateData['name'],
-                'category_id' => $categoryId,
-                'supports_background_image' => $templateData['supports_background_image'],
-            ]);
-        }
+        // Each category gets only a vertical template
+        Template::create([
+            'id' => "{$categoryId}-vertical",
+            'name' => Str::ucfirst($categoryId) . ' Vertical',
+            'category_id' => $categoryId,
+            'supports_background_image' => true,
+        ]);
     }
 }
