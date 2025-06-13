@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import TicketEditorSidebar from "@/Components/TicketEditorSidebar";
 import TicketVisualizer from "@/Components/TicketVisualizer";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
@@ -16,8 +16,7 @@ import AppLayout from "@/Layouts/AppLayout";
 import { domToPng } from "modern-screenshot";
 import axios from "axios";
 
-export default function Canvas({ categories, ticket = null, auth, cartCount }) {
-  const isAuthenticated = auth?.user;
+export default function Canvas({ categories, ticket = null, auth }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -66,6 +65,8 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
       setIsGenerating(true);
       setStatus(null);
       setErrorMessage("");
+
+      // Capture the screenshot
       try {
         const dataUrl = await domToPng(ticketRef.current, {
           quality: 4.0,
@@ -85,37 +86,26 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
           c.templates.some((t) => t.id === ticketInfo.template),
         )?.id;
 
-        // Base ticket data for all ticket types
-        const ticketData = {
-          eventName: ticketInfo.eventName,
-          eventLocation: ticketInfo.eventLocation,
-          date: ticketInfo.date,
-          time: ticketInfo.time,
-          section: ticketInfo.section,
-          row: ticketInfo.row,
-          seat: ticketInfo.seat,
+        // Add the screenshot to ticketInfo
+        const updatedTicketInfo = {
+          ...ticketInfo,
           generatedTicket: dataUrl,
-          template_id: ticketInfo.template_id,
         };
 
-        // Add category-specific fields based on the selected category
+        // Add category-specific fields
         if (selectedCategory === "sports") {
-          ticketData.team_home = ticketInfo.homeTeam;
-          ticketData.team_away = ticketInfo.awayTeam;
-          ticketData.dividerColor = ticketInfo.dividerColor;
+          updatedTicketInfo.team_home = ticketInfo.homeTeam;
+          updatedTicketInfo.team_away = ticketInfo.awayTeam;
         } else if (selectedCategory === "concerts") {
-          ticketData.artist = ticketInfo.artist;
-          ticketData.tour_name = ticketInfo.tourName;
+          updatedTicketInfo.artist = ticketInfo.artist;
+          updatedTicketInfo.tour_name = ticketInfo.tourName;
         }
 
-        // Add background image if available
-        if (ticketInfo.backgroundImage) {
-          ticketData.backgroundImage = ticketInfo.backgroundImage;
-          ticketData.filename = ticketInfo.filename;
-        }
-
-        // Send the ticket data to the server to create a ticket
-        const response = await axios.post(route("tickets.store"), ticketData);
+        // Send directly
+        const response = await axios.post(
+          route("tickets.store"),
+          updatedTicketInfo,
+        );
 
         // Add the created ticket to cart
         await axios.post(route("cart.add"), {
@@ -125,8 +115,8 @@ export default function Canvas({ categories, ticket = null, auth, cartCount }) {
         setStatus("success");
         setSuccessMessage("Ticket added to cart successfully!");
 
-        // Redirect to the cart page
-        window.location.href = route("cart.index");
+        // Redirect to the cart page using Inertia navigation
+        router.visit(route("cart.index"));
       } catch (error) {
         console.error("Error generating ticket:", error);
         setStatus("error");

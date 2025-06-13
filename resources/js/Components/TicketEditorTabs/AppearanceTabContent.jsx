@@ -91,46 +91,43 @@ export default function AppearanceTabContent({
         </div>
       )}
 
-      {/* Style Options Section - only for sports */}
-      {selectedCategory === "sports" && (
-        <div className="space-y-4 pt-2">
-          <h4 className="text-sm font-medium text-sky-900 flex items-center">
-            <Palette className="h-4 w-4 mr-2 text-orange-500" />
-            Color Options
-            <span className="text-gray-500 text-xs font-medium ml-2">
-              Optional
-            </span>
-          </h4>
+      <div className="space-y-4 pt-2">
+        <h4 className="text-sm font-medium text-sky-900 flex items-center">
+          <Palette className="h-4 w-4 mr-2 text-orange-500" />
+          Color Options
+          <span className="text-gray-500 text-xs font-medium ml-2">
+            Optional
+          </span>
+        </h4>
 
-          <div>
-            <Label htmlFor="dividerColor" className="text-sky-900 font-medium">
-              Accent Color
-            </Label>
-            <div className="flex items-center mt-2 space-x-3">
-              <div className="relative">
-                <Input
-                  id="dividerColor"
-                  name="dividerColor"
-                  type="color"
-                  value={ticketInfo.dividerColor || "#0c4a6e"}
-                  onChange={handleChange}
-                  className="w-12 h-12 p-1 rounded-md cursor-pointer border-gray-300"
-                />
-                <div className="absolute inset-0 pointer-events-none rounded-md border border-gray-300"></div>
-              </div>
+        <div>
+          <Label htmlFor="dividerColor" className="text-sky-900 font-medium">
+            Accent Color
+          </Label>
+          <div className="flex items-center mt-2 space-x-3">
+            <div className="relative">
               <Input
+                id="dividerColor"
                 name="dividerColor"
+                type="color"
                 value={ticketInfo.dividerColor || "#0c4a6e"}
                 onChange={handleChange}
-                className="flex-1 border-gray-300 focus:ring-orange-500 focus:border-orange-500"
+                className="w-12 h-12 p-1 rounded-md cursor-pointer border-gray-300"
               />
+              <div className="absolute inset-0 pointer-events-none rounded-md border border-gray-300"></div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              This color will be used for accents and highlights on your ticket.
-            </p>
+            <Input
+              name="dividerColor"
+              value={ticketInfo.dividerColor || "#0c4a6e"}
+              onChange={handleChange}
+              className="flex-1 border-gray-300 focus:ring-orange-500 focus:border-orange-500"
+            />
           </div>
+          <p className="text-xs text-gray-500 mt-1">
+            This color will be used for accents and highlights on your ticket.
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 }

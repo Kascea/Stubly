@@ -152,7 +152,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
             </div>
 
             {/* Stub Content - Now with white background and larger section/row/seat */}
-            <div className="bg-white p-4 text-gray-800 h-full flex flex-col justify-between">
+            <div className="bg-white p-4 text-gray-800 h-full flex flex-col">
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="flex flex-col items-center">
                   <p className="text-xs text-gray-500 uppercase">Section</p>
@@ -175,7 +175,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
               </div>
 
               {/* Additional match details */}
-              <div className="text-xs text-center mb-3 text-gray-600 uppercase tracking-wider">
+              <div className="text-xs text-center mb-3 text-gray-600 uppercase tracking-wider flex-shrink-0">
                 <p>{ticketInfo?.eventName || "N/A"}</p>
                 <p>
                   {ticketInfo?.date
@@ -202,8 +202,8 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                 </p>
               </div>
 
-              <div className="flex flex-col items-center">
-                <div className="border-t border-dashed border-gray-300 w-full mb-2 pt-2">
+              <div className="flex flex-col items-center mt-auto min-h-0">
+                <div className="border-t border-dashed border-gray-300 w-full mb-2 pt-2 flex-shrink-0">
                   <p className="text-xs text-center text-gray-500 mb-1">
                     VOID IF DETACHED
                   </p>
@@ -211,9 +211,9 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                 <img
                   src={generateBarcodePattern()}
                   alt="Barcode"
-                  className="w-48"
+                  className="w-full max-w-full h-auto flex-shrink-0"
                 />
-                <p className="text-xs mt-1 text-gray-600">
+                <p className="text-xs mt-1 text-gray-600 flex-shrink-0">
                   {Math.random().toString(36).substr(2, 12).toUpperCase()}
                 </p>
               </div>

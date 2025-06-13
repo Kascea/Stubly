@@ -25,13 +25,6 @@ export default function TemplatesTabContent({
         <h3 className="font-medium text-lg text-sky-900">Choose a Template</h3>
       </div>
 
-      <div className="bg-sky-50/50 rounded-lg p-3 text-sm text-sky-800 border-l-4 border-sky-500">
-        <p>
-          Select a template that best fits your event. Each template offers
-          unique features and layouts.
-        </p>
-      </div>
-
       <div className="space-y-5">
         <div>
           <Label className="text-sky-900 mb-2 block font-medium flex items-center">
@@ -40,6 +33,10 @@ export default function TemplatesTabContent({
             </span>
             Select Category
           </Label>
+          <div className="mb-3 text-xs text-sky-700 bg-sky-50 p-2 rounded border-l-2 border-sky-200">
+            Category determines which fields appear on your ticket (e.g., sports
+            shows team names, music shows artist details)
+          </div>
           <Select value={selectedCategory} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-full border-gray-300 focus:ring-orange-500 focus:border-orange-500">
               <SelectValue placeholder="Select a category" />
@@ -68,6 +65,10 @@ export default function TemplatesTabContent({
             </span>
             Choose Template
           </Label>
+          <div className="mb-3 text-xs text-sky-700 bg-sky-50 p-2 rounded border-l-2 border-sky-200">
+            Template controls the visual design - colors, fonts, layout, and
+            overall appearance of your ticket
+          </div>
           <div className="grid grid-cols-1 gap-3">
             {templates.map((template) => (
               <button

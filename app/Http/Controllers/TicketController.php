@@ -100,7 +100,7 @@ class TicketController extends Controller
 
             case 'concerts':
                 return ConcertTicket::create([
-                    'artist' => $request->artist ?? null,
+                    'artist_name' => $request->artistName ?? null,
                     'tour_name' => $request->tour_name ?? null,
                 ]);
 
@@ -185,7 +185,7 @@ class TicketController extends Controller
 
             case 'concerts':
                 $rules = array_merge($rules, [
-                    'artist' => 'required|string',
+                    'artist_name' => 'required|string',
                     'tour_name' => 'required|string',
                 ]);
                 break;
