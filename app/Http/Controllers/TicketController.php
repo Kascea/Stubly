@@ -90,27 +90,24 @@ class TicketController extends Controller
      */
     protected function createSpecializedTicket(Request $request, string $categoryId)
     {
-        switch ($categoryId) {
-            case 'sports':
-                return SportsTicket::create([
-                    'sport_type' => $request->sport_type ?? null,
-                    'team_home' => $request->team_home ?? null,
-                    'team_away' => $request->team_away ?? null,
-                ]);
+        Log::info('createSpecializedTicket Debug:', [
+            'categoryId' => $categoryId,
+            'artist_name' => $request->artist_name,
+            'tour_name' => $request->tour_name,
+        ]);
 
-            case 'concerts':
-                return ConcertTicket::create([
-                    'artist_name' => $request->artistName ?? null,
-                    'tour_name' => $request->tour_name ?? null,
-                ]);
-
-            // Add more cases for other categories
-
-            default:
-                // If we don't have a specialized type for this category, return null
-                // This will trigger an error since we want all tickets to be specialized
-                return null;
-        }
+        return match ($categoryId) {
+            'sports' => SportsTicket::create([
+                'sport_type' => $request->sport_type ?? null,
+                'team_home' => $request->team_home ?? null,
+                'team_away' => $request->team_away ?? null,
+            ]),
+            'concerts' => ConcertTicket::create([
+                'artist_name' => $request->artist_name ?? null,
+                'tour_name' => $request->tour_name ?? null,
+            ]),
+            default => null,
+        };
     }
 
     protected function handleTicketImage(Request $request, array $ticketData): array

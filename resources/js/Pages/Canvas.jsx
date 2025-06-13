@@ -97,7 +97,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
           updatedTicketInfo.team_home = ticketInfo.homeTeam;
           updatedTicketInfo.team_away = ticketInfo.awayTeam;
         } else if (selectedCategory === "concerts") {
-          updatedTicketInfo.artist = ticketInfo.artist;
+          updatedTicketInfo.artist_name = ticketInfo.artistName;
           updatedTicketInfo.tour_name = ticketInfo.tourName;
         }
 

@@ -10,7 +10,7 @@ class ConcertTicket extends Model
     use HasFactory;
 
     protected $fillable = [
-        'artist',
+        'artist_name',
         'tour_name',
     ];
 
