@@ -74,7 +74,7 @@ class ProcessOrderConfirmation implements ShouldQueue
         ]);
 
         // Create a unique filename for the PDF
-        $pdfFilename = 'order-' . $this->order->order_id . '-' . Str::random(8) . '.pdf';
+        $pdfFilename = $this->order->order_id . '.pdf';
 
         // Save PDF to R2 storage
         Storage::disk('r2')->put($pdfFilename, $pdf->output());

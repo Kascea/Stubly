@@ -44,11 +44,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');
     Route::get('/duplicate/{ticket:ticket_id}', [TicketController::class, 'duplicate'])->name('duplicate');
     Route::get('/preview/{ticket:ticket_id}', [TicketController::class, 'preview'])->name('preview');
-
-    //Protected routes
-    // Route::get('/{ticket:ticket_id}/download', [TicketController::class, 'download'])
-    //   ->middleware([VerifyTicketOwner::class, VerifyPayment::class])
-    //   ->name('download');
   });
 
   // Profile routes

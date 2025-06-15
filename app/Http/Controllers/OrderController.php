@@ -33,7 +33,15 @@ class OrderController extends Controller
                     'payment_id' => $order->payment_id,
                     'tickets' => $order->tickets->map(function ($ticket) {
                         return [
+                            'id' => $ticket->id,
                             'ticket_id' => $ticket->ticket_id,
+                            'event_name' => $ticket->event_name,
+                            'event_location' => $ticket->event_location,
+                            'event_datetime' => $ticket->event_datetime,
+                            'section' => $ticket->section,
+                            'row' => $ticket->row,
+                            'seat' => $ticket->seat,
+                            'price' => $ticket->price,
                             'generated_ticket_url' => $ticket->generated_ticket_url,
                         ];
                     }),
@@ -98,62 +106,23 @@ class OrderController extends Controller
                 ->with('error', 'You do not have permission to download these tickets.');
         }
 
-        // Load tickets
-        $order->load(['tickets']);
-
-        // Check if there are any tickets to download
-        if ($order->tickets->isEmpty()) {
+        // Check if there's a PDF path stored for this order
+        if (empty($order->pdf_path)) {
             return redirect()->route('orders.show', $order->order_id)
-                ->with('error', 'No tickets available for download.');
+                ->with('error', 'No PDF tickets available for download.');
         }
 
-        // Create a temporary zip file
-        $zipFileName = 'order_' . $order->order_id . '_tickets.zip';
-        $zipFilePath = storage_path('app/temp/' . $zipFileName);
-
-        // Ensure the temp directory exists
-        if (!file_exists(storage_path('app/temp'))) {
-            mkdir(storage_path('app/temp'), 0755, true);
-        }
-
-        $zip = new ZipArchive();
-
-        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            // Add each ticket to the zip file
-            foreach ($order->tickets as $ticket) {
-                $ticketUrl = $ticket->generated_ticket_url;
-
-                if ($ticketUrl) {
-                    // Remove the domain part if it's a full URL
-                    $ticketPath = parse_url($ticketUrl, PHP_URL_PATH);
-                    if (empty($ticketPath)) {
-                        $ticketPath = $ticketUrl;
-                    }
-
-                    // Remove leading slash
-                    $ticketPath = ltrim($ticketPath, '/');
-
-                    // Construct the local file path
-                    $localPath = public_path($ticketPath);
-
-                    if (file_exists($localPath)) {
-                        // Add file to zip
-                        $fileName = 'ticket_' . $ticket->event_name . '_' . $ticket->id . '.png';
-                        $fileName = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $fileName);
-                        $zip->addFile($localPath, $fileName);
-                    }
-                }
-            }
-
-            // Close the zip file
-            $zip->close();
-
-            // Download the zip file
-            return response()->download($zipFilePath, $zipFileName)->deleteFileAfterSend(true);
-        } else {
+        // Check if the PDF file exists in storage
+        if (!Storage::exists($order->pdf_path)) {
             return redirect()->route('orders.show', $order->order_id)
-                ->with('error', 'Failed to create zip archive for tickets.');
+                ->with('error', 'PDF tickets file not found.');
         }
+
+        // Generate a friendly filename for download
+        $downloadFileName = 'order_' . $order->order_id . '_tickets.pdf';
+
+        // Return the PDF file for download
+        return Storage::download($order->pdf_path, $downloadFileName);
     }
 
     /**

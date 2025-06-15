@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "34413489af783561d5e8bf0afe3de6c9",
+    "content-hash": "0af84f347b95433099c1555bb82e753b",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -1779,16 +1779,16 @@
         },
         {
             "name": "laravel/cashier",
-            "version": "v15.6.2",
+            "version": "v15.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/cashier-stripe.git",
-                "reference": "a805191e63744a5cc73c864eba1194a721e2e8b0"
+                "reference": "e26d51f19d29edc70c01b74e3eca688f487d0987"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/cashier-stripe/zipball/a805191e63744a5cc73c864eba1194a721e2e8b0",
-                "reference": "a805191e63744a5cc73c864eba1194a721e2e8b0",
+                "url": "https://api.github.com/repos/laravel/cashier-stripe/zipball/e26d51f19d29edc70c01b74e3eca688f487d0987",
+                "reference": "e26d51f19d29edc70c01b74e3eca688f487d0987",
                 "shasum": ""
             },
             "require": {
@@ -1812,14 +1812,14 @@
                 "symfony/polyfill-intl-icu": "^1.22.1"
             },
             "require-dev": {
-                "dompdf/dompdf": "^2.0",
+                "dompdf/dompdf": "^2.0|^3.0",
                 "mockery/mockery": "^1.0",
                 "orchestra/testbench": "^8.18|^9.0|^10.0",
                 "phpstan/phpstan": "^1.10",
                 "phpunit/phpunit": "^10.4|^11.5"
             },
             "suggest": {
-                "dompdf/dompdf": "Required when generating and downloading invoice PDF's using Dompdf (^1.0.1|^2.0).",
+                "dompdf/dompdf": "Required when generating and downloading invoice PDF's using Dompdf (^2.0|^3.0).",
                 "ext-intl": "Allows for more locales besides the default \"en\" when formatting money values."
             },
             "type": "library",
@@ -1863,7 +1863,7 @@
                 "issues": "https://github.com/laravel/cashier/issues",
                 "source": "https://github.com/laravel/cashier"
             },
-            "time": "2025-01-28T15:46:16+00:00"
+            "time": "2025-06-10T15:07:05+00:00"
         },
         {
             "name": "laravel/framework",
