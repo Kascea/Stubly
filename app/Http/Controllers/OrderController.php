@@ -96,33 +96,35 @@ class OrderController extends Controller
     }
 
     /**
-     * Download all tickets for an order as a ZIP file.
+     * View PDF in browser for an order.
      */
-    public function downloadTickets(Order $order)
+    public function viewPdf(Order $order)
     {
         // Check if the order belongs to the authenticated user
         if ($order->user_id !== Auth::id()) {
             return redirect()->route('orders.index')
-                ->with('error', 'You do not have permission to download these tickets.');
+                ->with('error', 'You do not have permission to view this PDF.');
         }
 
         // Check if there's a PDF path stored for this order
         if (empty($order->pdf_path)) {
             return redirect()->route('orders.show', $order->order_id)
-                ->with('error', 'No PDF tickets available for download.');
+                ->with('error', 'No PDF available for viewing.');
         }
 
         // Check if the PDF file exists in storage
-        if (!Storage::exists($order->pdf_path)) {
+        if (!Storage::disk('r2')->exists($order->pdf_path)) {
             return redirect()->route('orders.show', $order->order_id)
-                ->with('error', 'PDF tickets file not found.');
+                ->with('error', 'PDF file not found.');
         }
 
-        // Generate a friendly filename for download
-        $downloadFileName = 'order_' . $order->order_id . '_tickets.pdf';
+        // Get the PDF content from R2 storage
+        $pdfContent = Storage::disk('r2')->get($order->pdf_path);
 
-        // Return the PDF file for download
-        return Storage::download($order->pdf_path, $downloadFileName);
+        // Return the PDF with appropriate headers for inline viewing
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="order_' . $order->order_id . '_tickets.pdf"');
     }
 
     /**

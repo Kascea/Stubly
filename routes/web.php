@@ -20,6 +20,7 @@ Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
 
 // Public ticket routes
 Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
+Route::get('/tickets/{ticket:ticket_id}', [TicketController::class, 'viewTicket'])->name('tickets.view');
 Route::delete('/tickets/{ticket:ticket_id}', [TicketController::class, 'destroy'])
   ->middleware(VerifyTicketAccess::class)
   ->name('tickets.destroy');
@@ -59,7 +60,7 @@ Route::middleware(['auth'])->group(function () {
   // Order routes (remain authenticated)
   Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
   Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-  Route::get('/orders/{order}/download', [OrderController::class, 'downloadTickets'])->name('orders.download');
+  Route::get('/orders/{order}/printout', [OrderController::class, 'viewPdf'])->name('orders.printout');
   Route::post('/orders/{order}/resend-confirmation', [OrderController::class, 'resendConfirmation'])
     ->name('orders.resend-confirmation');
 });

@@ -239,6 +239,42 @@ class TicketController extends Controller
         );
     }
 
+    public function viewTicket(Ticket $ticket)
+    {
+        // Check if user has access to this ticket
+        if (auth()->check()) {
+            // For authenticated users, check if they own the ticket or it's in their orders
+            $userOwnsTicket = $ticket->user_id === auth()->id() ||
+                $ticket->order?->user_id === auth()->id();
+
+            if (!$userOwnsTicket) {
+                abort(403, 'You do not have permission to view this ticket.');
+            }
+        }
+
+        // Check if the ticket image exists
+        if (!$ticket->generated_ticket_path || !Storage::disk('r2')->exists($ticket->generated_ticket_path)) {
+            abort(404, 'Ticket image not found.');
+        }
+
+        // Get the image content from R2 storage
+        $imageContent = Storage::disk('r2')->get($ticket->generated_ticket_path);
+
+        // Determine the correct MIME type
+        $mimeType = 'image/webp';
+        $extension = pathinfo($ticket->generated_ticket_path, PATHINFO_EXTENSION);
+        if ($extension === 'png') {
+            $mimeType = 'image/png';
+        } elseif (in_array($extension, ['jpg', 'jpeg'])) {
+            $mimeType = 'image/jpeg';
+        }
+
+        // Return the image with appropriate headers for inline viewing
+        return response($imageContent)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Disposition', 'inline; filename="ticket_' . $ticket->ticket_id . '.' . $extension . '"');
+    }
+
     public function canvas()
     {
         // Load categories with their templates

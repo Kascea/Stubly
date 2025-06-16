@@ -30,6 +30,7 @@ import {
 import { router } from "@inertiajs/react";
 import { toast } from "@/Components/ui/toaster";
 import axios from "axios";
+import TicketCard from "@/Components/TicketCard";
 
 export default function CartIndex({ cart: initialCart, auth }) {
   const [cart, setCart] = useState(initialCart);
@@ -66,7 +67,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
         items: prevCart.items.map((cartItem) =>
           cartItem.id === item.id
             ? { ...cartItem, quantity: newQuantity }
-            : cartItem,
+            : cartItem
         ),
       }));
 
@@ -172,27 +173,40 @@ export default function CartIndex({ cart: initialCart, auth }) {
     <AppLayout auth={auth}>
       <Head title="Your Cart" />
 
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold flex items-center text-sky-900">
-              <ShoppingCart className="mr-2" /> Your Cart
-            </h1>
+      <div className="py-12 bg-gradient-to-br from-sky-50/30 via-white to-blue-50/20 min-h-screen">
+        <div className="max-w-6xl mx-auto sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center text-sky-900 mb-2">
+                <ShoppingCart className="mr-3 h-8 w-8" />
+                Your Cart
+              </h1>
+              <p className="text-sky-700/70">
+                Review your custom tickets before checkout
+              </p>
+            </div>
 
             {hasItems && (
-              <Button
-                variant="outline"
-                className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                onClick={clearCart}
-                disabled={loadingStates.clearCart}
-              >
-                {loadingStates.clearCart ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4 mr-1" />
-                )}
-                Clear Cart
-              </Button>
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-sky-600 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-sky-100">
+                  <ShoppingCart className="inline h-4 w-4 mr-1" />
+                  {cart.items.length}{" "}
+                  {cart.items.length === 1 ? "Item" : "Items"}
+                </div>
+                <Button
+                  variant="outline"
+                  className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  onClick={clearCart}
+                  disabled={loadingStates.clearCart}
+                >
+                  {loadingStates.clearCart ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-1" />
+                  )}
+                  Clear Cart
+                </Button>
+              </div>
             )}
           </div>
 
@@ -209,91 +223,49 @@ export default function CartIndex({ cart: initialCart, auth }) {
           )}
 
           {hasItems ? (
-            <Card>
+            <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Cart Items ({cart.items.length})</CardTitle>
-                <CardDescription>
-                  Review your tickets before checkout
-                </CardDescription>
+                <CardTitle className="text-sky-900">Your Tickets</CardTitle>
+                <CardDescription>Review before checkout</CardDescription>
               </CardHeader>
 
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Ticket</TableHead>
-                      <TableHead>Event Details</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Actions</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-
-                  <TableBody>
-                    {cart.items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          {item.generated_ticket_url ? (
-                            <img
-                              src={item.generated_ticket_url}
-                              alt="Ticket"
-                              className="w-20 h-auto rounded shadow-sm"
-                            />
+              <CardContent className="space-y-4">
+                {cart.items.map((item) => (
+                  <TicketCard
+                    key={item.id}
+                    ticket={item}
+                    price="2.99"
+                    actions={
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
+                          onClick={() => createSimilarTicket(item)}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Create Similar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTicket(item)}
+                          disabled={loadingStates.items[item.id]}
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md border border-red-200 hover:border-red-300"
+                        >
+                          {loadingStates.items[item.id] ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            <div className="w-20 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400">
-                              No Image
-                            </div>
+                            <X className="h-4 w-4" />
                           )}
-                        </TableCell>
-
-                        <TableCell>
-                          <div className="font-medium">{item.event_name}</div>
-                          <div className="text-sm text-gray-500">
-                            {item.event_location} •{" "}
-                            {new Date(item.event_datetime).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {item.section && `Section ${item.section}`}
-                            {item.row && ` • Row ${item.row}`}
-                            {item.seat && ` • Seat ${item.seat}`}
-                          </div>
-                        </TableCell>
-
-                        <TableCell>$2.99</TableCell>
-
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-colors"
-                              onClick={() => createSimilarTicket(item)}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Create Similar
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteTicket(item)}
-                              disabled={loadingStates.items[item.id]}
-                              className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            >
-                              {loadingStates.items[item.id] ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <X className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </Button>
+                      </div>
+                    }
+                  />
+                ))}
               </CardContent>
 
-              <CardFooter className="flex flex-col sm:flex-row justify-between border-t pt-6">
+              <CardFooter className="flex flex-col sm:flex-row justify-between border-t pt-6 bg-gradient-to-r from-sky-50/20 to-blue-50/20">
                 <div className="mb-4 sm:mb-0">
                   <div className="space-y-1">
                     <div className="text-lg font-semibold">
@@ -303,7 +275,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">
-                      Taxes will be calculated at checkout
+                      Taxes calculated at checkout
                     </div>
                   </div>
                 </div>
@@ -312,14 +284,15 @@ export default function CartIndex({ cart: initialCart, auth }) {
                   <Link href={route("canvas")}>
                     <Button
                       variant="outline"
-                      className="border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-colors"
+                      className="border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-all duration-300 hover:scale-105"
                     >
-                      Continue Shopping
+                      <Plus className="h-4 w-4 mr-1" />
+                      Create Another
                     </Button>
                   </Link>
 
                   <Link href={route("cart.checkout")}>
-                    <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-colors">
+                    <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg">
                       Checkout <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
@@ -327,14 +300,17 @@ export default function CartIndex({ cart: initialCart, auth }) {
               </CardFooter>
             </Card>
           ) : (
-            <Card className="bg-gray-50 border-dashed border-2 border-gray-200">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
-                <h3 className="text-xl font-medium text-gray-600 mb-2">
+            <Card className="bg-gradient-to-br from-gray-50/80 to-white border-dashed border-2 border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 bg-white/60 backdrop-blur-sm">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="p-4 bg-sky-100 rounded-full mb-6">
+                  <ShoppingCart className="h-12 w-12 text-sky-700" />
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-700 mb-3">
                   Your cart is empty
                 </h3>
-                <p className="text-gray-500 mb-6">
-                  Add some custom tickets to get started
+                <p className="text-gray-500 mb-8 text-center max-w-md">
+                  Create your first custom ticket to get started with building
+                  amazing event experiences
                 </p>
 
                 <Link href={route("canvas")}>
@@ -346,14 +322,14 @@ export default function CartIndex({ cart: initialCart, auth }) {
                       flex items-center gap-2
                       bg-gradient-to-r from-sky-800 to-sky-700
                       hover:from-sky-700 hover:to-sky-600
-                      overflow-hidden"
+                      overflow-hidden group px-6 py-3"
                     style={{ backgroundColor: "#075985" }}
                   >
                     <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
-                    Create a Ticket
+                    Create Your First Ticket
                     <div
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent 
-                      -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-out"
+                      -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"
                     />
                   </Button>
                 </Link>

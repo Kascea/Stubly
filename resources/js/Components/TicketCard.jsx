@@ -1,249 +1,144 @@
-import { format } from "date-fns";
+import React from "react";
 import { Card, CardContent } from "@/Components/ui/card";
-import { Link } from "@inertiajs/react";
-import {
-  CalendarIcon,
-  MapPinIcon,
-  TicketIcon,
-  MoreVertical,
-  Trash2,
-  Download,
-  CreditCard,
-  Share2,
-  LinkIcon,
-  Clock,
-  AlertTriangle,
-  CheckCircle2,
-  Clock3,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
-import dayjs from "dayjs";
-import { useState } from "react";
-import { calculateDaysRemaining } from "@/utils/ticketUtils";
+import { Loader2, ChevronRight } from "lucide-react";
 
 export default function TicketCard({
   ticket,
-  onDeleteClick,
-  showDelete,
-  showStatusIndicator = false,
+  onClick,
+  actions,
+  price,
+  showViewIndicator = false,
+  className = "",
 }) {
-  const { toast } = useToast();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // Function to format event date
+  const formatEventDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-  // Use the utility function instead of local calculation
-  const daysRemaining = calculateDaysRemaining(ticket, ticket.isPaid);
+  const cardClasses = `
+    border border-gray-100 transition-all duration-300 bg-gradient-to-br from-gray-50/50 to-white
+    ${
+      onClick
+        ? "hover:border-orange-300 hover:shadow-md group cursor-pointer"
+        : ""
+    }
+    ${className}
+  `;
 
-  console.log(ticket);
-
-  return (
-    <div className="relative group">
-      <Card
-        className={`border border-gray-100 transition-all duration-300 bg-white overflow-hidden ${
-          isDropdownOpen
-            ? "border-orange-200 shadow-lg"
-            : "hover:border-orange-200 hover:shadow-lg"
-        }`}
-      >
-        {/* Status indicator */}
-        {showStatusIndicator && (
+  const content = (
+    <CardContent className="p-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Ticket Image */}
+        <div className="flex-shrink-0">
           <div
-            className={`absolute top-3 right-3 z-10 rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1 ${
-              ticket.isPaid
-                ? "bg-green-100 text-green-800"
-                : "bg-amber-100 text-amber-800"
+            className={`w-full lg:w-32 h-48 lg:h-20 bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg overflow-hidden ${
+              onClick
+                ? "group-hover:scale-105 transition-transform duration-300"
+                : ""
             }`}
           >
-            {ticket.isPaid ? (
-              <>
-                <CheckCircle2 className="h-3 w-3" />
-                <span>Purchased</span>
-              </>
-            ) : (
-              <>
-                <Clock3 className="h-3 w-3" />
-                <span>Awaiting payment</span>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Warning banner for unpaid tickets close to expiring */}
-        {!ticket.isPaid && daysRemaining <= 7 && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center text-amber-800 text-sm">
-            <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>
-              {daysRemaining > 1
-                ? `Expires in ${daysRemaining} days`
-                : daysRemaining === 1
-                ? "Expires tomorrow"
-                : daysRemaining === 0
-                ? "Expires today"
-                : "Expired"}
-              {" - "}
-              <Link
-                href={route("payment.checkout", { ticket: ticket.ticket_id })}
-                className="font-medium underline hover:text-amber-900"
-              >
-                Pay now
-              </Link>
-            </span>
-          </div>
-        )}
-
-        <CardContent className="p-6">
-          <Link
-            href={route("tickets.preview", { ticket: ticket.ticket_id })}
-            className={`block transition-transform ${
-              isDropdownOpen ? "scale-[1.02]" : "group-hover:scale-[1.02]"
-            }`}
-          >
-            <div className="aspect-[16/9] relative mb-4 rounded-lg overflow-hidden bg-gray-100">
+            {ticket.generated_ticket_url ? (
               <img
                 src={ticket.generated_ticket_url}
-                alt={ticket.event_name}
-                className="object-cover w-full h-full"
+                alt={`Ticket for ${ticket.event_name}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.parentElement.innerHTML =
+                    '<div class="w-full h-full flex items-center justify-center"><svg class="h-8 w-8 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a1 1 0 001 1h1m0 0v4a2 2 0 002 2h2M7 9h10a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg></div>';
+                }}
               />
-            </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
+              </div>
+            )}
+          </div>
+        </div>
 
-            <h3 className="text-lg font-semibold text-sky-900 mb-2">
+        {/* Event Details */}
+        <div className="flex-1 space-y-3">
+          <div>
+            <h3
+              className={`text-lg font-semibold text-gray-900 mb-1 ${
+                onClick ? "group-hover:text-sky-900 transition-colors" : ""
+              }`}
+            >
               {ticket.event_name}
             </h3>
-
-            <div className="space-y-2 text-sm text-sky-900/70 mb-12">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4" />
-                {format(new Date(ticket.event_datetime), "PPp")}
+            {ticket.event_location && (
+              <div className="flex items-center text-gray-600 mb-2">
+                <span className="text-sm">{ticket.event_location}</span>
               </div>
-
-              <div className="flex items-center gap-2">
-                <MapPinIcon className="h-4 w-4" />
-                {ticket.event_location}
+            )}
+            {ticket.event_datetime && (
+              <div className="flex items-center text-gray-600 mb-3">
+                <span className="text-sm">
+                  {formatEventDate(ticket.event_datetime)}
+                </span>
               </div>
+            )}
+          </div>
 
-              {(ticket.section || ticket.row || ticket.seat) && (
-                <div className="flex items-center gap-2">
-                  <TicketIcon className="h-4 w-4" />
-                  {[
-                    ticket.section && `Section ${ticket.section}`,
-                    ticket.row && `Row ${ticket.row}`,
-                    ticket.seat && `Seat ${ticket.seat}`,
-                  ]
-                    .filter(Boolean)
-                    .join(", ")}
-                </div>
+          {/* Seating Information */}
+          {(ticket.section || ticket.row || ticket.seat) && (
+            <div className="flex flex-wrap gap-2">
+              {ticket.section && (
+                <span className="px-3 py-1 bg-sky-50 text-sky-700 text-xs font-medium rounded-full border border-sky-200">
+                  Section {ticket.section}
+                </span>
+              )}
+              {ticket.row && (
+                <span className="px-3 py-1 bg-sky-100 text-sky-800 text-xs font-medium rounded-full border border-sky-300">
+                  Row {ticket.row}
+                </span>
+              )}
+              {ticket.seat && (
+                <span className="px-3 py-1 bg-sky-200 text-sky-900 text-xs font-medium rounded-full border border-sky-400">
+                  Seat {ticket.seat}
+                </span>
               )}
             </div>
+          )}
+        </div>
 
-            <div className="text-sm text-gray-500 mt-auto">
-              Created {dayjs(ticket.created).fromNow()}
+        {/* Price and Actions */}
+        <div className="flex flex-col justify-between items-end">
+          <div className="text-right">
+            <div className="text-2xl font-bold text-gray-900">
+              ${typeof price === "number" ? price.toFixed(2) : price}
             </div>
-          </Link>
-
-          <div className="absolute bottom-4 right-4">
-            <DropdownMenu onOpenChange={setIsDropdownOpen}>
-              <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100">
-                <MoreVertical className="h-5 w-5 text-gray-500" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => {
-                    ticket.isPaid
-                      ? (window.location.href = route("tickets.download", {
-                          ticket: ticket.ticket_id,
-                        }))
-                      : (window.location.href = route("payment.checkout", {
-                          ticket: ticket.ticket_id,
-                        }));
-                  }}
-                >
-                  {ticket.isPaid ? (
-                    <>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Purchase
-                    </>
-                  )}
-                </DropdownMenuItem>
-
-                {ticket.isPaid && (
-                  <>
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        try {
-                          await navigator.share({
-                            title: `Ticket for ${ticket.event_name}`,
-                            text: `Check out my ticket for ${ticket.event_name} at ${ticket.event_location}`,
-                            url: route("tickets.preview", {
-                              ticket: ticket.ticket_id,
-                            }),
-                          });
-                        } catch (error) {
-                          // Only copy link if Web Share API is not supported
-                          if (error.name === "NotSupportedError") {
-                            navigator.clipboard.writeText(
-                              route("tickets.preview", {
-                                ticket: ticket.ticket_id,
-                              })
-                            );
-                            toast({
-                              title: "Link copied!",
-                              description:
-                                "The ticket link has been copied to your clipboard.",
-                              className:
-                                "bg-green-500 border-green-600 text-white",
-                            });
-                          }
-                        }
-                      }}
-                    >
-                      <Share2 className="mr-2 h-4 w-4" />
-                      Share ticket
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          route("tickets.preview", {
-                            ticket: ticket.ticket_id,
-                          })
-                        );
-                        toast({
-                          title: "Link copied!",
-                          description:
-                            "The ticket link has been copied to your clipboard.",
-                          className: "bg-green-500 border-green-600 text-white",
-                        });
-                      }}
-                    >
-                      <LinkIcon className="mr-2 h-4 w-4" />
-                      Copy link
-                    </DropdownMenuItem>
-                  </>
-                )}
-
-                {showDelete && (
-                  <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600 cursor-pointer"
-                    onClick={() => onDeleteClick(ticket.ticket_id)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="text-xs text-gray-500">per ticket</div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+
+          {/* Actions or View Indicator */}
+          <div className="mt-4">
+            {actions ? (
+              actions
+            ) : showViewIndicator ? (
+              <div className="flex items-center text-sky-600 group-hover:text-sky-800">
+                <span className="text-sm font-medium mr-2 hidden sm:inline">
+                  View Ticket
+                </span>
+                <ChevronRight className="h-5 w-5 transform transition-transform duration-200 group-hover:translate-x-1" />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </CardContent>
+  );
+
+  return (
+    <Card className={cardClasses} onClick={onClick}>
+      {content}
+    </Card>
   );
 }
