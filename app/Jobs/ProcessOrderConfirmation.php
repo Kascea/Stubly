@@ -34,8 +34,8 @@ class ProcessOrderConfirmation implements ShouldQueue
      */
     public function handle(): void
     {
-        // Generate PDF for the order
-        $pdfPath = $this->generateOrderPdf();
+        // Use existing PDF path or generate a new one
+        $pdfPath = $this->order->pdf_path ?: $this->generateOrderPdf();
 
         // Send the order confirmation email with the PDF attached
         Mail::to($this->customerEmail)

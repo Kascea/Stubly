@@ -158,7 +158,7 @@ class CartController extends Controller
 
         try {
             $ticketCount = $cart->tickets->count();
-            $priceId = 'price_1QzqEhF2EeTXNFyLXKCFBWDw';
+            $priceId = 'price_1RapihFTh1BMLS9znEdTgeow';
 
             // Retrieve price from Stripe to ensure we have the correct amount
             $price = \Stripe\Price::retrieve($priceId);
@@ -285,8 +285,7 @@ class CartController extends Controller
                     // Replace the Mail::to line with:
                     ProcessOrderConfirmation::dispatch($order, $stripeSession->customer_details->email, $tickets);
 
-                    // Mark cart as completed and delete
-                    $cart->update(['status' => 'completed']);
+                    // Delete the cart
                     $cart->delete();
 
                     // At the end of successful checkout, clear the session ID

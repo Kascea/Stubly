@@ -119,14 +119,18 @@ export default function CheckoutSuccess({ orderDetails, auth }) {
                       </Button>
                     </Link>
 
-                    <Link href={route("tickets.index")}>
-                      <Button
-                        variant="outline"
-                        className="w-full border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-colors"
-                      >
-                        <Ticket className="mr-2 h-4 w-4" /> View My Tickets
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      className="w-full border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-colors"
+                      onClick={() =>
+                        window.open(
+                          route("orders.printout", orderDetails.id),
+                          "_blank"
+                        )
+                      }
+                    >
+                      <ReceiptText className="mr-2 h-4 w-4" /> View My PDF
+                    </Button>
                   </>
                 ) : (
                   <Link href="/">
