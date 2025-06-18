@@ -39,6 +39,6 @@ class SupportController extends Controller
 
         // Using Inertia's redirect method with flash message
         return redirect()->route('support.index')
-            ->with('success', 'Your refund request has been sent. We\'ll get back to you shortly.');
+            ->with('success', 'Your refund request has been sent. We\'ll get back to you as soon as possible.');
     }
 }
