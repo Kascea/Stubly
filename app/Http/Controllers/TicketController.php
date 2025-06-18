@@ -275,13 +275,14 @@ class TicketController extends Controller
             ->header('Content-Disposition', 'inline; filename="ticket_' . $ticket->ticket_id . '.' . $extension . '"');
     }
 
-    public function canvas()
+    public function canvas(Ticket $ticket)
     {
         // Load categories with their templates
         $categories = Category::with('templates')->get();
 
         return Inertia::render('Canvas', [
             'categories' => $categories,
+
             'auth' => [
                 'user' => auth()->user()
             ]
