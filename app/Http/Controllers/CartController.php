@@ -24,6 +24,33 @@ use App\Jobs\ProcessOrderConfirmation;
 class CartController extends Controller
 {
     /**
+     * Get Stripe price ID based on ticket type
+     */
+    private function getStripePriceIdForTicketType(string $type): string
+    {
+        return match ($type) {
+            'physical' => env('STRIPE_PHYSICAL_PRICE_ID'),
+            'digital' => env('STRIPE_DIGITAL_PRICE_ID'),
+            default => throw new \Exception("Invalid ticket type: $type"),
+        };
+    }
+
+    /**
+     * Determine ticket type (physical or digital)
+     * For now, all tickets are digital. In the future, this can be expanded
+     * to check ticket properties or user preferences.
+     */
+    private function getTicketType(): string
+    {
+        // For now, default to digital
+        // In the future, you could:
+        // - Check ticket template properties
+        // - Check user preferences during ticket creation
+        // - Add a field to the tickets table
+        return 'digital';
+    }
+
+    /**
      * Get the current cart for the user or session
      */
     protected function getCart()
@@ -158,7 +185,10 @@ class CartController extends Controller
 
         try {
             $ticketCount = $cart->tickets->count();
-            $priceId = 'price_1RapihFTh1BMLS9znEdTgeow';
+
+            // Get ticket type and corresponding price ID
+            $ticketType = $this->getTicketType();
+            $priceId = $this->getStripePriceIdForTicketType($ticketType);
 
             // Retrieve price from Stripe to ensure we have the correct amount
             $price = \Stripe\Price::retrieve($priceId);
@@ -180,6 +210,7 @@ class CartController extends Controller
                 ],
                 'metadata' => [
                     'cart_id' => $cart->cart_id,
+                    'ticket_type' => $ticketType,
                 ],
             ]);
 
