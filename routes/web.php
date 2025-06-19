@@ -61,8 +61,6 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
   Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
   Route::get('/orders/{order}/printout', [OrderController::class, 'viewPdf'])->name('orders.printout');
-  Route::post('/orders/{order}/resend-confirmation', [OrderController::class, 'resendConfirmation'])
-    ->name('orders.resend-confirmation');
 });
 
 // Routes that work for both guests and authenticated users
@@ -75,9 +73,5 @@ Route::prefix('support')->group(function () {
   Route::get('/refund', [SupportController::class, 'refundForm'])->name('support.refund.form');
   Route::post('/refund', [SupportController::class, 'submitRefund'])->name('support.refund.submit');
 });
-
-// Only for testing - remove before deploying to production
-Route::get('/test/resend-order/{order}', [OrderController::class, 'resendConfirmation'])
-  ->name('orders.resend-confirmation');
 
 require __DIR__ . '/auth.php';
