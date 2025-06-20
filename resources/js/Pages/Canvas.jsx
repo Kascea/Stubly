@@ -7,9 +7,6 @@ import { Button } from "@/Components/ui/button";
 import {
   CheckCircle2,
   Loader2,
-  TicketPlus,
-  Eye,
-  Edit,
   ShoppingCart,
 } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
@@ -18,9 +15,10 @@ import axios from "axios";
 
 export default function Canvas({ categories, ticket = null, auth }) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [status, setStatus] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [notification, setNotification] = useState({
+    type: null, // 'success' or 'error'
+    message: "",
+  });
 
   const [ticketInfo, setTicketInfo] = useState(
     ticket
@@ -38,7 +36,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
           filename: ticket.background_filename,
           template: ticket.template,
           template_id: ticket.template_id,
-          isPaid: ticket.isPaid,
+          accentColor: ticket.accent_color,
         }
       : {
           ticketId: null,
@@ -54,8 +52,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
           filename: null,
           template: null,
           template_id: null,
-          isPaid: false,
-          dividerColor: "#0c4a6e",
+          accentColor: "#0c4a6e",
         },
   );
   const ticketRef = useRef(null);
@@ -63,8 +60,7 @@ export default function Canvas({ categories, ticket = null, auth }) {
   const addTicketToCart = async () => {
     if (ticketRef.current) {
       setIsGenerating(true);
-      setStatus(null);
-      setErrorMessage("");
+      setNotification({ type: null, message: "" });
 
       // Capture the screenshot
       try {
@@ -112,18 +108,20 @@ export default function Canvas({ categories, ticket = null, auth }) {
           ticket_id: response.data.ticket.ticket_id,
         });
 
-        setStatus("success");
-        setSuccessMessage("Ticket added to cart successfully!");
+        setNotification({
+          type: "success",
+          message: "Ticket added to cart successfully!",
+        });
 
         // Redirect to the cart page using Inertia navigation
         router.visit(route("cart.index"));
       } catch (error) {
         console.error("Error generating ticket:", error);
-        setStatus("error");
-        setErrorMessage(
-          error.response?.data?.message ||
+        setNotification({
+          type: "error",
+          message: error.response?.data?.message ||
             "An error occurred while creating your ticket.",
-        );
+        });
       } finally {
         setIsGenerating(false);
       }
@@ -148,17 +146,17 @@ export default function Canvas({ categories, ticket = null, auth }) {
         {/* Ticket Visualizer Container */}
         <div className="flex-1 bg-gradient-to-br from-sky-50 to-orange-50 flex flex-col items-center justify-center relative">
           {/* Status Messages */}
-          {status && (
+          {notification.type && (
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-20">
-              {status === "success" && (
+              {notification.type === "success" && (
                 <Alert className="bg-green-50 border-green-200 text-green-800 shadow-md">
-                  <AlertDescription>{successMessage}</AlertDescription>
+                  <AlertDescription>{notification.message}</AlertDescription>
                 </Alert>
               )}
 
-              {status === "error" && (
+              {notification.type === "error" && (
                 <Alert className="bg-red-50 border-red-200 text-red-800 shadow-md">
-                  <AlertDescription>{errorMessage}</AlertDescription>
+                  <AlertDescription>{notification.message}</AlertDescription>
                 </Alert>
               )}
             </div>

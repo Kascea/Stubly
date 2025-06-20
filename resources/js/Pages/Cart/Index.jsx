@@ -11,14 +11,6 @@ import {
   CardTitle,
 } from "@/Components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/Components/ui/table";
-import {
   ShoppingCart,
   Trash2,
   Plus,
@@ -45,49 +37,6 @@ export default function CartIndex({ cart: initialCart, auth }) {
   const subtotal = hasItems
     ? cart.items.reduce((total, item) => total + 2.99, 0)
     : 0;
-
-  const updateQuantity = async (item, newQuantity) => {
-    if (newQuantity < 1) {
-      removeItem(item);
-      return;
-    }
-
-    setLoadingStates((prev) => ({
-      ...prev,
-      items: { ...prev.items, [item.id]: true },
-    }));
-
-    try {
-      await axios.patch(route("cart.update", item.id), {
-        quantity: newQuantity,
-      });
-
-      setCart((prevCart) => ({
-        ...prevCart,
-        items: prevCart.items.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: newQuantity }
-            : cartItem
-        ),
-      }));
-
-      toast({
-        title: "Cart updated",
-        description: "Item quantity has been updated",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update item quantity",
-        variant: "error",
-      });
-    } finally {
-      setLoadingStates((prev) => ({
-        ...prev,
-        items: { ...prev.items, [item.id]: false },
-      }));
-    }
-  };
 
   const deleteTicket = async (item) => {
     setLoadingStates((prev) => ({
@@ -154,21 +103,6 @@ export default function CartIndex({ cart: initialCart, auth }) {
     }
   };
 
-  const createSimilarTicket = (ticket) => {
-    router.get(route("canvas"), {
-      template: ticket.template_id,
-      prefill: {
-        eventName: ticket.event_name,
-        eventLocation: ticket.event_location,
-        date: new Date(ticket.event_datetime).toISOString().split("T")[0],
-        time: new Date(ticket.event_datetime).toTimeString().split(" ")[0],
-        section: ticket.section,
-        row: ticket.row,
-        seat: ticket.seat,
-      },
-    });
-  };
-
   return (
     <AppLayout auth={auth}>
       <Head title="Your Cart" />
@@ -195,7 +129,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
                 </div>
                 <Button
                   variant="outline"
-                  className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50/50 transition-colors"
                   onClick={clearCart}
                   disabled={loadingStates.clearCart}
                 >
@@ -230,30 +164,31 @@ export default function CartIndex({ cart: initialCart, auth }) {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {cart.items.map((item) => (
+                {cart.items.map((ticket) => (
                   <TicketCard
-                    key={item.id}
-                    ticket={item}
+                    key={ticket.id}
+                    ticket={ticket}
                     price="2.99"
                     actions={
                       <div className="flex space-x-2">
+                        <Link href={route("tickets.duplicate", ticket.id)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Duplicate
+                          </Button>
+                        </Link>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-sky-200 text-sky-900 hover:text-sky-800 hover:bg-sky-50 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
-                          onClick={() => createSimilarTicket(item)}
+                          onClick={() => deleteTicket(ticket)}
+                          disabled={loadingStates.items[ticket.id]}
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50/50 border-red-200 hover:border-red-300 transition-colors w-9"
                         >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Create Similar
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteTicket(item)}
-                          disabled={loadingStates.items[item.id]}
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md border border-red-200 hover:border-red-300"
-                        >
-                          {loadingStates.items[item.id] ? (
+                          {loadingStates.items[ticket.id] ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <X className="h-4 w-4" />
@@ -283,8 +218,8 @@ export default function CartIndex({ cart: initialCart, auth }) {
                 <div className="flex space-x-2">
                   <Link href={route("canvas")}>
                     <Button
-                      variant="outline"
-                      className="border-sky-200 text-sky-700 hover:text-sky-900 hover:bg-sky-50 transition-all duration-300 hover:scale-105"
+                      variant="ghost"
+                      className="text-sky-700 hover:text-sky-900 hover:bg-sky-100/50"
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Create Another
@@ -292,7 +227,10 @@ export default function CartIndex({ cart: initialCart, auth }) {
                   </Link>
 
                   <Link href={route("cart.checkout")}>
-                    <Button className="bg-sky-800 hover:bg-sky-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                    <Button
+                      size="lg"
+                      className="bg-sky-800 hover:bg-sky-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                    >
                       Checkout <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>

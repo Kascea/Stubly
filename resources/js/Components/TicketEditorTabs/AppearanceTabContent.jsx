@@ -118,7 +118,7 @@ export default function AppearanceTabContent({
             </div>
             <Input
               name="dividerColor"
-              value={ticketInfo.dividerColor || "#0c4a6e"}
+              value={ticketInfo.accentColor || "#0c4a6e"}
               onChange={handleChange}
               className="flex-1 border-gray-300 focus:ring-orange-500 focus:border-orange-500"
             />

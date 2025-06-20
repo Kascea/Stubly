@@ -275,17 +275,39 @@ class TicketController extends Controller
             ->header('Content-Disposition', 'inline; filename="ticket_' . $ticket->ticket_id . '.' . $extension . '"');
     }
 
-    public function canvas(Ticket $ticket)
+    public function canvas(Ticket $ticket = null)
     {
         // Load categories with their templates
         $categories = Category::with('templates')->get();
 
         return Inertia::render('Canvas', [
             'categories' => $categories,
-
+            'ticket' => $ticket,
             'auth' => [
                 'user' => auth()->user()
             ]
         ]);
+    }
+
+    public function duplicate(Ticket $ticket)
+    {
+        // Check if user has access to this ticket
+        if (auth()->check()) {
+            // For authenticated users, check if they own the ticket or it's in their orders
+            $userOwnsTicket = $ticket->user_id === auth()->id() ||
+                $ticket->order?->user_id === auth()->id();
+
+            if (!$userOwnsTicket) {
+                abort(403, 'You do not have permission to duplicate this ticket.');
+            }
+        } else {
+            // For guests, check if the session matches
+            if ($ticket->session_id !== session()->getId()) {
+                abort(403, 'You do not have permission to duplicate this ticket.');
+            }
+        }
+
+        // Redirect to canvas with the ticket data for duplication
+        return redirect()->route('canvas.duplicate', ['ticket' => $ticket->ticket_id]);
     }
 }

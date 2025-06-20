@@ -17,6 +17,7 @@ use App\Mail\RefundRequest;
 
 // Public routes
 Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
+Route::get('/canvas/{ticket:ticket_id}', [TicketController::class, 'canvas'])->name('canvas.duplicate');
 
 // Public ticket routes
 Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
@@ -24,6 +25,9 @@ Route::get('/tickets/{ticket:ticket_id}', [TicketController::class, 'viewTicket'
 Route::delete('/tickets/{ticket:ticket_id}', [TicketController::class, 'destroy'])
   ->middleware(VerifyTicketAccess::class)
   ->name('tickets.destroy');
+Route::get('/tickets/{ticket:ticket_id}/duplicate', [TicketController::class, 'duplicate'])
+  ->middleware(VerifyTicketAccess::class)
+  ->name('tickets.duplicate');
 
 // Cart and checkout routes (accessible to guests)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -43,7 +47,6 @@ Route::middleware(['auth'])->group(function () {
   // Authenticated ticket routes
   Route::prefix('tickets')->name('tickets.')->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');
-    Route::get('/duplicate/{ticket:ticket_id}', [TicketController::class, 'duplicate'])->name('duplicate');
     Route::get('/preview/{ticket:ticket_id}', [TicketController::class, 'preview'])->name('preview');
   });
 

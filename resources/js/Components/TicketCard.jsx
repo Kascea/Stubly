@@ -36,9 +36,9 @@ export default function TicketCard({
     <CardContent className="p-6">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Ticket Image */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 w-full lg:w-24">
           <div
-            className={`w-full lg:w-32 h-48 lg:h-20 bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg overflow-hidden ${
+            className={`aspect-[3/7] bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg overflow-hidden ${
               onClick
                 ? "group-hover:scale-105 transition-transform duration-300"
                 : ""
@@ -48,7 +48,21 @@ export default function TicketCard({
               <img
                 src={ticket.generated_ticket_url}
                 alt={`Ticket for ${ticket.event_name}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover select-none"
+                style={{
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                  MozUserSelect: "none",
+                  msUserSelect: "none",
+                  userDrag: "none",
+                  WebkitUserDrag: "none",
+                  KhtmlUserDrag: "none",
+                  MozUserDrag: "none",
+                  OUserDrag: "none",
+                }}
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
                 onError={(e) => {
                   e.target.style.display = "none";
                   e.target.parentElement.innerHTML =
