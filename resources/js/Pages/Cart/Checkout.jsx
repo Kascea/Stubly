@@ -84,7 +84,7 @@ export default function CartCheckout({
                 <CardContent className="space-y-4">
                   {checkoutData.items?.map((item) => (
                     <div
-                      key={item.id}
+                      key={item.ticket_id}
                       className="flex justify-between py-2 border-b"
                     >
                       <div className="space-y-1">

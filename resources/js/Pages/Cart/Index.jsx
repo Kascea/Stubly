@@ -11,6 +11,16 @@ import {
   CardTitle,
 } from "@/Components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/Components/ui/dialog";
+import { Input } from "@/Components/ui/input";
+import { Label } from "@/Components/ui/label";
+import {
   ShoppingCart,
   Trash2,
   Plus,
@@ -18,9 +28,9 @@ import {
   ArrowRight,
   X,
   Loader2,
+  Copy,
 } from "lucide-react";
 import { router } from "@inertiajs/react";
-import { toast } from "@/Components/ui/toaster";
 import axios from "axios";
 import TicketCard from "@/Components/TicketCard";
 
@@ -30,6 +40,15 @@ export default function CartIndex({ cart: initialCart, auth }) {
     items: {},
     clearCart: false,
   });
+  const [duplicateDialog, setDuplicateDialog] = useState({
+    isOpen: false,
+    ticket: null,
+    section: "",
+    row: "",
+    seat: "",
+    error: null,
+    isLoading: false,
+  });
   const { flash = {} } = usePage().props;
   const hasItems = cart.items && cart.items.length > 0;
 
@@ -38,38 +57,104 @@ export default function CartIndex({ cart: initialCart, auth }) {
     ? cart.items.reduce((total, item) => total + 2.99, 0)
     : 0;
 
-  const deleteTicket = async (item) => {
-    setLoadingStates((prev) => ({
-      ...prev,
-      items: { ...prev.items, [item.id]: true },
-    }));
+  const openDuplicateDialog = (ticket) => {
+    setDuplicateDialog({
+      isOpen: true,
+      ticket: ticket,
+      section: ticket.section || "",
+      row: ticket.row || "",
+      seat: ticket.seat || "",
+      error: null,
+      isLoading: false,
+    });
+  };
+
+  const closeDuplicateDialog = () => {
+    setDuplicateDialog({
+      isOpen: false,
+      ticket: null,
+      section: "",
+      row: "",
+      seat: "",
+      error: null,
+      isLoading: false,
+    });
+  };
+
+  const handleDuplicateSubmit = async () => {
+    if (!duplicateDialog.ticket) return;
+
+    setDuplicateDialog((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      await axios.delete(route("tickets.destroy", item.id));
+      const response = await axios.post(route("tickets.duplicate.create"), {
+        original_ticket_id: duplicateDialog.ticket.ticket_id,
+        section: duplicateDialog.section,
+        row: duplicateDialog.row,
+        seat: duplicateDialog.seat,
+      });
+
+      // Add the new ticket to cart
+      await axios.post(route("cart.add"), {
+        ticket_id: response.data.ticket.ticket_id,
+      });
 
       setCart((prevCart) => ({
         ...prevCart,
-        items: prevCart.items.filter((cartItem) => cartItem.id !== item.id),
-        count: prevCart.count - 1,
+        items: [...prevCart.items, response.data.ticket],
+        count: prevCart.count + 1,
       }));
 
       router.reload({ only: ["cart"] });
 
-      toast({
-        title: "Ticket removed",
-        description: "Ticket has been removed from your cart",
-      });
+      closeDuplicateDialog();
+    } catch (error) {
+      console.error("Error duplicating ticket:", error);
+
+      let errorMessage = "Failed to duplicate ticket. Please try again.";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 403) {
+        errorMessage = "You don't have permission to duplicate this ticket.";
+      } else if (error.response?.status === 404) {
+        errorMessage = "Original ticket not found.";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      }
+
+      setDuplicateDialog((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+      }));
+    }
+  };
+
+  const deleteTicket = async (item) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      items: { ...prev.items, [item.ticket_id]: true },
+    }));
+
+    try {
+      await axios.delete(route("tickets.destroy", item.ticket_id));
+
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.filter(
+          (cartItem) => cartItem.ticket_id !== item.ticket_id
+        ),
+        count: prevCart.count - 1,
+      }));
+
+      router.reload({ only: ["cart"] });
     } catch (error) {
       console.error("Error deleting ticket:", error);
-      toast({
-        title: "Error",
-        description: "Failed to remove ticket",
-        variant: "error",
-      });
     } finally {
       setLoadingStates((prev) => ({
         ...prev,
-        items: { ...prev.items, [item.id]: false },
+        items: { ...prev.items, [item.ticket_id]: false },
       }));
     }
   };
@@ -87,17 +172,8 @@ export default function CartIndex({ cart: initialCart, auth }) {
       }));
 
       router.reload({ only: ["cart"] });
-
-      toast({
-        title: "Cart cleared",
-        description: "All items have been removed from your cart",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to clear cart",
-        variant: "error",
-      });
+      console.error("Error clearing cart:", error);
     } finally {
       setLoadingStates((prev) => ({ ...prev, clearCart: false }));
     }
@@ -166,29 +242,28 @@ export default function CartIndex({ cart: initialCart, auth }) {
               <CardContent className="space-y-4">
                 {cart.items.map((ticket) => (
                   <TicketCard
-                    key={ticket.id}
+                    key={ticket.ticket_id}
                     ticket={ticket}
                     price="2.99"
                     actions={
                       <div className="flex space-x-2">
-                        <Link href={route("tickets.duplicate", ticket.id)}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Duplicate
-                          </Button>
-                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDuplicateDialog(ticket)}
+                          className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                        >
+                          <Copy className="h-4 w-4 mr-1" />
+                          Duplicate
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => deleteTicket(ticket)}
-                          disabled={loadingStates.items[ticket.id]}
+                          disabled={loadingStates.items[ticket.ticket_id]}
                           className="text-red-500 hover:text-red-600 hover:bg-red-50/50 border-red-200 hover:border-red-300 transition-colors w-9"
                         >
-                          {loadingStates.items[ticket.id] ? (
+                          {loadingStates.items[ticket.ticket_id] ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <X className="h-4 w-4" />
@@ -276,6 +351,137 @@ export default function CartIndex({ cart: initialCart, auth }) {
           )}
         </div>
       </div>
+
+      {/* Duplicate Dialog */}
+      <Dialog open={duplicateDialog.isOpen} onOpenChange={closeDuplicateDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Copy className="h-5 w-5 mr-2 text-sky-700" />
+              Duplicate Ticket
+            </DialogTitle>
+            <DialogDescription>
+              Create a copy of this ticket with custom seating information.
+            </DialogDescription>
+          </DialogHeader>
+
+          {duplicateDialog.ticket && (
+            <div className="space-y-4">
+              <div className="bg-sky-50 p-3 rounded-lg border border-sky-200">
+                <p className="text-sm text-sky-800 font-medium">
+                  {duplicateDialog.ticket.event_name}
+                </p>
+                <p className="text-xs text-sky-600">
+                  {duplicateDialog.ticket.event_location}
+                </p>
+              </div>
+
+              {/* Error Message */}
+              {duplicateDialog.error && (
+                <div className="bg-red-50 p-3 rounded-lg border border-red-200">
+                  <p className="text-sm text-red-800">
+                    {duplicateDialog.error}
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="section" className="text-sm font-medium">
+                    Section
+                  </Label>
+                  <Input
+                    id="section"
+                    value={duplicateDialog.section}
+                    onChange={(e) =>
+                      setDuplicateDialog((prev) => ({
+                        ...prev,
+                        section: e.target.value,
+                        error: null, // Clear error when user starts typing
+                      }))
+                    }
+                    placeholder="e.g. 101"
+                    className="mt-1"
+                    disabled={duplicateDialog.isLoading}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="row" className="text-sm font-medium">
+                    Row
+                  </Label>
+                  <Input
+                    id="row"
+                    value={duplicateDialog.row}
+                    onChange={(e) =>
+                      setDuplicateDialog((prev) => ({
+                        ...prev,
+                        row: e.target.value,
+                        error: null, // Clear error when user starts typing
+                      }))
+                    }
+                    placeholder="e.g. A"
+                    className="mt-1"
+                    disabled={duplicateDialog.isLoading}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="seat" className="text-sm font-medium">
+                    Seat
+                  </Label>
+                  <Input
+                    id="seat"
+                    value={duplicateDialog.seat}
+                    onChange={(e) =>
+                      setDuplicateDialog((prev) => ({
+                        ...prev,
+                        seat: e.target.value,
+                        error: null, // Clear error when user starts typing
+                      }))
+                    }
+                    placeholder="e.g. 15"
+                    className="mt-1"
+                    disabled={duplicateDialog.isLoading}
+                  />
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-500">
+                All other ticket details will be copied from the original
+                ticket.
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeDuplicateDialog}
+              disabled={duplicateDialog.isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDuplicateSubmit}
+              disabled={duplicateDialog.isLoading}
+              className="bg-sky-800 hover:bg-sky-700"
+            >
+              {duplicateDialog.isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Duplicating...
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Duplicate Ticket
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

@@ -33,7 +33,6 @@ class Ticket extends Model
     'template_id',
     'ticketable_id',
     'ticketable_type',
-    'background_image_path',
   ];
 
   protected $casts = [
@@ -124,9 +123,7 @@ class Ticket extends Model
 
   public function getBackgroundUrlAttribute()
   {
-    if (!$this->background_image_path)
-      return null;
-    return config('filesystems.disks.r2-perm.url') . '/' . $this->background_image_path;
+    return null; // Background images are stored in r2-temp with a standard path structure
   }
 
   /**

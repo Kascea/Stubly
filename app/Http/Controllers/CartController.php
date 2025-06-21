@@ -102,7 +102,7 @@ class CartController extends Controller
         $cartData = [
             'items' => $cart ? $cart->tickets()->with(['template', 'user'])->get()->map(function ($ticket) {
                 return [
-                    'id' => $ticket->ticket_id,
+                    'ticket_id' => $ticket->ticket_id,
                     'event_name' => $ticket->event_name,
                     'event_location' => $ticket->event_location,
                     'event_datetime' => $ticket->event_datetime,
@@ -221,7 +221,7 @@ class CartController extends Controller
                 'checkoutData' => [
                     'items' => $cart->tickets->map(function ($ticket) use ($unitPrice) {
                         return [
-                            'id' => $ticket->ticket_id,
+                            'ticket_id' => $ticket->ticket_id,
                             'price' => $unitPrice,
                             'ticket' => [
                                 'event_name' => $ticket->event_name,

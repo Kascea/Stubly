@@ -244,7 +244,7 @@ class TicketController extends Controller
             ->header('Content-Disposition', 'inline; filename="ticket_' . $ticket->ticket_id . '.' . $extension . '"');
     }
 
-    public function canvas(Ticket $ticket = null)
+    public function canvas(?Ticket $ticket = null)
     {
         // Load categories with their templates
         $categories = Category::with('templates')->get();
@@ -258,25 +258,145 @@ class TicketController extends Controller
         ]);
     }
 
-    public function duplicate(Ticket $ticket)
+    public function createDuplicate(Request $request)
     {
-        // Check if user has access to this ticket
-        if (auth()->check()) {
-            // For authenticated users, check if they own the ticket or it's in their orders
-            $userOwnsTicket = $ticket->user_id === auth()->id() ||
-                $ticket->order?->user_id === auth()->id();
+        try {
+            $request->validate([
+                'original_ticket_id' => 'required|string|exists:tickets,ticket_id',
+                'section' => 'nullable|string|max:50',
+                'row' => 'nullable|string|max:50',
+                'seat' => 'nullable|string|max:50',
+            ]);
 
-            if (!$userOwnsTicket) {
-                abort(403, 'You do not have permission to duplicate this ticket.');
+            // Find the original ticket
+            $originalTicket = Ticket::where('ticket_id', $request->original_ticket_id)->firstOrFail();
+
+            // Check if user has access to the original ticket
+            if (auth()->check()) {
+                $userOwnsTicket = $originalTicket->user_id === auth()->id() ||
+                    $originalTicket->order?->user_id === auth()->id();
+
+                if (!$userOwnsTicket) {
+                    abort(403, 'You do not have permission to duplicate this ticket.');
+                }
+            } else {
+                if ($originalTicket->session_id !== session()->getId()) {
+                    abort(403, 'You do not have permission to duplicate this ticket.');
+                }
             }
-        } else {
-            // For guests, check if the session matches
-            if ($ticket->session_id !== session()->getId()) {
-                abort(403, 'You do not have permission to duplicate this ticket.');
+
+            // Start database transaction
+            DB::beginTransaction();
+
+            // Load the original ticket's specialized data
+            $originalTicket->load('ticketable', 'template');
+
+            // Create a duplicate of the specialized ticket
+            $duplicateSpecialized = null;
+            if ($originalTicket->ticketable) {
+                $specializedData = $originalTicket->ticketable->toArray();
+                unset($specializedData['id'], $specializedData['created_at'], $specializedData['updated_at']);
+
+                $duplicateSpecialized = $originalTicket->ticketable->replicate();
+                $duplicateSpecialized->save();
             }
+
+            // Create the new ticket data
+            $newTicketData = [
+                'ticket_id' => Str::uuid()->toString(),
+                'user_id' => auth()->check() ? auth()->id() : null,
+                'session_id' => !auth()->check() ? Session::getId() : null,
+                'template_id' => $originalTicket->template_id,
+                'event_name' => $originalTicket->event_name,
+                'event_location' => $originalTicket->event_location,
+                'event_datetime' => $originalTicket->event_datetime,
+                'section' => $request->section,
+                'row' => $request->row,
+                'seat' => $request->seat,
+                'ticketable_id' => $duplicateSpecialized?->id,
+                'ticketable_type' => $originalTicket->ticketable_type,
+            ];
+
+            // Create the new ticket
+            $newTicket = Ticket::create($newTicketData);
+
+            // Copy the R2 assets
+            $this->copyR2Assets($originalTicket, $newTicket);
+
+            // Commit the transaction
+            DB::commit();
+
+            // Load the new ticket with its relationships for the response
+            $newTicket->load('ticketable', 'template');
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Ticket duplicated successfully!',
+                'ticket' => $newTicket
+            ]);
+
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of error
+            DB::rollBack();
+
+            Log::error('Ticket duplication failed', [
+                'message' => $e->getMessage(),
+                'original_ticket_id' => $request->original_ticket_id ?? null,
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
+    }
 
-        // Redirect to canvas with the ticket data for duplication
-        return redirect()->route('canvas.duplicate', ['ticket' => $ticket->ticket_id]);
+    /**
+     * Copy R2 assets from original ticket to new ticket
+     */
+    protected function copyR2Assets(Ticket $originalTicket, Ticket $newTicket): void
+    {
+        try {
+            // Copy the main generated ticket image
+            $originalPath = $originalTicket->generated_ticket_path;
+            $newPath = $newTicket->generated_ticket_path;
+
+            if (Storage::disk('r2-perm')->exists($originalPath)) {
+                $imageContent = Storage::disk('r2-perm')->get($originalPath);
+                Storage::disk('r2-perm')->put($newPath, $imageContent);
+            }
+
+            // Copy background image if it exists
+            $originalBgPath = $originalTicket->ticket_id . '/background-image.webp';
+            $newBgPath = $newTicket->ticket_id . '/background-image.webp';
+
+            if (Storage::disk('r2-temp')->exists($originalBgPath)) {
+                $bgContent = Storage::disk('r2-temp')->get($originalBgPath);
+                Storage::disk('r2-temp')->put($newBgPath, $bgContent);
+            }
+
+            // Copy team logos if they exist (for sports tickets)
+            if ($originalTicket->template && $originalTicket->template->category_id === 'sports') {
+                $logoTypes = ['home', 'away'];
+                foreach ($logoTypes as $logoType) {
+                    $originalLogoPath = $originalTicket->ticket_id . '/' . $logoType . '-team-logo.webp';
+                    $newLogoPath = $newTicket->ticket_id . '/' . $logoType . '-team-logo.webp';
+
+                    if (Storage::disk('r2-temp')->exists($originalLogoPath)) {
+                        $logoContent = Storage::disk('r2-temp')->get($originalLogoPath);
+                        Storage::disk('r2-temp')->put($newLogoPath, $logoContent);
+                    }
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Failed to copy R2 assets during ticket duplication', [
+                'original_ticket_id' => $originalTicket->ticket_id,
+                'new_ticket_id' => $newTicket->ticket_id,
+                'message' => $e->getMessage(),
+            ]);
+            // Don't throw here as the ticket creation was successful
+            // The assets copy failure is logged but doesn't fail the entire operation
+        }
     }
 }

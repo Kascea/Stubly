@@ -25,9 +25,8 @@ Route::get('/tickets/{ticket:ticket_id}', [TicketController::class, 'viewTicket'
 Route::delete('/tickets/{ticket:ticket_id}', [TicketController::class, 'destroy'])
   ->middleware(VerifyTicketAccess::class)
   ->name('tickets.destroy');
-Route::get('/tickets/{ticket:ticket_id}/duplicate', [TicketController::class, 'duplicate'])
-  ->middleware(VerifyTicketAccess::class)
-  ->name('tickets.duplicate');
+Route::post('/tickets/duplicate', [TicketController::class, 'createDuplicate'])
+  ->name('tickets.duplicate.create');
 
 // Cart and checkout routes (accessible to guests)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
