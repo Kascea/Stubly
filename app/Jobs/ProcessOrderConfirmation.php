@@ -56,8 +56,8 @@ class ProcessOrderConfirmation implements ShouldQueue
 
         // Retrieve ticket images from R2 and convert to base64 for PDF embedding
         foreach ($this->tickets as $ticket) {
-            if ($ticket->generated_ticket_path && Storage::disk('r2')->exists($ticket->generated_ticket_path)) {
-                $imageContents = Storage::disk('r2')->get($ticket->generated_ticket_path);
+            if (Storage::disk('r2-perm')->exists($ticket->generated_ticket_path)) {
+                $imageContents = Storage::disk('r2-perm')->get($ticket->generated_ticket_path);
                 $base64Image = 'data:image/webp;base64,' . base64_encode($imageContents);
                 $ticketImages[] = $base64Image;
             } else {
@@ -77,7 +77,7 @@ class ProcessOrderConfirmation implements ShouldQueue
         $pdfFilename = $this->order->order_id . '.pdf';
 
         // Save PDF to R2 storage
-        Storage::disk('r2')->put($pdfFilename, $pdf->output());
+        Storage::disk('r2-perm')->put($pdfFilename, $pdf->output());
 
         // Update the order with the PDF path
         $this->order->update([

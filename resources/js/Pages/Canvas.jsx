@@ -32,11 +32,12 @@ export default function Canvas({ categories, ticket = null, auth }) {
           row: ticket.row,
           seat: ticket.seat,
           backgroundImage: ticket.background_image,
-          background_url: ticket.background_url,
           filename: ticket.background_filename,
           template: ticket.template,
           template_id: ticket.template_id,
           accentColor: ticket.accent_color,
+          homeTeamLogo: null,
+          awayTeamLogo: null,
         }
       : {
           ticketId: null,
@@ -48,11 +49,12 @@ export default function Canvas({ categories, ticket = null, auth }) {
           row: "",
           seat: "",
           backgroundImage: null,
-          background_url: null,
           filename: null,
           template: null,
           template_id: null,
           accentColor: "#0c4a6e",
+          homeTeamLogo: null,
+          awayTeamLogo: null,
         },
   );
   const ticketRef = useRef(null);
@@ -77,35 +79,75 @@ export default function Canvas({ categories, ticket = null, auth }) {
           },
         });
 
+        // Convert base64 data URL to binary blob
+        const response = await fetch(dataUrl);
+        const ticketBlob = await response.blob();
+
         // Get the selected category
         const selectedCategory = categories.find((c) =>
           c.templates.some((t) => t.id === ticketInfo.template),
         )?.id;
 
-        // Add the screenshot to ticketInfo
-        const updatedTicketInfo = {
-          ...ticketInfo,
-          generatedTicket: dataUrl,
-        };
+        // Create FormData for binary upload
+        const formData = new FormData();
+        
+        // Add the ticket image as binary
+        formData.append('generatedTicket', ticketBlob, 'ticket.png');
+        
+        // Add all other ticket data
+        formData.append('eventName', ticketInfo.eventName || '');
+        formData.append('eventLocation', ticketInfo.eventLocation || '');
+        formData.append('date', ticketInfo.date ? ticketInfo.date.toISOString().split('T')[0] : '');
+        formData.append('time', ticketInfo.time ? ticketInfo.time.toTimeString().split(' ')[0] : '');
+        formData.append('section', ticketInfo.section || '');
+        formData.append('row', ticketInfo.row || '');
+        formData.append('seat', ticketInfo.seat || '');
+        formData.append('template', ticketInfo.template || '');
+        formData.append('template_id', ticketInfo.template_id || '');
 
-        // Add category-specific fields
-        if (selectedCategory === "sports") {
-          updatedTicketInfo.team_home = ticketInfo.homeTeam;
-          updatedTicketInfo.team_away = ticketInfo.awayTeam;
-        } else if (selectedCategory === "concerts") {
-          updatedTicketInfo.artist_name = ticketInfo.artistName;
-          updatedTicketInfo.tour_name = ticketInfo.tourName;
+        // Add background image as binary if exists
+        if (ticketInfo.backgroundImage) {
+          const bgResponse = await fetch(ticketInfo.backgroundImage);
+          const bgBlob = await bgResponse.blob();
+          formData.append('backgroundImage', bgBlob, 'background.png');
         }
 
-        // Send directly
-        const response = await axios.post(
+        // Add category-specific fields and logos
+        if (selectedCategory === "sports") {
+          formData.append('team_home', ticketInfo.homeTeam || '');
+          formData.append('team_away', ticketInfo.awayTeam || '');
+          
+          // Add team logos as binary if they exist
+          if (ticketInfo.homeTeamLogo) {
+            const homeLogoResponse = await fetch(ticketInfo.homeTeamLogo);
+            const homeLogoBlob = await homeLogoResponse.blob();
+            formData.append('homeTeamLogo', homeLogoBlob, 'home-logo.png');
+          }
+          
+          if (ticketInfo.awayTeamLogo) {
+            const awayLogoResponse = await fetch(ticketInfo.awayTeamLogo);
+            const awayLogoBlob = await awayLogoResponse.blob();
+            formData.append('awayTeamLogo', awayLogoBlob, 'away-logo.png');
+          }
+        } else if (selectedCategory === "concerts") {
+          formData.append('artist_name', ticketInfo.artistName || '');
+          formData.append('tour_name', ticketInfo.tourName || '');
+        }
+
+        // Send FormData with binary data
+        const ticketResponse = await axios.post(
           route("tickets.store"),
-          updatedTicketInfo,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         );
 
         // Add the created ticket to cart
         await axios.post(route("cart.add"), {
-          ticket_id: response.data.ticket.ticket_id,
+          ticket_id: ticketResponse.data.ticket.ticket_id,
         });
 
         setNotification({

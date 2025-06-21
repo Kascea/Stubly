@@ -40,9 +40,9 @@ class OrderConfirmation extends Mailable
             ]);
 
         // Attach the PDF if available
-        if ($this->pdfPath && Storage::disk('r2')->exists($this->pdfPath)) {
+        if ($this->pdfPath && Storage::disk('r2-perm')->exists($this->pdfPath)) {
             $mail->attachData(
-                Storage::disk('r2')->get($this->pdfPath),
+                Storage::disk('r2-perm')->get($this->pdfPath),
                 'Stubly-Order-' . $this->order->order_id . '.pdf',
                 [
                     'mime' => 'application/pdf',

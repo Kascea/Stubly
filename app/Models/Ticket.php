@@ -33,7 +33,6 @@ class Ticket extends Model
     'template_id',
     'ticketable_id',
     'ticketable_type',
-    'generated_ticket_path',
     'background_image_path',
   ];
 
@@ -112,16 +111,46 @@ class Ticket extends Model
 
   public function getGeneratedTicketUrlAttribute()
   {
-    if (!$this->generated_ticket_path)
-      return null;
-    return config('filesystems.disks.r2.url') . '/' . $this->generated_ticket_path;
+    return config('filesystems.disks.r2-perm.url') . '/' . $this->ticket_id . '.webp';
+  }
+
+  /**
+   * Get the generated ticket path (filename)
+   */
+  public function getGeneratedTicketPathAttribute()
+  {
+    return $this->ticket_id . '.webp';
   }
 
   public function getBackgroundUrlAttribute()
   {
     if (!$this->background_image_path)
       return null;
-    return config('filesystems.disks.r2.url') . '/' . $this->background_image_path;
+    return config('filesystems.disks.r2-perm.url') . '/' . $this->background_image_path;
+  }
+
+  /**
+   * Get the URL for the background image in stubly-temp bucket
+   */
+  public function getBackgroundImageUrlAttribute()
+  {
+    return config('filesystems.disks.r2-temp.url') . '/' . $this->ticket_id . '/background-image.webp';
+  }
+
+  /**
+   * Get the URL for the home team logo
+   */
+  public function getHomeTeamLogoUrlAttribute()
+  {
+    return config('filesystems.disks.r2-temp.url') . '/' . $this->ticket_id . '/home-team-logo.webp';
+  }
+
+  /**
+   * Get the URL for the away team logo
+   */
+  public function getAwayTeamLogoUrlAttribute()
+  {
+    return config('filesystems.disks.r2-temp.url') . '/' . $this->ticket_id . '/away-team-logo.webp';
   }
 
   /**

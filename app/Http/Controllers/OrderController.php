@@ -113,13 +113,13 @@ class OrderController extends Controller
         }
 
         // Check if the PDF file exists in storage
-        if (!Storage::disk('r2')->exists($order->pdf_path)) {
+        if (!Storage::disk('r2-perm')->exists($order->pdf_path)) {
             return redirect()->route('orders.show', $order->order_id)
                 ->with('error', 'PDF file not found.');
         }
 
         // Get the PDF content from R2 storage
-        $pdfContent = Storage::disk('r2')->get($order->pdf_path);
+        $pdfContent = Storage::disk('r2-perm')->get($order->pdf_path);
 
         // Return the PDF with appropriate headers for inline viewing
         return response($pdfContent)

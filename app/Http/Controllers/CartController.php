@@ -156,7 +156,7 @@ class CartController extends Controller
 
         foreach ($cart->tickets as $ticket) {
             //Delete the generated ticket from R2
-            Storage::disk('r2')->delete($ticket->generated_ticket_path);
+            Storage::disk('r2-perm')->delete($ticket->generated_ticket_path);
 
             //Delete the ticket from the database
             $ticket->delete();

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\SportsTicket;
 use App\Models\ConcertTicket;
 use App\Models\Template;
+use App\Services\ImageProcessingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -16,12 +17,16 @@ use Inertia\Inertia;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Session;
 
 class TicketController extends Controller
 {
+    protected ImageProcessingService $imageService;
+
+    public function __construct(ImageProcessingService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
 
     public function store(Request $request)
     {
@@ -60,11 +65,11 @@ class TicketController extends Controller
                 'ticketable_type' => get_class($specializedTicket),
             ];
 
-            // Handle the ticket image
-            $ticketData = $this->handleTicketImage($request, $ticketData);
-
-            // Create the ticket
+            // Create the ticket first
             $ticket = Ticket::create($ticketData);
+
+            // Process images sequentially using the service
+            $this->processTicketImages($request, $ticket, $categoryId);
 
             // Commit the transaction
             DB::commit();
@@ -86,16 +91,37 @@ class TicketController extends Controller
     }
 
     /**
+     * Process all ticket images sequentially
+     */
+    protected function processTicketImages(Request $request, Ticket $ticket, string $categoryId): void
+    {
+        // 1. Process main ticket image
+        if ($request->hasFile('generatedTicket')) {
+            $this->imageService->storeTicketImage($request->file('generatedTicket'), $ticket->ticket_id);
+        }
+
+        // 2. Process background image
+        if ($request->hasFile('backgroundImage')) {
+            $this->imageService->storeBackgroundImage($request->file('backgroundImage'), $ticket->ticket_id);
+        }
+
+        // 3. Process team logos for sports tickets
+        if ($categoryId === 'sports') {
+            if ($request->hasFile('homeTeamLogo')) {
+                $this->imageService->storeTeamLogo($request->file('homeTeamLogo'), $ticket->ticket_id, 'home');
+            }
+
+            if ($request->hasFile('awayTeamLogo')) {
+                $this->imageService->storeTeamLogo($request->file('awayTeamLogo'), $ticket->ticket_id, 'away');
+            }
+        }
+    }
+
+    /**
      * Create a specialized ticket based on the category
      */
     protected function createSpecializedTicket(Request $request, string $categoryId)
     {
-        Log::info('createSpecializedTicket Debug:', [
-            'categoryId' => $categoryId,
-            'artist_name' => $request->artist_name,
-            'tour_name' => $request->tour_name,
-        ]);
-
         return match ($categoryId) {
             'sports' => SportsTicket::create([
                 'sport_type' => $request->sport_type ?? null,
@@ -108,47 +134,6 @@ class TicketController extends Controller
             ]),
             default => null,
         };
-    }
-
-    protected function handleTicketImage(Request $request, array $ticketData): array
-    {
-        $image = $request->generatedTicket;
-
-        // Clean the base64 data
-        $cleanedBase64 = $this->cleanBase64Data($image);
-
-        if ($decodedImage = base64_decode($cleanedBase64)) {
-            $imageName = uniqid() . '.webp';
-            // Use Intervention Image to convert to WebP
-            $manager = new ImageManager(new Driver());
-            $img = $manager->read($decodedImage);
-            $encodedImage = $img->toWebp(85);
-
-            // Save to storage
-            if (!Storage::disk('r2')->put($imageName, $encodedImage->toString())) {
-                throw new \Exception('Failed to save the ticket image');
-            }
-
-            $ticketData['generated_ticket_path'] = $imageName;
-        }
-
-        return $ticketData;
-    }
-
-    protected function cleanBase64Data(string $data): string
-    {
-        // Remove data URI prefixes and convert spaces to + for proper base64 decoding
-        return str_replace(
-            [
-                'data:image/png;base64,',
-                'data:image/jpeg;base64,',
-                'data:image/jpg;base64,',
-                'data:image/webp;base64,',  // Add WebP support
-                ' '
-            ],
-            ['', '', '', '', '+'],
-            $data
-        );
     }
 
     protected function validateTicket(Request $request): void
@@ -166,7 +151,10 @@ class TicketController extends Controller
             'section' => 'nullable|string',
             'row' => 'nullable|string',
             'seat' => 'nullable|string',
-            'generatedTicket' => 'required|string',
+            'generatedTicket' => 'required|file|image|max:10240', // 10MB max for ticket image
+            'backgroundImage' => 'nullable|file|image|max:5120', // 5MB max for background
+            'homeTeamLogo' => 'nullable|file|image|max:5120', // 5MB max for logos
+            'awayTeamLogo' => 'nullable|file|image|max:5120', // 5MB max for logos
             'template' => 'nullable|string',
             'template_id' => 'required|string|exists:templates,id',
         ];
@@ -209,9 +197,8 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         try {
-            if ($ticket->generated_ticket_path) {
-                Storage::disk('r2')->delete($ticket->generated_ticket_path);
-            }
+            // Delete the image file using the constructed path
+            Storage::disk('r2-perm')->delete($ticket->generated_ticket_path);
 
             $ticket->delete();
 
@@ -224,19 +211,6 @@ class TicketController extends Controller
                 'message' => 'Failed to delete ticket'
             ], 500);
         }
-    }
-
-    public function download(Ticket $ticket)
-    {
-        if (!Storage::disk('r2')->exists($ticket->generated_ticket_path)) {
-            abort(404, 'Ticket file not found.');
-        }
-
-        return Storage::disk('r2')->download(
-            $ticket->generated_ticket_path,
-            'CustomTicket-' . $ticket->ticket_id . '.webp',
-            ['Content-Type' => 'image/webp']
-        );
     }
 
     public function viewTicket(Ticket $ticket)
@@ -252,22 +226,17 @@ class TicketController extends Controller
             }
         }
 
-        // Check if the ticket image exists
-        if (!$ticket->generated_ticket_path || !Storage::disk('r2')->exists($ticket->generated_ticket_path)) {
+        // Check if the ticket image exists using the constructed path
+        if (!Storage::disk('r2-perm')->exists($ticket->generated_ticket_path)) {
             abort(404, 'Ticket image not found.');
         }
 
         // Get the image content from R2 storage
-        $imageContent = Storage::disk('r2')->get($ticket->generated_ticket_path);
+        $imageContent = Storage::disk('r2-perm')->get($ticket->generated_ticket_path);
 
-        // Determine the correct MIME type
+        // Since we're always using .webp now, we can simplify this
         $mimeType = 'image/webp';
-        $extension = pathinfo($ticket->generated_ticket_path, PATHINFO_EXTENSION);
-        if ($extension === 'png') {
-            $mimeType = 'image/png';
-        } elseif (in_array($extension, ['jpg', 'jpeg'])) {
-            $mimeType = 'image/jpeg';
-        }
+        $extension = 'webp';
 
         // Return the image with appropriate headers for inline viewing
         return response($imageContent)

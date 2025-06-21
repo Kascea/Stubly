@@ -125,7 +125,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
                 <div className="text-sm text-sky-600 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-sky-100">
                   <ShoppingCart className="inline h-4 w-4 mr-1" />
                   {cart.items.length}{" "}
-                  {cart.items.length === 1 ? "Item" : "Items"}
+                  {cart.items.length === 1 ? "Ticket" : "Tickets"}
                 </div>
                 <Button
                   variant="outline"
