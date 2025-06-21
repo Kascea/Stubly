@@ -288,7 +288,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
 
               {/* Sidebar - Order Summary */}
               <div className="lg:col-span-1">
-                <div className="sticky top-6">
+                <div className="sticky top-20">
                   <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
                     <CardHeader>
                       <CardTitle className="text-sky-900">
