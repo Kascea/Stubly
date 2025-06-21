@@ -195,29 +195,6 @@ export default function CartIndex({ cart: initialCart, auth }) {
                 Review your custom tickets before checkout
               </p>
             </div>
-
-            {hasItems && (
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-sky-600 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-sky-100">
-                  <ShoppingCart className="inline h-4 w-4 mr-1" />
-                  {cart.items.length}{" "}
-                  {cart.items.length === 1 ? "Ticket" : "Tickets"}
-                </div>
-                <Button
-                  variant="outline"
-                  className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50/50 transition-colors"
-                  onClick={clearCart}
-                  disabled={loadingStates.clearCart}
-                >
-                  {loadingStates.clearCart ? (
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4 mr-1" />
-                  )}
-                  Clear Cart
-                </Button>
-              </div>
-            )}
           </div>
 
           {flash?.success && (
@@ -233,85 +210,147 @@ export default function CartIndex({ cart: initialCart, auth }) {
           )}
 
           {hasItems ? (
-            <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-sky-900">Your Tickets</CardTitle>
-                <CardDescription>Review before checkout</CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {cart.items.map((ticket) => (
-                  <TicketCard
-                    key={ticket.ticket_id}
-                    ticket={ticket}
-                    price="2.99"
-                    actions={
-                      <div className="flex space-x-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content - Tickets */}
+              <div className="lg:col-span-2">
+                <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-sky-900">
+                          Your Tickets
+                        </CardTitle>
+                        <CardDescription>
+                          Review before checkout
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center text-sm text-sky-600 bg-sky-50/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-sky-200">
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          {cart.items.length}{" "}
+                          {cart.items.length === 1 ? "ticket" : "tickets"}
+                        </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openDuplicateDialog(ticket)}
-                          className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                          className="border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50/50 transition-colors"
+                          onClick={clearCart}
+                          disabled={loadingStates.clearCart}
                         >
-                          <Copy className="h-4 w-4 mr-1" />
-                          Duplicate
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteTicket(ticket)}
-                          disabled={loadingStates.items[ticket.ticket_id]}
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50/50 border-red-200 hover:border-red-300 transition-colors w-9"
-                        >
-                          {loadingStates.items[ticket.ticket_id] ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                          {loadingStates.clearCart ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                           ) : (
-                            <X className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 mr-1" />
                           )}
+                          Clear cart
                         </Button>
                       </div>
-                    }
-                  />
-                ))}
-              </CardContent>
-
-              <CardFooter className="flex flex-col sm:flex-row justify-between border-t pt-6 bg-gradient-to-r from-sky-50/20 to-blue-50/20">
-                <div className="mb-4 sm:mb-0">
-                  <div className="space-y-1">
-                    <div className="text-lg font-semibold">
-                      Subtotal:{" "}
-                      <span className="text-sky-900">
-                        ${subtotal.toFixed(2)}
-                      </span>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Taxes calculated at checkout
-                    </div>
-                  </div>
-                </div>
+                  </CardHeader>
 
-                <div className="flex space-x-2">
-                  <Link href={route("canvas")}>
-                    <Button
-                      variant="ghost"
-                      className="text-sky-700 hover:text-sky-900 hover:bg-sky-100/50"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Create Another
-                    </Button>
-                  </Link>
+                  <CardContent className="space-y-4">
+                    {cart.items.map((ticket) => (
+                      <TicketCard
+                        key={ticket.ticket_id}
+                        ticket={ticket}
+                        price="2.99"
+                        actions={
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openDuplicateDialog(ticket)}
+                              className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                            >
+                              <Copy className="h-4 w-4 mr-1" />
+                              Duplicate
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteTicket(ticket)}
+                              disabled={loadingStates.items[ticket.ticket_id]}
+                              className="text-red-500 hover:text-red-600 hover:bg-red-50/50 border-red-200 hover:border-red-300 transition-colors w-9"
+                            >
+                              {loadingStates.items[ticket.ticket_id] ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <X className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        }
+                      />
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
 
-                  <Link href={route("cart.checkout")}>
-                    <Button
-                      size="lg"
-                      className="bg-sky-800 hover:bg-sky-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    >
-                      Checkout <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
+              {/* Sidebar - Order Summary */}
+              <div className="lg:col-span-1">
+                <div className="sticky top-6">
+                  <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="text-sky-900">
+                        Order Summary
+                      </CardTitle>
+                      <CardDescription>
+                        {cart.items.length}{" "}
+                        {cart.items.length === 1 ? "ticket" : "tickets"} in your
+                        cart
+                      </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            {cart.items.length} × Digital Ticket
+                            {cart.items.length !== 1 ? "s" : ""}
+                          </span>
+                          <span className="font-medium">
+                            ${subtotal.toFixed(2)}
+                          </span>
+                        </div>
+
+                        <div className="border-t pt-3">
+                          <div className="flex justify-between text-lg font-semibold">
+                            <span>Subtotal</span>
+                            <span className="text-sky-900">
+                              ${subtotal.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            Taxes calculated at checkout
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="flex flex-col space-y-3 pt-6 border-t bg-gradient-to-r from-sky-50/20 to-blue-50/20">
+                      <Link href={route("cart.checkout")} className="w-full">
+                        <Button
+                          size="lg"
+                          className="w-full bg-sky-800 hover:bg-sky-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                        >
+                          Checkout <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+
+                      <Link href={route("canvas")} className="w-full">
+                        <Button
+                          variant="ghost"
+                          className="w-full text-sky-700 hover:text-sky-900 hover:bg-sky-100/50"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Create Another
+                        </Button>
+                      </Link>
+                    </CardFooter>
+                  </Card>
                 </div>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           ) : (
             <Card className="bg-gradient-to-br from-gray-50/80 to-white border-dashed border-2 border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 bg-white/60 backdrop-blur-sm">
               <CardContent className="flex flex-col items-center justify-center py-16">
