@@ -106,22 +106,12 @@ export default function CartIndex({ cart: initialCart, auth }) {
       }));
 
       router.reload({ only: ["cart"] });
-
       closeDuplicateDialog();
     } catch (error) {
       console.error("Error duplicating ticket:", error);
 
-      let errorMessage = "Failed to duplicate ticket. Please try again.";
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.status === 403) {
-        errorMessage = "You don't have permission to duplicate this ticket.";
-      } else if (error.response?.status === 404) {
-        errorMessage = "Original ticket not found.";
-      } else if (error.response?.status >= 500) {
-        errorMessage = "Server error. Please try again later.";
-      }
+      let errorMessage =
+        "Unable to duplicate ticket. Please try again. If this persists, contact support at cole@stubly.shop";
 
       setDuplicateDialog((prev) => ({
         ...prev,

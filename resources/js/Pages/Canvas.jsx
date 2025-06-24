@@ -13,50 +13,30 @@ import AppLayout from "@/Layouts/AppLayout";
 import { domToPng } from "modern-screenshot";
 import axios from "axios";
 
-export default function Canvas({ categories, ticket = null, auth }) {
+export default function Canvas({ categories, auth }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [notification, setNotification] = useState({
     type: null, // 'success' or 'error'
     message: "",
   });
 
-  const [ticketInfo, setTicketInfo] = useState(
-    ticket
-      ? {
-          ticketId: ticket.ticket_id,
-          eventName: ticket.event_name,
-          eventLocation: ticket.event_location,
-          date: new Date(ticket.event_datetime),
-          time: new Date(ticket.event_datetime),
-          section: ticket.section,
-          row: ticket.row,
-          seat: ticket.seat,
-          backgroundImage: ticket.background_image,
-          filename: ticket.background_filename,
-          template: ticket.template,
-          template_id: ticket.template_id,
-          accentColor: ticket.accent_color,
-          homeTeamLogo: null,
-          awayTeamLogo: null,
-        }
-      : {
-          ticketId: null,
-          eventName: "",
-          eventLocation: "",
-          date: null,
-          time: null,
-          section: "",
-          row: "",
-          seat: "",
-          backgroundImage: null,
-          filename: null,
-          template: null,
-          template_id: null,
-          accentColor: "#0c4a6e",
-          homeTeamLogo: null,
-          awayTeamLogo: null,
-        },
-  );
+  const [ticketInfo, setTicketInfo] = useState({
+    ticketId: null,
+    eventName: "",
+    eventLocation: "",
+    date: null,
+    time: null,
+    section: "",
+    row: "",
+    seat: "",
+    backgroundImage: null,
+    filename: null,
+    template: null,
+    template_id: null,
+    accentColor: "#0c4a6e",
+    homeTeamLogo: null,
+    awayTeamLogo: null,
+  });
   const ticketRef = useRef(null);
 
   const addTicketToCart = async () => {

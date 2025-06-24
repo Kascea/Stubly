@@ -10,6 +10,13 @@ use Illuminate\Http\UploadedFile;
 
 class ImageProcessingService
 {
+    // Maximum file size in bytes (10MB)
+    protected const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+    // Maximum dimensions for initial resize to prevent memory issues
+    protected const MAX_INITIAL_WIDTH = 2048;
+    protected const MAX_INITIAL_HEIGHT = 2048;
+
     /**
      * Process and store the main ticket image from uploaded file
      */
@@ -66,31 +73,145 @@ class ImageProcessingService
         array $logContext = []
     ): bool {
         try {
+            // Early validation
+            if (!$this->validateFile($file, $logContext)) {
+                return false;
+            }
+
+            // Increase memory limit temporarily if needed
+            $originalMemoryLimit = ini_get('memory_limit');
+            $this->increaseMemoryLimitIfNeeded();
+
+            // Force garbage collection before processing
+            gc_collect_cycles();
+
             // Create image manager and read file
             $manager = new ImageManager(new Driver());
             $img = $manager->read($file->getRealPath());
 
-            // Resize if needed
+            // Log initial dimensions for debugging
+            Log::debug('Processing image', array_merge($logContext, [
+                'original_width' => $img->width(),
+                'original_height' => $img->height(),
+                'file_size' => $file->getSize(),
+                'memory_usage_before' => memory_get_usage(true)
+            ]));
+
+            // Apply initial resize if image is too large
+            $this->applyInitialResize($img);
+
+            // Resize to target dimensions if specified
             if ($maxDimensions) {
                 $this->resizeIfNeeded($img, $maxDimensions['width'], $maxDimensions['height']);
             }
 
-            // Convert to WebP and store
+            // Convert to WebP and get data
             $webpData = $img->toWebp($quality)->toString();
+
+            // Immediately clear the image from memory
+            unset($img);
+            gc_collect_cycles();
+
+            // Store the file
             $success = Storage::disk($disk)->put($path, $webpData);
 
-            // Basic cleanup of large objects
-            unset($img, $webpData);
+            // Clear WebP data
+            unset($webpData);
+            gc_collect_cycles();
+
+            // Restore original memory limit
+            ini_set('memory_limit', $originalMemoryLimit);
+
+            Log::debug('Image processing completed', array_merge($logContext, [
+                'success' => $success,
+                'memory_usage_after' => memory_get_usage(true)
+            ]));
 
             return $success;
 
         } catch (\Exception $e) {
+            // Ensure memory limit is restored on error
+            if (isset($originalMemoryLimit)) {
+                ini_set('memory_limit', $originalMemoryLimit);
+            }
+
             Log::error('Image processing failed', array_merge($logContext, [
                 'message' => $e->getMessage(),
                 'path' => $path,
                 'disk' => $disk,
+                'memory_usage' => memory_get_usage(true),
+                'memory_peak' => memory_get_peak_usage(true)
             ]));
             return false;
+        }
+    }
+
+    /**
+     * Validate file before processing
+     */
+    protected function validateFile(UploadedFile $file, array $logContext = []): bool
+    {
+        // Check file size
+        if ($file->getSize() > self::MAX_FILE_SIZE) {
+            Log::warning('File too large for processing', array_merge($logContext, [
+                'file_size' => $file->getSize(),
+                'max_size' => self::MAX_FILE_SIZE
+            ]));
+            return false;
+        }
+
+        // Check if it's an image
+        if (!str_starts_with($file->getMimeType(), 'image/')) {
+            Log::warning('Invalid file type', array_merge($logContext, [
+                'mime_type' => $file->getMimeType()
+            ]));
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Increase memory limit if current limit is too low
+     */
+    protected function increaseMemoryLimitIfNeeded(): void
+    {
+        $currentLimit = $this->parseMemoryLimit(ini_get('memory_limit'));
+        $recommendedLimit = 256 * 1024 * 1024; // 256MB
+
+        if ($currentLimit < $recommendedLimit) {
+            ini_set('memory_limit', '256M');
+        }
+    }
+
+    /**
+     * Parse memory limit string to bytes
+     */
+    protected function parseMemoryLimit(string $limit): int
+    {
+        $limit = trim($limit);
+        $last = strtolower($limit[strlen($limit) - 1]);
+        $value = (int) $limit;
+
+        switch ($last) {
+            case 'g':
+                $value *= 1024;
+            case 'm':
+                $value *= 1024;
+            case 'k':
+                $value *= 1024;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Apply initial resize if image is too large to prevent memory issues
+     */
+    protected function applyInitialResize($img): void
+    {
+        if ($img->width() > self::MAX_INITIAL_WIDTH || $img->height() > self::MAX_INITIAL_HEIGHT) {
+            $img->scaleDown(width: self::MAX_INITIAL_WIDTH, height: self::MAX_INITIAL_HEIGHT);
         }
     }
 
