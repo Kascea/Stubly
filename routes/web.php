@@ -28,7 +28,6 @@ Route::prefix('tickets')->name('tickets.')->group(function () {
     ->middleware(VerifyTicketAccess::class)
     ->name('destroy');
   Route::post('/duplicate', [TicketController::class, 'createDuplicate'])
-    ->middleware(VerifyTicketAccess::class)
     ->name('duplicate.create');
 });
 

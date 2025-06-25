@@ -8,73 +8,61 @@ use Illuminate\Support\Facades\Storage;
 
 class ScreenshotService
 {
-    private string $workerUrl;
-    private string $sharedSecret;
-    private int $defaultExpirationMinutes;
-    private bool $testMode;
+    private string $accountId;
+    private string $apiToken;
+    private string $apiBaseUrl;
 
     public function __construct()
     {
-        $this->workerUrl = config('services.cloudflare.screenshot_worker_url');
-        $this->sharedSecret = config('services.cloudflare.screenshot_shared_secret');
-        $this->defaultExpirationMinutes = config('services.cloudflare.screenshot_expiration_minutes', 30);
+        $this->accountId = config('services.cloudflare.account_id');
+        $this->apiToken = config('services.cloudflare.api_token');
+        $this->apiBaseUrl = "https://api.cloudflare.com/client/v4/accounts/{$this->accountId}/browser-rendering";
     }
 
     /**
-     * Generate a signed URL for the Cloudflare Worker screenshot service
-     */
-    public function generateSignedScreenshotUrl(string $ticketUrl, ?int $expirationMinutes = null): string
-    {
-        $expirationMinutes = $expirationMinutes ?? $this->defaultExpirationMinutes;
-        $expirationTimestamp = now()->addMinutes($expirationMinutes)->timestamp;
-
-        // Create the payload that will be signed
-        $payload = [
-            'url' => $ticketUrl,
-            'expires' => $expirationTimestamp,
-        ];
-
-        // Generate HMAC signature
-        $signature = hash_hmac('sha256', json_encode($payload), $this->sharedSecret);
-
-        // Build the query parameters
-        $queryParams = http_build_query([
-            'url' => $ticketUrl,
-            'expires' => $expirationTimestamp,
-            'signature' => $signature,
-        ]);
-
-        return $this->workerUrl . '?' . $queryParams;
-    }
-
-    /**
-     * Request a screenshot from the Cloudflare Worker and store it
+     * Request a screenshot from the Cloudflare Browser Rendering API and store it
      */
     public function captureAndStoreTicketScreenshot(string $ticketId, string $ticketUrl): bool
     {
         try {
             // Validate configuration first
-            if (empty($this->workerUrl) || empty($this->sharedSecret)) {
+            if (empty($this->accountId) || empty($this->apiToken)) {
                 Log::error('Screenshot service not configured properly', [
                     'ticket_id' => $ticketId,
-                    'worker_url_set' => !empty($this->workerUrl),
-                    'shared_secret_set' => !empty($this->sharedSecret),
+                    'account_id_set' => !empty($this->accountId),
+                    'api_token_set' => !empty($this->apiToken),
                 ]);
                 return false;
             }
 
-            // Generate signed URL
-            $signedUrl = $this->generateSignedScreenshotUrl($ticketUrl);
-
-            Log::info('Requesting screenshot from Cloudflare Worker', [
+            Log::info('Requesting screenshot from Cloudflare Browser Rendering API', [
                 'ticket_id' => $ticketId,
                 'ticket_url' => $ticketUrl,
-                'worker_url' => $this->workerUrl,
+                'account_id' => $this->accountId,
             ]);
 
-            // Make request to Cloudflare Worker
+            // Prepare the API request payload
+            $payload = [
+                'url' => $ticketUrl,
+                'selector' => '#ticket-element', // Target just the ticket element
+                'screenshotOptions' => [
+                    'type' => 'webp', // Use WebP format
+                    'quality' => 85, // High quality for WebP
+                ],
+                'gotoOptions' => [
+                    'waitUntil' => 'networkidle0', // Wait until no network requests for 500ms
+                    'timeout' => 30000, // 30 second timeout
+                ],
+                'waitForSelector' => [
+                    'selector' => '#ticket-element',
+                    'timeout' => 10000, // Wait up to 10 seconds for the ticket element to appear
+                ],
+            ];
+
+            // Make request to Cloudflare Browser Rendering API
             $response = Http::timeout(60) // 60 second timeout for screenshot generation
-                ->get($signedUrl);
+                ->withToken($this->apiToken)
+                ->post($this->apiBaseUrl . '/screenshot', $payload);
 
             if (!$response->successful()) {
                 Log::error('Screenshot service request failed', [
@@ -86,17 +74,38 @@ class ScreenshotService
                 return false;
             }
 
-            // Validate that we received image data
-            $imageData = $response->body();
-            if (empty($imageData)) {
-                Log::error('Screenshot service returned empty response', [
+            // Parse the JSON response
+            $responseData = $response->json();
+
+            if (!isset($responseData['success']) || !$responseData['success']) {
+                Log::error('Screenshot service returned unsuccessful response', [
                     'ticket_id' => $ticketId,
-                    'response_size' => strlen($imageData),
+                    'response' => $responseData,
                 ]);
                 return false;
             }
 
-            // Store the screenshot in R2 permanent storage
+            if (!isset($responseData['result']['screenshot'])) {
+                Log::error('Screenshot service response missing screenshot data', [
+                    'ticket_id' => $ticketId,
+                    'response_keys' => array_keys($responseData['result'] ?? []),
+                ]);
+                return false;
+            }
+
+            // Decode the base64 screenshot data
+            $base64Screenshot = $responseData['result']['screenshot'];
+            $imageData = base64_decode($base64Screenshot);
+
+            if ($imageData === false || empty($imageData)) {
+                Log::error('Failed to decode base64 screenshot data', [
+                    'ticket_id' => $ticketId,
+                    'base64_length' => strlen($base64Screenshot),
+                ]);
+                return false;
+            }
+
+            // Store the screenshot in R2 permanent storage as WebP
             $filePath = $ticketId . '.webp';
             $stored = Storage::disk('r2-perm')->put($filePath, $imageData);
 
@@ -122,27 +131,10 @@ class ScreenshotService
                 'ticket_id' => $ticketId,
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'worker_url' => $this->workerUrl ?? 'not set',
+                'account_id' => $this->accountId ?? 'not set',
             ]);
             return false;
         }
-    }
-
-    /**
-     * Verify a signature for incoming webhook requests (if needed)
-     */
-    public function verifySignature(string $payload, string $signature): bool
-    {
-        $expectedSignature = hash_hmac('sha256', $payload, $this->sharedSecret);
-        return hash_equals($expectedSignature, $signature);
-    }
-
-    /**
-     * Get the public ticket URL for a given ticket ID
-     */
-    public function getTicketUrl(string $ticketId): string
-    {
-        return route('tickets.render', ['ticket' => $ticketId]);
     }
 
     /**
@@ -150,13 +142,11 @@ class ScreenshotService
      */
     public function getDuplicationTicketUrl(
         string $originalTicketId,
-        string $newTicketId,
         ?string $section = null,
         ?string $row = null,
         ?string $seat = null
     ): string {
         $queryParams = array_filter([
-            'asset_ticket_id' => $newTicketId,
             'section' => $section,
             'row' => $row,
             'seat' => $seat,

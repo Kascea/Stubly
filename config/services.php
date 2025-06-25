@@ -47,9 +47,8 @@ return [
   ],
 
   'cloudflare' => [
-    'screenshot_worker_url' => env('CLOUDFLARE_SCREENSHOT_WORKER_URL'),
-    'screenshot_shared_secret' => env('CLOUDFLARE_SCREENSHOT_SHARED_SECRET'),
-    'screenshot_expiration_minutes' => env('CLOUDFLARE_SCREENSHOT_EXPIRATION_MINUTES', 30),
+    'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
+    'api_token' => env('CLOUDFLARE_API_TOKEN'),
   ],
 
 ];

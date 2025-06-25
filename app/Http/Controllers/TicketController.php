@@ -244,7 +244,7 @@ class TicketController extends Controller
         // Get the image content from R2 storage
         $imageContent = Storage::disk('r2-perm')->get($ticket->generated_ticket_path);
 
-        // Since we're always using .webp now, we can simplify this
+        // Since we're using .webp from Cloudflare Browser Rendering API
         $mimeType = 'image/webp';
         $extension = 'webp';
 
@@ -447,7 +447,6 @@ class TicketController extends Controller
     ): bool {
         $ticketUrl = $this->screenshotService->getDuplicationTicketUrl(
             $originalTicketId,
-            $newTicketId,
             $section,
             $row,
             $seat

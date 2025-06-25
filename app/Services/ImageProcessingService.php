@@ -89,14 +89,6 @@ class ImageProcessingService
             $manager = new ImageManager(new Driver());
             $img = $manager->read($file->getRealPath());
 
-            // Log initial dimensions for debugging
-            Log::debug('Processing image', array_merge($logContext, [
-                'original_width' => $img->width(),
-                'original_height' => $img->height(),
-                'file_size' => $file->getSize(),
-                'memory_usage_before' => memory_get_usage(true)
-            ]));
-
             // Apply initial resize if image is too large
             $this->applyInitialResize($img);
 
@@ -122,11 +114,6 @@ class ImageProcessingService
             // Restore original memory limit
             ini_set('memory_limit', $originalMemoryLimit);
 
-            Log::debug('Image processing completed', array_merge($logContext, [
-                'success' => $success,
-                'memory_usage_after' => memory_get_usage(true)
-            ]));
-
             return $success;
 
         } catch (\Exception $e) {
@@ -135,13 +122,6 @@ class ImageProcessingService
                 ini_set('memory_limit', $originalMemoryLimit);
             }
 
-            Log::error('Image processing failed', array_merge($logContext, [
-                'message' => $e->getMessage(),
-                'path' => $path,
-                'disk' => $disk,
-                'memory_usage' => memory_get_usage(true),
-                'memory_peak' => memory_get_peak_usage(true)
-            ]));
             return false;
         }
     }
