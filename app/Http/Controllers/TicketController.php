@@ -287,14 +287,12 @@ class TicketController extends Controller
         if ($ticket->ticketable && $ticket->template && $ticket->template->category) {
             switch ($ticket->template->category->id) {
                 case 'sports':
-                    $ticketData['team_home'] = $ticket->ticketable->team_home;
-                    $ticketData['team_away'] = $ticket->ticketable->team_away;
-                    $ticketData['sport_type'] = $ticket->ticketable->sport_type;
+                    $ticketData['homeTeam'] = $ticket->ticketable->team_home;
+                    $ticketData['awayTeam'] = $ticket->ticketable->team_away;
                     break;
                 case 'concerts':
-                    $ticketData['artist_name'] = $ticket->ticketable->artist_name;
-                    $ticketData['artistName'] = $ticket->ticketable->artist_name; // For template compatibility
-                    $ticketData['tour_name'] = $ticket->ticketable->tour_name;
+                    $ticketData['artistName'] = $ticket->ticketable->artist_name;
+                    $ticketData['tourName'] = $ticket->ticketable->tour_name;
                     break;
             }
         }
