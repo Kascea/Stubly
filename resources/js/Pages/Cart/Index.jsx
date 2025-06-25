@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import { Button } from "@/Components/ui/button";
@@ -33,6 +33,8 @@ import {
 import { router } from "@inertiajs/react";
 import axios from "axios";
 import TicketCard from "@/Components/TicketCard";
+import TicketVisualizer from "@/Components/TicketVisualizer";
+import { domToWebp } from "modern-screenshot";
 
 export default function CartIndex({ cart: initialCart, auth }) {
   const [cart, setCart] = useState(initialCart);
@@ -48,9 +50,13 @@ export default function CartIndex({ cart: initialCart, auth }) {
     seat: "",
     error: null,
     isLoading: false,
+    ticketInfo: null,
   });
   const { flash = {} } = usePage().props;
   const hasItems = cart.items && cart.items.length > 0;
+
+  // Ref for the offscreen ticket visualizer
+  const offscreenTicketRef = useRef(null);
 
   // Calculate only subtotal
   const subtotal = hasItems
@@ -66,6 +72,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
       seat: ticket.seat || "",
       error: null,
       isLoading: false,
+      ticketInfo: null,
     });
   };
 
@@ -78,30 +85,116 @@ export default function CartIndex({ cart: initialCart, auth }) {
       seat: "",
       error: null,
       isLoading: false,
+      ticketInfo: null,
     });
   };
 
+  // Helper function to prepare ticket info for the visualizer
+  const prepareTicketInfoForVisualizer = (
+    originalTicket,
+    newSeating,
+    assets = {}
+  ) => {
+    console.log(originalTicket);
+    const ticketInfo = {
+      ticketId: null, // This will be set after creation
+      eventName: originalTicket.event_name,
+      eventLocation: originalTicket.event_location,
+      date: new Date(originalTicket.event_datetime),
+      time: new Date(originalTicket.event_datetime),
+      section: newSeating.section || originalTicket.section,
+      row: newSeating.row || originalTicket.row,
+      seat: newSeating.seat || originalTicket.seat,
+      template: originalTicket.template_id,
+      template_id: originalTicket.template_id,
+      accentColor: "#0c4a6e",
+    };
+
+    // Add category-specific data based on ticketable data
+    if (originalTicket.ticketable) {
+      // Check if it's a sports ticket (has team_home and team_away)
+      if (
+        originalTicket.ticketable.team_home &&
+        originalTicket.ticketable.team_away
+      ) {
+        ticketInfo.homeTeam = originalTicket.ticketable.team_home;
+        ticketInfo.awayTeam = originalTicket.ticketable.team_away;
+
+        // Use the asset URLs from the API
+        if (assets.home_team_logo_url) {
+          ticketInfo.homeTeamLogo = assets.home_team_logo_url;
+        }
+        if (assets.away_team_logo_url) {
+          ticketInfo.awayTeamLogo = assets.away_team_logo_url;
+        }
+      }
+
+      // Check if it's a concert ticket (has artist_name)
+      if (originalTicket.ticketable.artist_name) {
+        ticketInfo.artistName = originalTicket.ticketable.artist_name;
+        ticketInfo.tourName = originalTicket.ticketable.tour_name;
+      }
+    }
+
+    // Add background image if available
+    if (assets.background_image_url) {
+      ticketInfo.backgroundImage = assets.background_image_url;
+    }
+
+    return ticketInfo;
+  };
+
   const handleDuplicateSubmit = async () => {
-    if (!duplicateDialog.ticket) return;
+    if (!duplicateDialog.ticket || !offscreenTicketRef.current) return;
 
     setDuplicateDialog((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await axios.post(route("tickets.duplicate.create"), {
-        original_ticket_id: duplicateDialog.ticket.ticket_id,
-        section: duplicateDialog.section,
-        row: duplicateDialog.row,
-        seat: duplicateDialog.seat,
+      // Capture the screenshot
+      const dataUrl = await domToWebp(offscreenTicketRef.current, {
+        quality: 4.0,
+        scale: 4,
+        backgroundColor: null,
+        skipFonts: false,
+        filter: (node) => {
+          if (node.nodeType === 3 || node.nodeType === 1) {
+            return true;
+          }
+          return false;
+        },
       });
+
+      // Convert base64 data URL to binary blob
+      const response = await fetch(dataUrl);
+      const ticketBlob = await response.blob();
+
+      // Create FormData for upload
+      const formData = new FormData();
+      formData.append("original_ticket_id", duplicateDialog.ticket.ticket_id);
+      formData.append("section", duplicateDialog.section);
+      formData.append("row", duplicateDialog.row);
+      formData.append("seat", duplicateDialog.seat);
+      formData.append("generatedTicket", ticketBlob, "ticket.webp");
+
+      // Send the duplicate request with the screenshot
+      const duplicateResponse = await axios.post(
+        route("tickets.duplicate.create"),
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       // Add the new ticket to cart
       await axios.post(route("cart.add"), {
-        ticket_id: response.data.ticket.ticket_id,
+        ticket_id: duplicateResponse.data.ticket.ticket_id,
       });
 
       setCart((prevCart) => ({
         ...prevCart,
-        items: [...prevCart.items, response.data.ticket],
+        items: [...prevCart.items, duplicateResponse.data.ticket],
         count: prevCart.count + 1,
       }));
 
@@ -112,6 +205,10 @@ export default function CartIndex({ cart: initialCart, auth }) {
 
       let errorMessage =
         "Unable to duplicate ticket. Please try again. If this persists, contact support at cole@stubly.shop";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
 
       setDuplicateDialog((prev) => ({
         ...prev,
@@ -511,6 +608,35 @@ export default function CartIndex({ cart: initialCart, auth }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Offscreen TicketVisualizer for duplicate screenshot generation */}
+      {duplicateDialog.ticket && (
+        <div
+          className="fixed -top-[9999px] -left-[9999px] opacity-0 pointer-events-none"
+          style={{ position: "absolute", zIndex: -1 }}
+        >
+          <div className="w-96">
+            <TicketVisualizer
+              ref={offscreenTicketRef}
+              template={duplicateDialog.ticket.template_id}
+              ticketInfo={prepareTicketInfoForVisualizer(
+                duplicateDialog.ticket,
+                {
+                  section: duplicateDialog.section,
+                  row: duplicateDialog.row,
+                  seat: duplicateDialog.seat,
+                },
+                {
+                  background_image_url:
+                    duplicateDialog.ticket.background_image_url,
+                  home_team_logo_url: duplicateDialog.ticket.home_team_logo_url,
+                  away_team_logo_url: duplicateDialog.ticket.away_team_logo_url,
+                }
+              )}
+            />
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }

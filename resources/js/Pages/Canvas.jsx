@@ -10,7 +10,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
-import { domToPng } from "modern-screenshot";
+import { domToWebp } from "modern-screenshot";
 import axios from "axios";
 
 export default function Canvas({ categories, auth }) {
@@ -46,7 +46,7 @@ export default function Canvas({ categories, auth }) {
 
       // Capture the screenshot
       try {
-        const dataUrl = await domToPng(ticketRef.current, {
+        const dataUrl = await domToWebp(ticketRef.current, {
           quality: 4.0,
           scale: 4,
           backgroundColor: null,

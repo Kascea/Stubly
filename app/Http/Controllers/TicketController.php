@@ -23,12 +23,10 @@ use Illuminate\Support\Facades\Session;
 class TicketController extends Controller
 {
     protected ImageProcessingService $imageService;
-    protected ScreenshotService $screenshotService;
 
-    public function __construct(ImageProcessingService $imageService, ScreenshotService $screenshotService)
+    public function __construct(ImageProcessingService $imageService)
     {
         $this->imageService = $imageService;
-        $this->screenshotService = $screenshotService;
     }
 
     public function store(Request $request)
@@ -341,9 +339,10 @@ class TicketController extends Controller
         try {
             $request->validate([
                 'original_ticket_id' => 'required|string|exists:tickets,ticket_id',
-                'section' => 'nullable|string|max:50',
-                'row' => 'nullable|string|max:50',
-                'seat' => 'nullable|string|max:50',
+                'section' => 'nullable|string|max:10',
+                'row' => 'nullable|string|max:10',
+                'seat' => 'nullable|string|max:10',
+                'generatedTicket' => 'required|file|image|max:10240', // 10MB max for ticket image
             ]);
 
             // Find the original ticket
@@ -384,23 +383,22 @@ class TicketController extends Controller
             // Create the new ticket
             $newTicket = Ticket::create($newTicketData);
 
+            // Process and store the main ticket image
+            if ($request->hasFile('generatedTicket')) {
+                $success = $this->imageService->storeTicketImage(
+                    $request->file('generatedTicket'),
+                    $newTicket->ticket_id
+                );
+
+                if (!$success) {
+                    throw new \Exception('Failed to store main ticket image');
+                }
+            }
+
             // Copy R2 assets (background images, logos) so they're available for screenshot rendering
             $assetsSuccess = $this->copyNonTicketAssets($originalTicket, $newTicket);
             if (!$assetsSuccess) {
                 throw new \Exception('Failed to copy ticket assets (background images, logos). The ticket could not be created.');
-            }
-
-            // Generate screenshot using original ticket data + new seat info (before committing transaction)
-            $screenshotSuccess = $this->generateDuplicateTicketScreenshot(
-                $newTicket->ticket_id,
-                $originalTicket->ticket_id,
-                $request->section,
-                $request->row,
-                $request->seat
-            );
-
-            if (!$screenshotSuccess) {
-                throw new \Exception('Failed to generate screenshot for the duplicated ticket. The ticket could not be created.');
             }
 
             // Commit the transaction only if everything succeeded
@@ -430,27 +428,6 @@ class TicketController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Generate a screenshot for duplicated ticket using original ticket data + new seat info
-     * Uses the existing renderForScreenshot route with query parameters
-     */
-    protected function generateDuplicateTicketScreenshot(
-        string $newTicketId,
-        string $originalTicketId,
-        ?string $section,
-        ?string $row,
-        ?string $seat
-    ): bool {
-        $ticketUrl = $this->screenshotService->getDuplicationTicketUrl(
-            $originalTicketId,
-            $section,
-            $row,
-            $seat
-        );
-
-        return $this->screenshotService->captureAndStoreTicketScreenshot($newTicketId, $ticketUrl);
     }
 
     /**

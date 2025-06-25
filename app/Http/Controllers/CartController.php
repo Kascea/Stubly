@@ -100,8 +100,8 @@ class CartController extends Controller
 
         // Map the tickets to include all needed fields directly
         $cartData = [
-            'items' => $cart ? $cart->tickets()->with(['template', 'user'])->get()->map(function ($ticket) {
-                return [
+            'items' => $cart ? $cart->tickets()->with(['template', 'user', 'ticketable'])->get()->map(function ($ticket) {
+                $ticketData = [
                     'ticket_id' => $ticket->ticket_id,
                     'event_name' => $ticket->event_name,
                     'event_location' => $ticket->event_location,
@@ -112,7 +112,34 @@ class CartController extends Controller
                     'generated_ticket_url' => $ticket->generated_ticket_url,
                     'price' => $ticket->price,
                     'template_id' => $ticket->template_id,
+                    'ticketable' => $ticket->ticketable,
                 ];
+
+                // Add background image URL if it exists
+                $backgroundImagePath = $ticket->ticket_id . '/background-image.webp';
+                if (Storage::disk('r2-temp')->exists($backgroundImagePath)) {
+                    $ticketData['background_image_url'] = Storage::disk('r2-temp')->url($backgroundImagePath);
+                }
+
+                // Add team logo URLs for sports tickets
+                if (
+                    $ticket->ticketable &&
+                    isset($ticket->ticketable->team_home) &&
+                    isset($ticket->ticketable->team_away)
+                ) {
+                    $homeLogoPath = $ticket->ticket_id . '/home-team-logo.webp';
+                    $awayLogoPath = $ticket->ticket_id . '/away-team-logo.webp';
+
+                    if (Storage::disk('r2-temp')->exists($homeLogoPath)) {
+                        $ticketData['home_team_logo_url'] = Storage::disk('r2-temp')->url($homeLogoPath);
+                    }
+
+                    if (Storage::disk('r2-temp')->exists($awayLogoPath)) {
+                        $ticketData['away_team_logo_url'] = Storage::disk('r2-temp')->url($awayLogoPath);
+                    }
+                }
+
+                return $ticketData;
             }) : [],
             'count' => $this->getCartCount()
         ];
