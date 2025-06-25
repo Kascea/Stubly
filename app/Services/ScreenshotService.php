@@ -35,32 +35,23 @@ class ScreenshotService
                 return false;
             }
 
-            Log::info('Requesting screenshot from Cloudflare Browser Rendering API', [
-                'ticket_id' => $ticketId,
-                'ticket_url' => $ticketUrl,
-                'account_id' => $this->accountId,
-            ]);
-
             // Prepare the API request payload
             $payload = [
                 'url' => $ticketUrl,
-                'selector' => '#ticket-element', // Target just the ticket element
                 'screenshotOptions' => [
                     'type' => 'webp', // Use WebP format
                     'quality' => 85, // High quality for WebP
                 ],
                 'gotoOptions' => [
-                    'waitUntil' => 'networkidle0', // Wait until no network requests for 500ms
-                    'timeout' => 30000, // 30 second timeout
+                    'waitUntil' => 'domcontentloaded', // Wait until DOM is loaded (faster than networkidle0)
+                    'timeout' => 10000, // 10 second timeout for navigation
                 ],
-                'waitForSelector' => [
-                    'selector' => '#ticket-element',
-                    'timeout' => 10000, // Wait up to 10 seconds for the ticket element to appear
-                ],
+                'actionTimeout' => 10000, // 10 second timeout for actions
+                'waitForTimeout' => 2000, // Wait 2 seconds after page load to ensure rendering
             ];
 
             // Make request to Cloudflare Browser Rendering API
-            $response = Http::timeout(60) // 60 second timeout for screenshot generation
+            $response = Http::timeout(10) // 10 second timeout for screenshot generation
                 ->withToken($this->apiToken)
                 ->post($this->apiBaseUrl . '/screenshot', $payload);
 
@@ -76,7 +67,6 @@ class ScreenshotService
 
             // Parse the JSON response
             $responseData = $response->json();
-
             if (!isset($responseData['success']) || !$responseData['success']) {
                 Log::error('Screenshot service returned unsuccessful response', [
                     'ticket_id' => $ticketId,
@@ -118,12 +108,6 @@ class ScreenshotService
                 return false;
             }
 
-            Log::info('Screenshot successfully captured and stored', [
-                'ticket_id' => $ticketId,
-                'file_path' => $filePath,
-                'file_size' => strlen($imageData),
-            ]);
-
             return true;
 
         } catch (\Exception $e) {
@@ -152,7 +136,7 @@ class ScreenshotService
             'seat' => $seat,
         ]);
 
-        $baseUrl = route('tickets.render', ['ticket' => $originalTicketId]);
+        $baseUrl = "https://stubly-main-blnwuu.laravel.cloud/tickets/{$originalTicketId}/render";
 
         return empty($queryParams) ? $baseUrl : $baseUrl . '?' . http_build_query($queryParams);
     }
