@@ -101,24 +101,24 @@ export default function AppearanceTabContent({
         </h4>
 
         <div>
-          <Label htmlFor="dividerColor" className="text-sky-900 font-medium">
+          <Label htmlFor="accentColor" className="text-sky-900 font-medium">
             Accent Color
           </Label>
           <div className="flex items-center mt-2 space-x-3">
             <div className="relative">
               <Input
-                id="dividerColor"
-                name="dividerColor"
+                id="accentColor"
+                name="accentColor"
                 type="color"
-                value={ticketInfo.dividerColor || "#0c4a6e"}
+                value={ticketInfo.accentColor || "#000000"}
                 onChange={handleChange}
                 className="w-12 h-12 p-1 rounded-md cursor-pointer border-gray-300"
               />
               <div className="absolute inset-0 pointer-events-none rounded-md border border-gray-300"></div>
             </div>
             <Input
-              name="dividerColor"
-              value={ticketInfo.accentColor || "#0c4a6e"}
+              name="accentColor"
+              value={ticketInfo.accentColor || "#000000"}
               onChange={handleChange}
               className="flex-1 border-gray-300 focus:ring-orange-500 focus:border-orange-500"
             />

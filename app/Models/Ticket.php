@@ -28,6 +28,7 @@ class Ticket extends Model
     'section',
     'row',
     'seat',
+    'accent_color',
     'is_purchased',
     'generated_ticket_url',
     'template_id',

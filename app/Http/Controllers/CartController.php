@@ -109,6 +109,7 @@ class CartController extends Controller
                     'section' => $ticket->section,
                     'row' => $ticket->row,
                     'seat' => $ticket->seat,
+                    'accent_color' => $ticket->accent_color,
                     'generated_ticket_url' => $ticket->generated_ticket_url,
                     'price' => $ticket->price,
                     'template_id' => $ticket->template_id,

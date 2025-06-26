@@ -33,7 +33,7 @@ export default function Canvas({ categories, auth }) {
     filename: null,
     template: null,
     template_id: null,
-    accentColor: "#0c4a6e",
+    accentColor: "#000000",
     homeTeamLogo: null,
     awayTeamLogo: null,
   });
@@ -84,6 +84,7 @@ export default function Canvas({ categories, auth }) {
         formData.append('seat', ticketInfo.seat || '');
         formData.append('template', ticketInfo.template || '');
         formData.append('template_id', ticketInfo.template_id || '');
+        formData.append('accentColor', ticketInfo.accentColor || '');
 
         // Add background image as binary if exists
         if (ticketInfo.backgroundImage) {

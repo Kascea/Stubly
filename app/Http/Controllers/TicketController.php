@@ -62,6 +62,7 @@ class TicketController extends Controller
                 'section' => $request->section,
                 'row' => $request->row,
                 'seat' => $request->seat,
+                'accent_color' => $request->accentColor,
                 'ticketable_id' => $specializedTicket->id,
                 'ticketable_type' => get_class($specializedTicket),
             ];
@@ -278,7 +279,7 @@ class TicketController extends Controller
             'section' => $request->query('section') ?? $ticket->section,
             'row' => $request->query('row') ?? $ticket->row,
             'seat' => $request->query('seat') ?? $ticket->seat,
-            'accentColor' => '#0c4a6e', // Default accent color
+            'accentColor' => $ticket->accent_color ?? '#000000', // Use ticket's accent color or default to black
         ];
 
         // Add category-specific data
@@ -376,6 +377,7 @@ class TicketController extends Controller
                 'section' => $request->section,
                 'row' => $request->row,
                 'seat' => $request->seat,
+                'accent_color' => $originalTicket->accent_color,
                 'ticketable_id' => $duplicateSpecialized?->id,
                 'ticketable_type' => $originalTicket->ticketable_type,
             ];

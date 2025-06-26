@@ -107,7 +107,7 @@ export default function CartIndex({ cart: initialCart, auth }) {
       seat: newSeating.seat || originalTicket.seat,
       template: originalTicket.template_id,
       template_id: originalTicket.template_id,
-      accentColor: "#0c4a6e",
+      accentColor: originalTicket.accent_color || "#000000",
     };
 
     // Add category-specific data based on ticketable data
