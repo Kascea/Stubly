@@ -83,7 +83,7 @@ export default function AppearanceTabContent({
                   device
                 </p>
                 <p className="text-xs text-gray-500 mt-3">
-                  Supports: JPG, PNG, GIF (Max 5MB)
+                  Supports: JPG, PNG, GIF (Max 20MB)
                 </p>
               </>
             )}

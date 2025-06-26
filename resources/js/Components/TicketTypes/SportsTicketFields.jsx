@@ -93,7 +93,7 @@ export default function SportsTicketFields({
               </div>
               {!ticketInfo.homeTeamLogo && (
                 <p className="text-xs text-gray-500 mt-2">
-                  Supports: JPG, PNG, GIF (Max 5MB)
+                  Supports: JPG, PNG, GIF (Max 15MB)
                 </p>
               )}
             </div>
@@ -175,7 +175,7 @@ export default function SportsTicketFields({
               </div>
               {!ticketInfo.awayTeamLogo && (
                 <p className="text-xs text-gray-500 mt-2">
-                  Supports: JPG, PNG, GIF (Max 5MB)
+                  Supports: JPG, PNG, GIF (Max 15MB)
                 </p>
               )}
             </div>

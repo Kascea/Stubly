@@ -7,7 +7,6 @@ use App\Models\Category;
 use App\Models\SportsTicket;
 use App\Models\ConcertTicket;
 use App\Models\Template;
-use App\Services\ImageProcessingService;
 use App\Services\ScreenshotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -22,13 +21,6 @@ use Illuminate\Support\Facades\Session;
 
 class TicketController extends Controller
 {
-    protected ImageProcessingService $imageService;
-
-    public function __construct(ImageProcessingService $imageService)
-    {
-        $this->imageService = $imageService;
-    }
-
     public function store(Request $request)
     {
         try {
@@ -97,11 +89,12 @@ class TicketController extends Controller
      */
     protected function processTicketImages(Request $request, Ticket $ticket, string $categoryId): void
     {
-        // 1. Process and store the main ticket image
+        // 1. Store the main ticket image directly (already WebP from frontend)
         if ($request->hasFile('generatedTicket')) {
-            $success = $this->imageService->storeTicketImage(
+            $success = Storage::disk('r2-perm')->putFileAs(
+                '',
                 $request->file('generatedTicket'),
-                $ticket->ticket_id
+                $ticket->ticket_id . '.webp'
             );
 
             if (!$success) {
@@ -109,19 +102,31 @@ class TicketController extends Controller
             }
         }
 
-        // 2. Process background image
+        // 2. Store background image directly to temp storage
         if ($request->hasFile('backgroundImage')) {
-            $this->imageService->storeBackgroundImage($request->file('backgroundImage'), $ticket->ticket_id);
+            $success = Storage::disk('r2-temp')->putFileAs(
+                $ticket->ticket_id,
+                $request->file('backgroundImage'),
+                'background-image.webp'
+            );
         }
 
-        // 3. Process team logos for sports tickets
+        // 3. Store team logos directly to temp storage for sports tickets
         if ($categoryId === 'sports') {
             if ($request->hasFile('homeTeamLogo')) {
-                $this->imageService->storeTeamLogo($request->file('homeTeamLogo'), $ticket->ticket_id, 'home');
+                Storage::disk('r2-temp')->putFileAs(
+                    $ticket->ticket_id,
+                    $request->file('homeTeamLogo'),
+                    'home-team-logo.webp'
+                );
             }
 
             if ($request->hasFile('awayTeamLogo')) {
-                $this->imageService->storeTeamLogo($request->file('awayTeamLogo'), $ticket->ticket_id, 'away');
+                Storage::disk('r2-temp')->putFileAs(
+                    $ticket->ticket_id,
+                    $request->file('awayTeamLogo'),
+                    'away-team-logo.webp'
+                );
             }
         }
     }
@@ -161,9 +166,9 @@ class TicketController extends Controller
             'row' => 'nullable|string',
             'seat' => 'nullable|string',
             'generatedTicket' => 'required|file|image|max:10240', // 10MB max for ticket image
-            'backgroundImage' => 'nullable|file|image|max:5120', // 5MB max for background
-            'homeTeamLogo' => 'nullable|file|image|max:5120', // 5MB max for logos
-            'awayTeamLogo' => 'nullable|file|image|max:5120', // 5MB max for logos
+            'backgroundImage' => 'nullable|file|image|max:20480', // 20MB max for background (temp asset)
+            'homeTeamLogo' => 'nullable|file|image|max:15360', // 15MB max for logos (temp asset)
+            'awayTeamLogo' => 'nullable|file|image|max:15360', // 15MB max for logos (temp asset)
             'template' => 'nullable|string',
             'template_id' => 'required|string|exists:templates,id',
         ];
@@ -385,11 +390,12 @@ class TicketController extends Controller
             // Create the new ticket
             $newTicket = Ticket::create($newTicketData);
 
-            // Process and store the main ticket image
+            // Store the main ticket image directly
             if ($request->hasFile('generatedTicket')) {
-                $success = $this->imageService->storeTicketImage(
+                $success = Storage::disk('r2-perm')->putFileAs(
+                    '',
                     $request->file('generatedTicket'),
-                    $newTicket->ticket_id
+                    $newTicket->ticket_id . '.webp'
                 );
 
                 if (!$success) {
