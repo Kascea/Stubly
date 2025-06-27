@@ -10,16 +10,17 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
         style={{ aspectRatio: "3/7", maxHeight: "40rem" }}
       >
         {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-gradient-to-br from-sky-300 to-orange-300"
-          style={{
-            backgroundImage: ticketInfo?.backgroundImage
-              ? `url(${ticketInfo.backgroundImage})`
-              : undefined,
-          }}
-        >
-          <div className="absolute inset-0 bg-black/60" />
-        </div>
+        {ticketInfo?.backgroundImage ? (
+          <img
+            src={ticketInfo.backgroundImage}
+            alt="Background"
+            className="absolute inset-0 w-full h-full object-cover"
+            crossOrigin="anonymous"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-300 to-orange-300" />
+        )}
+        <div className="absolute inset-0 bg-black/60" />
 
         {/* Content Container */}
         <div className="relative text-white h-full flex flex-col">
@@ -51,6 +52,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                         src={ticketInfo.homeTeamLogo}
                         alt="Home Team"
                         className="w-full h-full object-contain"
+                        crossOrigin="anonymous"
                       />
                     </div>
                   ) : null}
@@ -70,6 +72,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                         src={ticketInfo.awayTeamLogo}
                         alt="Away Team"
                         className="w-full h-full object-contain"
+                        crossOrigin="anonymous"
                       />
                     </div>
                   ) : null}
