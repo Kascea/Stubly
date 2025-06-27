@@ -10,6 +10,7 @@ use App\Models\SocialAuth;
 use App\Models\Ticket;
 use Illuminate\Support\Str;
 use App\Models\Order;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -62,6 +63,17 @@ class User extends Authenticatable
       'email_verified_at' => 'datetime',
       'password' => 'hashed',
     ];
+  }
+
+  /**
+   * Send the password reset notification.
+   *
+   * @param  string  $token
+   * @return void
+   */
+  public function sendPasswordResetNotification($token)
+  {
+    $this->notify(new ResetPasswordNotification($token));
   }
 
   // Relationship to social authentications
