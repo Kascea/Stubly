@@ -110,31 +110,6 @@ New Refund Request - Customer: {{ $data['email'] ?? 'customer@example.com' }}
 </table>
 @endif
 
-@if(isset($data['order_id']) && !empty($data['order_id']))
-<table
-    align="center"
-    width="100%"
-    border="0"
-    cellpadding="0"
-    cellspacing="0"
-    role="presentation"
-    style="margin-top:20px">
-    <tbody>
-        <tr>
-            <td>
-                <a href="{{ config('app.url') }}/orders/{{ $data['order_id'] }}"
-                    style="background-color:rgb(3,105,161);color:rgb(255,255,255);font-weight:700;padding-top:10px;padding-bottom:10px;padding-left:15px;padding-right:15px;border-radius:3px;text-decoration-line:none;text-align:center;box-sizing:border-box;line-height:100%;text-decoration:none;display:inline-block;max-width:100%;mso-padding-alt:0px;padding:10px 15px 10px 15px"
-                    target="_blank">
-                    <span><!--[if mso]><i style="mso-font-width:375%;mso-text-raise:15" hidden>&#8202;&#8202;</i><![endif]--></span>
-                    <span style="max-width:100%;display:inline-block;line-height:120%;mso-padding-alt:0px;mso-text-raise:7.5px">View Order</span>
-                    <span><!--[if mso]><i style="mso-font-width:375%" hidden>&#8202;&#8202;&#8203;</i><![endif]--></span>
-                </a>
-            </td>
-        </tr>
-    </tbody>
-</table>
-@endif
-
 <table
     align="center"
     width="100%"

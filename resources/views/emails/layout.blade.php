@@ -53,7 +53,7 @@
                                                     <img
                                                         alt="Stubly"
                                                         height="40"
-                                                        src="{{ config('app.url') }}/images/logo-no-background.webp"
+                                                        src="{{ config('app.url') }}/images/android-chrome-192x192.png"
                                                         style="width:120px;height:auto;margin-left:auto;margin-right:auto;margin-bottom:16px;object-fit:cover;display:block;outline:none;border:none;text-decoration:none"
                                                         width="120" />
                                                     @yield('header')
