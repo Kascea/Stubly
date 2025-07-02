@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
-use App\Models\Category;
 use App\Models\SportsTicket;
 use App\Models\ConcertTicket;
 use App\Models\Template;
@@ -269,9 +268,6 @@ class TicketController extends Controller
         // Load the ticket with all its relationships
         $ticket->load(['template', 'template.category', 'ticketable']);
 
-        // Load categories with templates for the component
-        $categories = Category::with('templates')->get();
-
         // Prepare ticket data for the template
         $ticketData = [
             'ticket_id' => $ticket->ticket_id,
@@ -323,17 +319,12 @@ class TicketController extends Controller
 
         return Inertia::render('TicketScreenshot', [
             'ticket' => $ticketData,
-            'categories' => $categories,
         ]);
     }
 
     public function canvas()
     {
-        // Load categories with their templates
-        $categories = Category::with('templates')->get();
-
         return Inertia::render('Canvas', [
-            'categories' => $categories,
             'auth' => [
                 'user' => auth()->user()
             ]

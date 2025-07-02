@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  Loader2,
-  TicketPlus,
-  X,
-  CloudUpload,
   Palette,
   MapPin,
   Calendar,
@@ -11,7 +7,6 @@ import {
   Image,
   Users,
   Music,
-  Settings,
   Type,
   ChevronRight,
   ChevronLeft,
@@ -157,7 +152,7 @@ export default function TicketEditorSidebar({
       }
     },
     accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".gif"],
+      "image/*": [".jpeg", ".jpg", ".png"],
     },
     multiple: false,
   });

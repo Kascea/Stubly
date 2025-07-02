@@ -91,7 +91,7 @@ export default function TemplatesTabContent({
               >
                 <div className="flex-1 text-left">
                   <div className="font-medium text-base">
-                    {formatTemplateName(template.id)}
+                    {formatTemplateName(template.id).split(' ').pop()}
                   </div>
                   <div className="text-xs text-gray-500 mt-1 flex items-center">
                     {template.supports_background_image ? (

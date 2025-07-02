@@ -66,7 +66,7 @@ const ConcertsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                               weekday: "short",
                               month: "short",
                               day: "numeric",
-                            },
+                            }
                           )
                         : "N/A"}
                     </p>
@@ -81,7 +81,7 @@ const ConcertsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                               hour: "numeric",
                               minute: "2-digit",
                               hour12: true,
-                            },
+                            }
                           )
                         : "N/A"}
                     </p>
@@ -168,7 +168,7 @@ const ConcertsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
-                        },
+                        }
                       )
                     : "N/A"}
                 </p>

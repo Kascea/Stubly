@@ -1,20 +1,20 @@
 import React, { forwardRef } from "react";
 
-import SportsVerticalTemplate from "@/Components/Templates/Sports/SportsVerticalTemplate";
-import ConcertsVerticalTemplate from "@/Components/Templates/Concerts/ConcertsVerticalTemplate";
+import SportsModern from "@/Components/Templates/Sports/SportsModern";
+import ConcertsModern from "@/Components/Templates/Concerts/ConcertsModern";
 
 const TicketTemplate = forwardRef(({ ticketInfo }, ref) => {
-  // Organized by category with vertical options only
+  // Organized by category with modern template options
   const templates = {
     // Sports templates
-    "sports-vertical": SportsVerticalTemplate,
+    "sports-modern": SportsModern,
 
     // Concerts templates
-    "concerts-vertical": ConcertsVerticalTemplate,
+    "concerts-modern": ConcertsModern,
   };
 
   const Template =
-    templates[ticketInfo.template] || templates["sports-vertical"];
+    templates[ticketInfo.template] || templates["sports-modern"];
 
   return (
     <div className="flex items-center justify-center w-full">

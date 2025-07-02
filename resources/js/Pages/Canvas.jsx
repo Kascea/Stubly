@@ -12,8 +12,9 @@ import {
 import AppLayout from "@/Layouts/AppLayout";
 import { domToWebp } from "modern-screenshot";
 import axios from "axios";
+import { CATEGORIES } from "@/data/categories";
 
-export default function Canvas({ categories, auth }) {
+export default function Canvas({ auth }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [notification, setNotification] = useState({
     type: null, // 'success' or 'error'
@@ -64,7 +65,7 @@ export default function Canvas({ categories, auth }) {
         const ticketBlob = await response.blob();
 
         // Get the selected category
-        const selectedCategory = categories.find((c) =>
+        const selectedCategory = CATEGORIES.find((c) =>
           c.templates.some((t) => t.id === ticketInfo.template),
         )?.id;
 
@@ -162,7 +163,7 @@ export default function Canvas({ categories, auth }) {
           <TicketEditorSidebar
             ticketInfo={ticketInfo}
             setTicketInfo={setTicketInfo}
-            categories={categories}
+            categories={CATEGORIES}
           />
         </div>
 
