@@ -21,6 +21,12 @@ import {
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/Components/ui/tooltip";
+import {
   ShoppingCart,
   Trash2,
   Plus,
@@ -29,6 +35,7 @@ import {
   X,
   Loader2,
   Copy,
+  HelpCircle,
 } from "lucide-react";
 import { router } from "@inertiajs/react";
 import axios from "axios";
@@ -343,15 +350,29 @@ export default function CartIndex({ cart: initialCart, auth }) {
                         price="2.99"
                         actions={
                           <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openDuplicateDialog(ticket)}
-                              className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                            >
-                              <Copy className="h-4 w-4 mr-1" />
-                              Duplicate
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openDuplicateDialog(ticket)}
+                                    className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                                  >
+                                    <Copy className="h-4 w-4 mr-1" />
+                                    Duplicate
+                                    <HelpCircle className="h-3 w-3 ml-1 text-gray-400" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <p className="text-sm">
+                                    Create a copy of this ticket with different
+                                    section, row, or seat numbers. All other
+                                    details remain the same.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                             <Button
                               variant="outline"
                               size="sm"
@@ -487,19 +508,25 @@ export default function CartIndex({ cart: initialCart, auth }) {
               Duplicate Ticket
             </DialogTitle>
             <DialogDescription>
-              Create a copy of this ticket with custom seating information.
+              Create a copy with different seating information.
             </DialogDescription>
           </DialogHeader>
 
           {duplicateDialog.ticket && (
             <div className="space-y-4">
-              <div className="bg-sky-50 p-3 rounded-lg border border-sky-200">
-                <p className="text-sm text-sky-800 font-medium">
-                  {duplicateDialog.ticket.event_name}
-                </p>
-                <p className="text-xs text-sky-600">
-                  {duplicateDialog.ticket.event_location}
-                </p>
+              {/* Visual explanation of what gets duplicated */}
+              <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-200">
+                <div className="flex items-start space-x-2">
+                  <div className="flex-shrink-0 w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                    <Copy className="h-3 w-3 text-blue-600" />
+                  </div>
+                  <div className="text-sm">
+                    <p className="text-blue-700 text-xs">
+                      All ticket details stay the same except for the seating
+                      information below.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Error Message */}
@@ -573,9 +600,9 @@ export default function CartIndex({ cart: initialCart, auth }) {
                 </div>
               </div>
 
-              <div className="text-xs text-gray-500">
-                All other ticket details will be copied from the original
-                ticket.
+              <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded border">
+                <strong>Note:</strong> The new ticket will be added to your cart
+                as a separate item with the same $2.99 price.
               </div>
             </div>
           )}
