@@ -222,7 +222,17 @@ class CartController extends Controller
             $price = \Stripe\Price::retrieve($priceId);
             $unitPrice = $price->unit_amount / 100; // Convert from cents to dollars
 
-            // Create checkout session first
+            // Create a pending order first so we can include the order ID in Stripe metadata
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'customer_email' => Auth::check() ? Auth::user()->email : null,
+                'total_amount' => $unitPrice * $ticketCount,
+                'payment_intent_id' => null, // Will be updated after payment
+                'payment_method' => null, // Will be updated after payment
+                'status' => 'pending',
+            ]);
+
+            // Create checkout session with order ID in metadata
             $checkoutSession = StripeSession::create([
                 'ui_mode' => 'embedded',
                 'payment_method_types' => ['card'],
@@ -236,9 +246,14 @@ class CartController extends Controller
                         'quantity' => $ticketCount,
                     ]
                 ],
-                'metadata' => [
-                    'cart_id' => $cart->cart_id,
-                    'ticket_type' => $ticketType,
+                'payment_intent_data' => [
+                    'metadata' => [
+                        'order_id' => $order->order_id,
+                        'cart_id' => $cart->cart_id,
+                        'ticket_type' => $ticketType,
+                        'user_id' => Auth::id() ?? 'guest',
+                        'customer_email' => Auth::check() ? Auth::user()->email : 'guest',
+                    ],
                 ],
             ]);
 
@@ -269,6 +284,11 @@ class CartController extends Controller
                 'isGuest' => !Auth::check(),
             ]);
         } catch (\Exception $e) {
+            // Clean up pending order if it was created but checkout failed
+            if (isset($order) && $order->status === 'pending') {
+                $order->delete();
+            }
+
             Log::error('Checkout error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
@@ -320,11 +340,35 @@ class CartController extends Controller
                         throw new \Exception('Cart is empty');
                     }
 
-                    // Create the order after successful payment
-                    $order = Order::create([
-                        'user_id' => auth()->id(),
+                    // Validate metadata exists
+                    if (!isset($stripeSession->metadata->order_id)) {
+                        throw new \Exception('Order ID missing from payment session');
+                    }
+
+                    // Get the existing pending order with additional validation
+                    $order = Order::where('order_id', $stripeSession->metadata->order_id)
+                        ->where('status', 'pending') // Only allow pending orders
+                        ->lockForUpdate() // Prevent race conditions
+                        ->first();
+
+                    if (!$order) {
+                        throw new \Exception('Pending order not found or already processed');
+                    }
+
+                    // Additional security check: verify order belongs to current user/session
+                    $currentUserId = auth()->id();
+                    $currentSessionId = Session::getId();
+
+                    if (
+                        $order->user_id !== $currentUserId &&
+                        (!$currentUserId && $cart->session_id !== $currentSessionId)
+                    ) {
+                        throw new \Exception('Order ownership validation failed');
+                    }
+
+                    // Update order with payment details
+                    $order->update([
                         'customer_email' => $stripeSession->customer_details->email,
-                        'total_amount' => $stripeSession->amount_total / 100,
                         'payment_intent_id' => $stripeSession->payment_intent,
                         'payment_method' => $stripeSession->payment_method ?? null,
                         'status' => 'completed',
@@ -341,7 +385,6 @@ class CartController extends Controller
                             'cart_id' => null
                         ]);
 
-                    // Replace the Mail::to line with:
                     ProcessOrderConfirmation::dispatch($order, $stripeSession->customer_details->email, $tickets);
 
                     // Delete the cart
@@ -369,6 +412,7 @@ class CartController extends Controller
                     Log::error('Transaction error in checkout success: ' . $e->getMessage(), [
                         'session_id' => $stripeSession->id,
                         'cart_id' => $cart->cart_id,
+                        'order_id' => $stripeSession->metadata->order_id ?? 'missing',
                         'trace' => $e->getTraceAsString()
                     ]);
                     throw $e;
