@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 import { generateBarcodePattern } from "@/utils/barcode";
 
-const ConcertsModernTemplate = forwardRef(({ ticketInfo }, ref) => {
+const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div
@@ -36,17 +36,17 @@ const ConcertsModernTemplate = forwardRef(({ ticketInfo }, ref) => {
             className="flex-grow p-6 flex flex-col justify-end"
             style={{ height: "60%" }}
           >
-            {/* Artist and Tour Names - Moved lower */}
+            {/* Play and Theater Names - Moved lower */}
             <div className="text-center mb-4 mt-auto">
               <h1 className="text-4xl font-bold mb-4 leading-tight drop-shadow-md">
-                {ticketInfo?.artistName || "Artist Name"}
+                {ticketInfo?.playName || "Play Name"}
               </h1>
 
-              {/* Tour Name */}
+              {/* Theater Name */}
               <div className="flex items-center justify-center mt-4">
                 <div className="flex flex-col items-center">
                   <div className="text-xl font-bold drop-shadow-md mb-2">
-                    {ticketInfo?.tourName || "World Tour"}
+                    {ticketInfo?.theaterName || "Theater Name"}
                   </div>
                 </div>
               </div>
@@ -146,9 +146,9 @@ const ConcertsModernTemplate = forwardRef(({ ticketInfo }, ref) => {
                 </div>
               </div>
 
-              {/* Additional concert details */}
+              {/* Additional broadway details */}
               <div className="text-xs text-center mb-3 text-gray-600 uppercase tracking-wider flex-shrink-0">
-                <p>{ticketInfo?.artistName || "N/A"}</p>
+                <p>{ticketInfo?.playName || "N/A"}</p>
                 <p>
                   {ticketInfo?.date
                     ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
@@ -160,7 +160,7 @@ const ConcertsModernTemplate = forwardRef(({ ticketInfo }, ref) => {
                     : "N/A"}
                 </p>
                 <p>
-                  Start Time:{" "}
+                  Curtain Time:{" "}
                   {ticketInfo?.time
                     ? new Date(`${ticketInfo.time}`).toLocaleTimeString(
                         "en-US",
@@ -197,6 +197,6 @@ const ConcertsModernTemplate = forwardRef(({ ticketInfo }, ref) => {
   );
 });
 
-ConcertsModernTemplate.displayName = "ConcertsModernTemplate";
+BroadwayModernTemplate.displayName = "BroadwayModernTemplate";
 
-export default ConcertsModernTemplate;
+export default BroadwayModernTemplate;

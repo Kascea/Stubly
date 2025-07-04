@@ -7,6 +7,7 @@ import {
   Image,
   Users,
   Music,
+  Clapperboard,
   Type,
   ChevronRight,
   ChevronLeft,
@@ -189,12 +190,18 @@ export default function TicketEditorSidebar({
           ? "Teams"
           : selectedCategory === "concerts"
           ? "Artist"
+          : selectedCategory === "broadway"
+          ? "Show"
           : "Info",
       icon:
         selectedCategory === "sports" ? (
           <Users className="h-5 w-5" />
-        ) : (
+        ) : selectedCategory === "concerts" ? (
           <Music className="h-5 w-5" />
+        ) : selectedCategory === "broadway" ? (
+          <Clapperboard className="h-5 w-5" />
+        ) : (
+          <Users className="h-5 w-5" />
         ),
     },
     {

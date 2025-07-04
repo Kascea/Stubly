@@ -18,6 +18,7 @@ class CategoryTemplateSeeder extends Seeder
         $categories = [
             'sports',
             'concerts',
+            'broadway',
         ];
 
         foreach ($categories as $categoryName) {
@@ -39,7 +40,7 @@ class CategoryTemplateSeeder extends Seeder
         // Each category gets only a modern template
         Template::create([
             'id' => "{$categoryId}-modern",
-            'name' => Str::ucfirst($categoryId) . ' Modern',
+            'name' => 'Modern',
             'category_id' => $categoryId,
             'supports_background_image' => true,
         ]);

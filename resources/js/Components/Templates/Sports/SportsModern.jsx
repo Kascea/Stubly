@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 import { generateBarcodePattern } from "@/utils/barcode";
 
-const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
+const SportsModernTemplate = forwardRef(({ ticketInfo }, ref) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div
@@ -97,7 +97,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                               weekday: "short",
                               month: "short",
                               day: "numeric",
-                            },
+                            }
                           )
                         : "N/A"}
                     </p>
@@ -112,7 +112,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                               hour: "numeric",
                               minute: "2-digit",
                               hour12: true,
-                            },
+                            }
                           )
                         : "N/A"}
                     </p>
@@ -199,7 +199,7 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
-                        },
+                        }
                       )
                     : "N/A"}
                 </p>
@@ -228,6 +228,6 @@ const SportsVerticalTemplate = forwardRef(({ ticketInfo }, ref) => {
   );
 });
 
-SportsVerticalTemplate.displayName = "SportsVerticalTemplate";
+SportsModernTemplate.displayName = "SportsModernTemplate";
 
-export default SportsVerticalTemplate;
+export default SportsModernTemplate;

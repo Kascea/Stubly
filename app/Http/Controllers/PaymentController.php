@@ -21,11 +21,9 @@ class PaymentController extends Controller
             try {
                 return $this->$method($payload);
             } catch (\Exception $e) {
-                Log::error('Webhook error: ' . $e->getMessage(), [
+                return $this->handleSecureError($e, 'Webhook handling', [
                     'event' => $payload['type'],
-                    'trace' => $e->getTraceAsString()
                 ]);
-                return response()->json(['error' => $e->getMessage()], 500);
             }
         }
 

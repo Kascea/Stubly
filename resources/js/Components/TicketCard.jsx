@@ -105,17 +105,17 @@ export default function TicketCard({
           {(ticket.section || ticket.row || ticket.seat) && (
             <div className="flex flex-wrap gap-2">
               {ticket.section && (
-                <span className="px-3 py-1 bg-sky-50 text-sky-700 text-xs font-medium rounded-full border border-sky-200">
+                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded border">
                   Section {ticket.section}
                 </span>
               )}
               {ticket.row && (
-                <span className="px-3 py-1 bg-sky-100 text-sky-800 text-xs font-medium rounded-full border border-sky-300">
+                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded border">
                   Row {ticket.row}
                 </span>
               )}
               {ticket.seat && (
-                <span className="px-3 py-1 bg-sky-200 text-sky-900 text-xs font-medium rounded-full border border-sky-400">
+                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded border">
                   Seat {ticket.seat}
                 </span>
               )}

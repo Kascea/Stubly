@@ -4,11 +4,7 @@ import TicketEditorSidebar from "@/Components/TicketEditorSidebar";
 import TicketVisualizer from "@/Components/TicketVisualizer";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { Button } from "@/Components/ui/button";
-import {
-  CheckCircle2,
-  Loader2,
-  ShoppingCart,
-} from "lucide-react";
+import { CheckCircle2, Loader2, ShoppingCart } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import { domToWebp } from "modern-screenshot";
 import axios from "axios";
@@ -66,54 +62,63 @@ export default function Canvas({ auth }) {
 
         // Get the selected category
         const selectedCategory = CATEGORIES.find((c) =>
-          c.templates.some((t) => t.id === ticketInfo.template),
+          c.templates.some((t) => t.id === ticketInfo.template)
         )?.id;
 
         // Create FormData for binary upload
         const formData = new FormData();
-        
+
         // Add the ticket image as binary
-        formData.append('generatedTicket', ticketBlob, 'ticket.png');
-        
+        formData.append("generatedTicket", ticketBlob, "ticket.png");
+
         // Add all other ticket data
-        formData.append('eventName', ticketInfo.eventName || '');
-        formData.append('eventLocation', ticketInfo.eventLocation || '');
-        formData.append('date', ticketInfo.date ? ticketInfo.date.toISOString().split('T')[0] : '');
-        formData.append('time', ticketInfo.time ? ticketInfo.time.toTimeString().split(' ')[0] : '');
-        formData.append('section', ticketInfo.section || '');
-        formData.append('row', ticketInfo.row || '');
-        formData.append('seat', ticketInfo.seat || '');
-        formData.append('template', ticketInfo.template || '');
-        formData.append('template_id', ticketInfo.template_id || '');
-        formData.append('accentColor', ticketInfo.accentColor || '');
+        formData.append("eventName", ticketInfo.eventName || "");
+        formData.append("eventLocation", ticketInfo.eventLocation || "");
+        formData.append(
+          "date",
+          ticketInfo.date ? ticketInfo.date.toISOString().split("T")[0] : ""
+        );
+        formData.append(
+          "time",
+          ticketInfo.time ? ticketInfo.time.toTimeString().split(" ")[0] : ""
+        );
+        formData.append("section", ticketInfo.section || "");
+        formData.append("row", ticketInfo.row || "");
+        formData.append("seat", ticketInfo.seat || "");
+        formData.append("template", ticketInfo.template || "");
+        formData.append("template_id", ticketInfo.template_id || "");
+        formData.append("accentColor", ticketInfo.accentColor || "");
 
         // Add background image as binary if exists
         if (ticketInfo.backgroundImage) {
           const bgResponse = await fetch(ticketInfo.backgroundImage);
           const bgBlob = await bgResponse.blob();
-          formData.append('backgroundImage', bgBlob, 'background.png');
+          formData.append("backgroundImage", bgBlob, "background.png");
         }
 
         // Add category-specific fields and logos
         if (selectedCategory === "sports") {
-          formData.append('team_home', ticketInfo.homeTeam || '');
-          formData.append('team_away', ticketInfo.awayTeam || '');
-          
+          formData.append("team_home", ticketInfo.homeTeam || "");
+          formData.append("team_away", ticketInfo.awayTeam || "");
+
           // Add team logos as binary if they exist
           if (ticketInfo.homeTeamLogo) {
             const homeLogoResponse = await fetch(ticketInfo.homeTeamLogo);
             const homeLogoBlob = await homeLogoResponse.blob();
-            formData.append('homeTeamLogo', homeLogoBlob, 'home-logo.png');
+            formData.append("homeTeamLogo", homeLogoBlob, "home-logo.png");
           }
-          
+
           if (ticketInfo.awayTeamLogo) {
             const awayLogoResponse = await fetch(ticketInfo.awayTeamLogo);
             const awayLogoBlob = await awayLogoResponse.blob();
-            formData.append('awayTeamLogo', awayLogoBlob, 'away-logo.png');
+            formData.append("awayTeamLogo", awayLogoBlob, "away-logo.png");
           }
         } else if (selectedCategory === "concerts") {
-          formData.append('artist_name', ticketInfo.artistName || '');
-          formData.append('tour_name', ticketInfo.tourName || '');
+          formData.append("artist_name", ticketInfo.artistName || "");
+          formData.append("tour_name", ticketInfo.tourName || "");
+        } else if (selectedCategory === "broadway") {
+          formData.append("play_name", ticketInfo.playName || "");
+          formData.append("theater_name", ticketInfo.theaterName || "");
         }
 
         // Send FormData with binary data
@@ -122,7 +127,7 @@ export default function Canvas({ auth }) {
           formData,
           {
             headers: {
-              'Content-Type': 'multipart/form-data',
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -143,7 +148,8 @@ export default function Canvas({ auth }) {
         console.error("Error generating ticket:", error);
         setNotification({
           type: "error",
-          message: error.response?.data?.message ||
+          message:
+            error.response?.data?.message ||
             "An error occurred while creating your ticket.",
         });
       } finally {

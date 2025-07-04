@@ -5,18 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use App\Models\SportsTicket;
 use App\Models\ConcertTicket;
+use App\Models\BroadwayTicket;
 use App\Models\Template;
-use App\Services\ScreenshotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
-use App\Models\Payment;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\ValidationException;
 
 class TicketController extends Controller
 {
@@ -76,10 +73,10 @@ class TicketController extends Controller
             // Rollback the transaction in case of error
             DB::rollBack();
 
-            Log::error('Ticket creation failed', [
-                'message' => $e->getMessage(),
+            return $this->handleSecureError($e, 'Ticket creation', [
+                'template_id' => $request->template_id ?? null,
+                'event_name' => $request->eventName ?? null,
             ]);
-            return $this->handleError($e);
         }
     }
 
@@ -145,6 +142,10 @@ class TicketController extends Controller
                 'artist_name' => $request->artist_name ?? null,
                 'tour_name' => $request->tour_name ?? null,
             ]),
+            'broadway' => BroadwayTicket::create([
+                'play_name' => $request->play_name ?? null,
+                'theater_name' => $request->theater_name ?? null,
+            ]),
             default => null,
         };
     }
@@ -188,23 +189,17 @@ class TicketController extends Controller
                 ]);
                 break;
 
+            case 'broadway':
+                $rules = array_merge($rules, [
+                    'play_name' => 'required|string',
+                    'theater_name' => 'required|string',
+                ]);
+                break;
+
             // Add more cases for other categories as needed
         }
 
         $request->validate($rules);
-    }
-
-    protected function handleError(\Exception $e)
-    {
-        Log::error('Ticket operation failed', [
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ], 500);
     }
 
     public function destroy(Ticket $ticket)
@@ -219,10 +214,9 @@ class TicketController extends Controller
                 'message' => 'Ticket deleted successfully'
             ]);
         } catch (\Exception $e) {
-            Log::error('Error deleting ticket: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Failed to delete ticket'
-            ], 500);
+            return $this->handleSecureError($e, 'Ticket deletion', [
+                'ticket_id' => $ticket->ticket_id ?? 'unknown',
+            ]);
         }
     }
 
@@ -255,71 +249,6 @@ class TicketController extends Controller
         return response($imageContent)
             ->header('Content-Type', $mimeType)
             ->header('Content-Disposition', 'inline; filename="ticket_' . $ticket->ticket_id . '.' . $extension . '"');
-    }
-
-    /**
-     * Render ticket template for screenshot capture by Cloudflare Worker
-     * This route is publicly accessible for the screenshot service
-     * 
-     * Uses original ticket data with override parameters for section, row, seat
-     */
-    public function renderForScreenshot(Ticket $ticket, Request $request)
-    {
-        // Load the ticket with all its relationships
-        $ticket->load(['template', 'template.category', 'ticketable']);
-
-        // Prepare ticket data for the template
-        $ticketData = [
-            'ticket_id' => $ticket->ticket_id,
-            'template' => $ticket->template_id,
-            'template_id' => $ticket->template_id,
-            'eventName' => $ticket->event_name,
-            'eventLocation' => $ticket->event_location,
-            'date' => $ticket->event_datetime,
-            'time' => $ticket->event_datetime,
-            'section' => $request->query('section') ?? $ticket->section,
-            'row' => $request->query('row') ?? $ticket->row,
-            'seat' => $request->query('seat') ?? $ticket->seat,
-            'accentColor' => $ticket->accent_color ?? '#000000', // Use ticket's accent color or default to black
-        ];
-
-        // Add category-specific data
-        if ($ticket->ticketable && $ticket->template && $ticket->template->category) {
-            switch ($ticket->template->category->id) {
-                case 'sports':
-                    $ticketData['homeTeam'] = $ticket->ticketable->team_home;
-                    $ticketData['awayTeam'] = $ticket->ticketable->team_away;
-                    break;
-                case 'concerts':
-                    $ticketData['artistName'] = $ticket->ticketable->artist_name;
-                    $ticketData['tourName'] = $ticket->ticketable->tour_name;
-                    break;
-            }
-        }
-
-        // Use the original ticket's assets
-        $backgroundImagePath = $ticket->ticket_id . '/background-image.webp';
-        if (Storage::disk('r2-temp')->exists($backgroundImagePath)) {
-            $ticketData['backgroundImage'] = Storage::disk('r2-temp')->url($backgroundImagePath);
-        }
-
-        // Add team logo URLs for sports tickets
-        if ($ticket->template && $ticket->template->category && $ticket->template->category->id === 'sports') {
-            $homeLogoPath = $ticket->ticket_id . '/home-team-logo.webp';
-            $awayLogoPath = $ticket->ticket_id . '/away-team-logo.webp';
-
-            if (Storage::disk('r2-temp')->exists($homeLogoPath)) {
-                $ticketData['homeTeamLogo'] = Storage::disk('r2-temp')->url($homeLogoPath);
-            }
-
-            if (Storage::disk('r2-temp')->exists($awayLogoPath)) {
-                $ticketData['awayTeamLogo'] = Storage::disk('r2-temp')->url($awayLogoPath);
-            }
-        }
-
-        return Inertia::render('TicketScreenshot', [
-            'ticket' => $ticketData,
-        ]);
     }
 
     public function canvas()
@@ -412,20 +341,17 @@ class TicketController extends Controller
                 'ticket' => $newTicket
             ]);
 
+        } catch (ValidationException $e) {
+            // Re-throw validation exceptions so they're handled by Laravel's default handler
+            // This preserves the field-specific error messages for forms
+            throw $e;
         } catch (\Exception $e) {
             // Rollback the transaction in case of error
             DB::rollBack();
 
-            Log::error('Ticket duplication failed', [
-                'message' => $e->getMessage(),
+            return $this->handleSecureError($e, 'Ticket duplication', [
                 'original_ticket_id' => $request->original_ticket_id ?? null,
-                'trace' => $e->getTraceAsString(),
             ]);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
         }
     }
 

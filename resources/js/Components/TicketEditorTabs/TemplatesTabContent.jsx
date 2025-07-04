@@ -1,6 +1,13 @@
 import React from "react";
 import { Label } from "@/Components/ui/label";
-import { LayoutGrid, Image, Check, Users, Music } from "lucide-react";
+import {
+  LayoutGrid,
+  Image,
+  Check,
+  Users,
+  Music,
+  Clapperboard,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -47,6 +54,8 @@ export default function TemplatesTabContent({
                   <div className="flex items-center">
                     {category.id === "sports" ? (
                       <Users className="h-4 w-4 mr-2 text-orange-500" />
+                    ) : category.id === "broadway" ? (
+                      <Clapperboard className="h-4 w-4 mr-2 text-orange-500" />
                     ) : (
                       <Music className="h-4 w-4 mr-2 text-orange-500" />
                     )}
@@ -91,7 +100,7 @@ export default function TemplatesTabContent({
               >
                 <div className="flex-1 text-left">
                   <div className="font-medium text-base">
-                    {formatTemplateName(template.id).split(' ').pop()}
+                    {formatTemplateName(template.id).split(" ").pop()}
                   </div>
                   <div className="text-xs text-gray-500 mt-1 flex items-center">
                     {template.supports_background_image ? (

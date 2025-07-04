@@ -289,10 +289,11 @@ class CartController extends Controller
                 $order->delete();
             }
 
-            Log::error('Checkout error: ' . $e->getMessage(), [
+            Log::error('Checkout error', [
+                'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return redirect()->route('cart.index')->with('error', 'An error occurred during checkout: ' . $e->getMessage());
+            return redirect()->route('cart.index')->with('error', 'An error occurred during checkout. Please try again or contact support if the issue persists.');
         }
     }
 
