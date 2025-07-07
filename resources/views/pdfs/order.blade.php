@@ -24,8 +24,8 @@
                   src="{{ $ticketImages[$index] }}" 
                   alt="Custom Ticket" 
                   style="
-                    width: '100%';
-                    height: '100%';
+                    width: 3in;
+                    height: 7in;
                     object-fit: contain;
                     position: absolute;
                     top: 50%;
