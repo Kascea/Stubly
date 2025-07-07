@@ -174,10 +174,4 @@ class Ticket extends Model
   {
     return !is_null($this->order_id);
   }
-
-  public function getIsVerticalAttribute()
-  {
-    // Check if template_id contains the word "vertical"
-    return $this->template_id && str_contains(strtolower($this->template_id), 'vertical');
-  }
 }

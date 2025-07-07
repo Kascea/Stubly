@@ -11,15 +11,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
-use Stripe\Stripe;
-use Stripe\Checkout\Session as StripeSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Cashier\Cashier;
-use App\Mail\OrderConfirmation;
-use Illuminate\Support\Facades\Mail;
 use App\Jobs\ProcessOrderConfirmation;
+use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Checkout;
+
 
 class CartController extends Controller
 {
@@ -200,11 +198,10 @@ class CartController extends Controller
     }
 
     /**
-     * Show the checkout page with Stripe Embedded Checkout
+     * Show the checkout page with Stripe Checkout via Laravel Cashier
      */
     public function checkout(Request $request)
     {
-        Stripe::setApiKey(config('cashier.secret'));
         $cart = $this->getCart();
 
         if (!$cart || $cart->tickets->isEmpty()) {
@@ -218,13 +215,13 @@ class CartController extends Controller
             $ticketType = $this->getTicketType();
             $priceId = $this->getStripePriceIdForTicketType($ticketType);
 
-            // Retrieve price from Stripe to ensure we have the correct amount
-            $price = \Stripe\Price::retrieve($priceId);
+            // Retrieve price from Stripe using Cashier to ensure we have the correct amount
+            $price = Cashier::stripe()->prices->retrieve($priceId);
             $unitPrice = $price->unit_amount / 100; // Convert from cents to dollars
 
             // Create a pending order first so we can include the order ID in Stripe metadata
             $order = Order::create([
-                'user_id' => auth()->id(),
+                'user_id' => auth()->id(), // null for guests
                 'customer_email' => Auth::check() ? Auth::user()->email : null,
                 'total_amount' => $unitPrice * $ticketCount,
                 'payment_intent_id' => null, // Will be updated after payment
@@ -232,19 +229,15 @@ class CartController extends Controller
                 'status' => 'pending',
             ]);
 
-            // Create checkout session with order ID in metadata
-            $checkoutSession = StripeSession::create([
-                'ui_mode' => 'embedded',
-                'payment_method_types' => ['card'],
+            $checkoutOptions = [
+                'success_url' => route('cart.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('cart.index'),
                 'mode' => 'payment',
-                'return_url' => route('cart.checkout.success'),
-                'customer_email' => Auth::check() ? Auth::user()->email : null,
-                'client_reference_id' => Auth::id() ?? Session::getId(),
-                'line_items' => [
-                    [
-                        'price' => $priceId,
-                        'quantity' => $ticketCount,
-                    ]
+                'metadata' => [
+                    'order_id' => $order->order_id,
+                    'cart_id' => $cart->cart_id,
+                    'ticket_type' => $ticketType,
+                    'user_id' => Auth::id() ?? 'guest',
                 ],
                 'payment_intent_data' => [
                     'metadata' => [
@@ -252,37 +245,17 @@ class CartController extends Controller
                         'cart_id' => $cart->cart_id,
                         'ticket_type' => $ticketType,
                         'user_id' => Auth::id() ?? 'guest',
-                        'customer_email' => Auth::check() ? Auth::user()->email : 'guest',
                     ],
                 ],
-            ]);
+            ];
 
-            // Store the session ID in Laravel session
-            $request->session()->put('stripe_session_id', $checkoutSession->id);
+            // Use different checkout methods for authenticated vs guest users
+            if (Auth::check()) {
+                return $request->user()->checkout([$priceId => $ticketCount], $checkoutOptions);
+            } else {
+                return Checkout::guest()->create([$priceId => $ticketCount], $checkoutOptions);
+            }
 
-            return Inertia::render('Cart/Checkout', [
-                'checkoutData' => [
-                    'items' => $cart->tickets->map(function ($ticket) use ($unitPrice) {
-                        return [
-                            'ticket_id' => $ticket->ticket_id,
-                            'price' => $unitPrice,
-                            'ticket' => [
-                                'event_name' => $ticket->event_name,
-                                'event_location' => $ticket->event_location ?? 'N/A',
-                                'event_datetime' => $ticket->event_datetime,
-                                'section' => $ticket->section,
-                                'row' => $ticket->row,
-                                'seat' => $ticket->seat,
-                            ],
-                        ];
-                    }),
-                    'subtotal' => $unitPrice * $ticketCount,
-                    'total' => $unitPrice * $ticketCount,
-                ],
-                'clientSecret' => $checkoutSession->client_secret,
-                'publishableKey' => config('cashier.key'),
-                'isGuest' => !Auth::check(),
-            ]);
         } catch (\Exception $e) {
             // Clean up pending order if it was created but checkout failed
             if (isset($order) && $order->status === 'pending') {
@@ -302,23 +275,23 @@ class CartController extends Controller
      */
     public function checkoutSuccess(Request $request)
     {
-        // Get session ID from Laravel session instead of URL
-        $sessionId = $request->session()->get('stripe_session_id');
+        // Get session ID from URL parameter (Stripe redirects with this)
+        $sessionId = $request->get('session_id');
 
         if (!$sessionId) {
-            return redirect()->route('cart.index');
+            return redirect()->route('cart.index')->with('error', 'Invalid checkout session');
         }
 
         try {
-            // Retrieve the session using Cashier
-            $stripeSession = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
+            // Retrieve the session using Cashier's Stripe client
+            $checkoutSession = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
 
-            if ($stripeSession->payment_status !== 'paid') {
+            if ($checkoutSession->payment_status !== 'paid') {
                 return redirect()->route('cart.index')->with('error', 'Payment unsuccessful. Please try again.');
             }
 
             // Get cart and lock it for update
-            $cart = Cart::where('cart_id', $stripeSession->metadata->cart_id)
+            $cart = Cart::where('cart_id', $checkoutSession->metadata->cart_id)
                 ->where('status', 'active')
                 ->with(['tickets'])
                 ->lockForUpdate()
@@ -326,14 +299,14 @@ class CartController extends Controller
 
             if (!$cart) {
                 Log::error('Cart not found or already processed', [
-                    'session_id' => $sessionId,
-                    'cart_id' => $stripeSession->metadata->cart_id
+                    'session_id' => $checkoutSession->id,
+                    'cart_id' => $checkoutSession->metadata->cart_id
                 ]);
                 return redirect()->route('cart.index')->with('error', 'Cart not found or already processed');
             }
 
             // Wrap everything in a transaction
-            return DB::transaction(function () use ($cart, $stripeSession, $request) {
+            return DB::transaction(function () use ($cart, $checkoutSession, $request) {
                 try {
                     $ticketCount = $cart->tickets->count();
 
@@ -342,12 +315,12 @@ class CartController extends Controller
                     }
 
                     // Validate metadata exists
-                    if (!isset($stripeSession->metadata->order_id)) {
+                    if (!isset($checkoutSession->metadata->order_id)) {
                         throw new \Exception('Order ID missing from payment session');
                     }
 
                     // Get the existing pending order with additional validation
-                    $order = Order::where('order_id', $stripeSession->metadata->order_id)
+                    $order = Order::where('order_id', $checkoutSession->metadata->order_id)
                         ->where('status', 'pending') // Only allow pending orders
                         ->lockForUpdate() // Prevent race conditions
                         ->first();
@@ -356,22 +329,19 @@ class CartController extends Controller
                         throw new \Exception('Pending order not found or already processed');
                     }
 
-                    // Additional security check: verify order belongs to current user/session
-                    $currentUserId = auth()->id();
-                    $currentSessionId = Session::getId();
-
-                    if (
-                        $order->user_id !== $currentUserId &&
-                        (!$currentUserId && $cart->session_id !== $currentSessionId)
-                    ) {
+                    // Security check: verify order ownership for authenticated users or session for guests
+                    $isGuest = $checkoutSession->metadata->user_id === 'guest';
+                    if (!$isGuest && $order->user_id !== auth()->id()) {
                         throw new \Exception('Order ownership validation failed');
+                    } elseif ($isGuest && $cart->session_id !== Session::getId()) {
+                        throw new \Exception('Guest session validation failed');
                     }
 
                     // Update order with payment details
                     $order->update([
-                        'customer_email' => $stripeSession->customer_details->email,
-                        'payment_intent_id' => $stripeSession->payment_intent,
-                        'payment_method' => $stripeSession->payment_method ?? null,
+                        'customer_email' => $checkoutSession->customer_details->email,
+                        'payment_intent_id' => $checkoutSession->payment_intent,
+                        'payment_method' => $checkoutSession->payment_method ?? null,
                         'status' => 'completed',
                     ]);
 
@@ -382,17 +352,14 @@ class CartController extends Controller
                     Ticket::whereIn('ticket_id', $tickets->pluck('ticket_id'))
                         ->update([
                             'order_id' => $order->order_id,
-                            'user_id' => auth()->id() ?? null,
+                            'user_id' => $isGuest ? null : auth()->id(),
                             'cart_id' => null
                         ]);
 
-                    ProcessOrderConfirmation::dispatch($order, $stripeSession->customer_details->email, $tickets);
+                    ProcessOrderConfirmation::dispatch($order, $checkoutSession->customer_details->email, $tickets);
 
                     // Delete the cart
                     $cart->delete();
-
-                    // At the end of successful checkout, clear the session ID
-                    $request->session()->forget('stripe_session_id');
 
                     // Return to confirmation page with order details
                     return Inertia::render('Cart/CheckoutSuccess', [
@@ -401,8 +368,8 @@ class CartController extends Controller
                             'created_at' => $order->created_at,
                             'total_amount' => $order->total_amount,
                             'items_count' => $ticketCount,
-                            'customer_email' => $stripeSession->customer_details->email,
-                            'is_guest' => !auth()->check(),
+                            'customer_email' => $checkoutSession->customer_details->email,
+                            'is_guest' => $isGuest
                         ],
                         'cart' => [
                             'count' => 0,
@@ -411,9 +378,9 @@ class CartController extends Controller
 
                 } catch (\Exception $e) {
                     Log::error('Transaction error in checkout success: ' . $e->getMessage(), [
-                        'session_id' => $stripeSession->id,
+                        'session_id' => $checkoutSession->id,
                         'cart_id' => $cart->cart_id,
-                        'order_id' => $stripeSession->metadata->order_id ?? 'missing',
+                        'order_id' => $checkoutSession->metadata->order_id ?? 'missing',
                         'trace' => $e->getTraceAsString()
                     ]);
                     throw $e;
@@ -425,9 +392,6 @@ class CartController extends Controller
                 'session_id' => $sessionId,
                 'trace' => $e->getTraceAsString()
             ]);
-
-            // Clear the session ID in case of error too
-            $request->session()->forget('stripe_session_id');
 
             $errorMessage = match (true) {
                 $e instanceof \Laravel\Cashier\Exceptions\IncompletePayment => 'Your payment was not completed. Please try again.',

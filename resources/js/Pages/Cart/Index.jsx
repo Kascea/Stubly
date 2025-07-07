@@ -436,14 +436,14 @@ export default function CartIndex({ cart: initialCart, auth }) {
                     </CardContent>
 
                     <CardFooter className="flex flex-col space-y-3 pt-6 border-t bg-gradient-to-r from-sky-50/20 to-blue-50/20">
-                      <Link href={route("cart.checkout")} className="w-full">
+                      <a href={route("cart.checkout")} className="w-full">
                         <Button
                           size="lg"
                           className="w-full bg-sky-800 hover:bg-sky-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
                         >
                           Checkout <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
-                      </Link>
+                      </a>
 
                       <Link href={route("canvas")} className="w-full">
                         <Button

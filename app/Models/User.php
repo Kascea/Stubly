@@ -11,11 +11,12 @@ use App\Models\Ticket;
 use Illuminate\Support\Str;
 use App\Models\Order;
 use App\Notifications\ResetPasswordNotification;
+use Laravel\Cashier\Billable;
 
 class User extends Authenticatable
 {
 
-  use HasFactory, Notifiable;
+  use HasFactory, Notifiable, Billable;
 
   public $incrementing = false;
   protected $keyType = 'string';

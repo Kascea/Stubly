@@ -24,13 +24,13 @@
                   src="{{ $ticketImages[$index] }}" 
                   alt="Custom Ticket" 
                   style="
-                    width: {{ $ticket->is_vertical ? '3in' : '100%' }};
-                    height: {{ $ticket->is_vertical ? '7in' : '100%' }};
+                    width: '100%';
+                    height: '100%';
                     object-fit: contain;
                     position: absolute;
                     top: 50%;
                     left: 50%;
-                    transform: translate(-50%, -50%) {{ $ticket->is_vertical ? 'rotate(90deg)' : '' }};
+                    transform: translate(-50%, -50%) rotate(90deg);
                     transform-origin: center;
                   "
                 >

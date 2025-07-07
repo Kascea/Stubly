@@ -40,7 +40,7 @@ Route::prefix('cart')->name('cart.')->group(function () {
 });
 
 // Checkout routes (accessible to guests)
-Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
+Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
 Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])->name('cart.checkout.success');
 
 // Support routes (accessible to guests)

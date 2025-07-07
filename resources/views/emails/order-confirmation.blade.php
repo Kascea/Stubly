@@ -184,8 +184,7 @@ Order Confirmation - Thank you for your purchase! Order #{{ $order->order_id }}
         <tr>
             <td>
                 <p style="font-size:14px;color:rgb(75,85,99);margin:0px;line-height:24px;margin-bottom:16px;margin-top:16px">
-                    <strong>Your Tickets PDF:</strong> We've attached a PDF document to this email containing all your tickets. You can print them at home or present them on your mobile device for entry.
-                </p>
+                    <strong>Your Tickets PDF:</strong> We've attached a PDF document to this email containing all your tickets. You can use this to print them at home.
             </td>
         </tr>
     </tbody>
