@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\RateLimitService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,5 +33,8 @@ class AppServiceProvider extends ServiceProvider
       config(['session.secure' => true]);
       config(['session.same_site' => 'strict']);
     }
+
+    // Configure rate limiting using the dedicated service
+    RateLimitService::configure();
   }
 }

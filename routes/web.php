@@ -15,63 +15,83 @@ use App\Http\Controllers\SupportController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RefundRequest;
 
-// Public routes
-Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
-Route::get('/canvas/{ticket:ticket_id}', [TicketController::class, 'canvas'])->name('canvas.duplicate');
+// Apply global rate limiting to all routes
+Route::middleware(['throttle:global'])->group(function () {
 
-// Public ticket routes
-Route::prefix('tickets')->name('tickets.')->group(function () {
-  Route::post('/', [TicketController::class, 'store'])->name('store');
-  Route::get('/{ticket:ticket_id}', [TicketController::class, 'viewTicket'])->name('view');
-  Route::get('/{ticket:ticket_id}/render', [TicketController::class, 'renderForScreenshot'])->name('render');
-  Route::delete('/{ticket:ticket_id}', [TicketController::class, 'destroy'])
-    ->middleware(VerifyTicketAccess::class)
-    ->name('destroy');
-  Route::post('/duplicate', [TicketController::class, 'createDuplicate'])
-    ->name('duplicate.create');
-});
+  // Public routes
+  Route::get('/', [TicketController::class, 'canvas'])->name('canvas');
+  Route::get('/canvas/{ticket:ticket_id}', [TicketController::class, 'canvas'])->name('canvas.duplicate');
 
-// Cart routes (accessible to guests)
-Route::prefix('cart')->name('cart.')->group(function () {
-  Route::get('/', [CartController::class, 'index'])->name('index');
-  Route::post('/add', [CartController::class, 'addItem'])->name('add');
-  Route::delete('/', [CartController::class, 'clear'])->name('clear');
-  Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
-});
+  // Public ticket routes with specific rate limiting for intensive operations
+  Route::prefix('tickets')->name('tickets.')->group(function () {
+    // File upload routes - more restrictive rate limiting
+    Route::post('/', [TicketController::class, 'store'])
+      ->middleware('throttle:uploads')
+      ->name('store');
+    Route::post('/duplicate', [TicketController::class, 'createDuplicate'])
+      ->middleware('throttle:uploads')
+      ->name('duplicate.create');
 
-// Checkout routes (accessible to guests)
-Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
-Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])->name('cart.checkout.success');
-
-// Support routes (accessible to guests)
-Route::prefix('support')->name('support.')->group(function () {
-  Route::get('/', [SupportController::class, 'index'])->name('index');
-  Route::get('/refund', [SupportController::class, 'refundForm'])->name('refund.form');
-  Route::post('/refund', [SupportController::class, 'submitRefund'])->name('refund.submit');
-});
-
-// Routes that work for both guests and authenticated users
-Route::post('/orders/{order}/resend-confirmation', [OrderController::class, 'resendConfirmation'])
-  ->name('orders.resend-confirmation');
-
-// Auth protected routes
-Route::middleware(['auth'])->group(function () {
-  // Profile routes
-  Route::prefix('profile')->name('profile.')->group(function () {
-    Route::get('/', [ProfileController::class, 'edit'])->name('edit');
-    Route::patch('/', [ProfileController::class, 'update'])->name('update');
-    Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+    // Viewing and deletion routes - use global rate limiting
+    Route::get('/{ticket:ticket_id}', [TicketController::class, 'viewTicket'])->name('view');
+    Route::get('/{ticket:ticket_id}/render', [TicketController::class, 'renderForScreenshot'])->name('render');
+    Route::delete('/{ticket:ticket_id}', [TicketController::class, 'destroy'])
+      ->middleware(VerifyTicketAccess::class)
+      ->name('destroy');
   });
 
-  // Password routes
-  Route::post('/password/set', [PasswordController::class, 'set'])->name('password.set');
-
-  // Order routes
-  Route::prefix('orders')->name('orders.')->group(function () {
-    Route::get('/', [OrderController::class, 'index'])->name('index');
-    Route::get('/{order}', [OrderController::class, 'show'])->name('show');
-    Route::get('/{order}/printout', [OrderController::class, 'viewPdf'])->name('printout');
+  // Cart routes (accessible to guests) with cart-specific rate limiting
+  Route::prefix('cart')->name('cart.')->middleware('throttle:cart')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/add', [CartController::class, 'addItem'])->name('add');
+    Route::delete('/', [CartController::class, 'clear'])->name('clear');
+    Route::get('/checkout', [CartController::class, 'checkout'])
+      ->middleware('throttle:payments')
+      ->name('checkout');
   });
+
+  // Checkout routes (accessible to guests) with payment-specific rate limiting
+  Route::get('/checkout', [CartController::class, 'checkout'])
+    ->middleware('throttle:payments')
+    ->name('checkout');
+  Route::get('/checkout/success', [CartController::class, 'checkoutSuccess'])
+    ->middleware('throttle:payments')
+    ->name('cart.checkout.success');
+
+  // Support routes (accessible to guests) with email-specific rate limiting
+  Route::prefix('support')->name('support.')->group(function () {
+    Route::get('/', [SupportController::class, 'index'])->name('index');
+    Route::get('/refund', [SupportController::class, 'refundForm'])->name('refund.form');
+    Route::post('/refund', [SupportController::class, 'submitRefund'])
+      ->middleware('throttle:emails')
+      ->name('refund.submit');
+  });
+
+  // Routes that work for both guests and authenticated users
+  Route::post('/orders/{order}/resend-confirmation', [OrderController::class, 'resendConfirmation'])
+    ->middleware('throttle:emails')
+    ->name('orders.resend-confirmation');
+
+  // Auth protected routes
+  Route::middleware(['auth'])->group(function () {
+    // Profile routes
+    Route::prefix('profile')->name('profile.')->group(function () {
+      Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+      Route::patch('/', [ProfileController::class, 'update'])->name('update');
+      Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+    });
+
+    // Password routes
+    Route::post('/password/set', [PasswordController::class, 'set'])->name('password.set');
+
+    // Order routes
+    Route::prefix('orders')->name('orders.')->group(function () {
+      Route::get('/', [OrderController::class, 'index'])->name('index');
+      Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+      Route::get('/{order}/printout', [OrderController::class, 'viewPdf'])->name('printout');
+    });
+  });
+
 });
 
 require __DIR__ . '/auth.php';
