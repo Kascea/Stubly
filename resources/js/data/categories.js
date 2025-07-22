@@ -34,6 +34,12 @@ export const CATEGORIES = [
         category_id: "concerts",
         supports_background_image: false,
       },
+      {
+        id: "concerts-creative",
+        name: "Creative",
+        category_id: "concerts",
+        supports_background_image: false,
+      },
     ],
   },
   {

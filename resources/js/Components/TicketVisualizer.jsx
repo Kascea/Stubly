@@ -4,6 +4,7 @@ import SportsModern from "@/Components/Templates/Sports/SportsModern";
 import SportsClassic from "@/Components/Templates/Sports/SportsClassic";
 import ConcertsModern from "@/Components/Templates/Concerts/ConcertsModern";
 import ConcertsClassic from "@/Components/Templates/Concerts/ConcertsClassic";
+import ConcertsCreative from "@/Components/Templates/Concerts/ConcertsCreative";
 import BroadwayModern from "@/Components/Templates/Broadway/BroadwayModern";
 import BroadwayClassic from "@/Components/Templates/Broadway/BroadwayClassic";
 
@@ -17,6 +18,7 @@ const TicketTemplate = forwardRef(({ ticketInfo }, ref) => {
     // Concerts templates
     "concerts-modern": ConcertsModern,
     "concerts-classic": ConcertsClassic,
+    "concerts-creative": ConcertsCreative,
 
     // Broadway templates
     "broadway-modern": BroadwayModern,
