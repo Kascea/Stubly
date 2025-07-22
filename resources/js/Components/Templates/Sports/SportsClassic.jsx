@@ -23,13 +23,46 @@ const SportsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
           </h1>
         </div>
 
-        {/* Team matchup */}
-        <div className="bg-black p-2">
-          <h2 className="text-lg font-bold text-center text-white uppercase font-mono tracking-wide">
-            {`${ticketInfo?.homeTeam || "HOME"} VS ${
-              ticketInfo?.awayTeam || "AWAY"
-            }`}
-          </h2>
+        {/* Team matchup with logos */}
+        <div className="bg-black px-3 pt-3 pb-2">
+          <div className="flex items-center justify-center space-x-4">
+            {/* Home Team */}
+            <div className="flex flex-col items-center space-y-2 flex-1">
+              {ticketInfo?.homeTeamLogo ? (
+                <div className="w-12 h-12 flex items-center justify-center">
+                  <img
+                    src={ticketInfo.homeTeamLogo}
+                    alt="Home Team Logo"
+                    className="w-12 h-12 object-contain"
+                    crossOrigin="anonymous"
+                  />
+                </div>
+              ) : null}
+              <h2 className="text-sm font-bold text-center text-white uppercase font-mono tracking-wide">
+                {ticketInfo?.homeTeam || "HOME"}
+              </h2>
+            </div>
+
+            {/* VS */}
+            <div className="text-white font-bold text-lg font-mono">VS</div>
+
+            {/* Away Team */}
+            <div className="flex flex-col items-center space-y-2 flex-1">
+              {ticketInfo?.awayTeamLogo ? (
+                <div className="w-12 h-12 flex items-center justify-center">
+                  <img
+                    src={ticketInfo.awayTeamLogo}
+                    alt="Away Team Logo"
+                    className="w-12 h-12 object-contain"
+                    crossOrigin="anonymous"
+                  />
+                </div>
+              ) : null}
+              <h2 className="text-sm font-bold text-center text-white uppercase font-mono tracking-wide">
+                {ticketInfo?.awayTeam || "AWAY"}
+              </h2>
+            </div>
+          </div>
         </div>
 
         {/* Ticket body - Make this flex-grow to fill available space */}
@@ -64,7 +97,7 @@ const SportsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
                 {ticketInfo?.eventLocation || "VENUE NAME"}
               </p>
               <p className="text-sm font-mono">
-                {ticketInfo?.eventLocation || "VENUE LOCATION"}
+                {ticketInfo?.eventAddress || "VENUE ADDRESS"}
               </p>
             </div>
           </div>
