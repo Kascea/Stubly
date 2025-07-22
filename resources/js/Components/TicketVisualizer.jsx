@@ -2,6 +2,7 @@ import React, { forwardRef } from "react";
 
 import SportsModern from "@/Components/Templates/Sports/SportsModern";
 import ConcertsModern from "@/Components/Templates/Concerts/ConcertsModern";
+import ConcertsClassic from "@/Components/Templates/Concerts/ConcertsClassic";
 import BroadwayModern from "@/Components/Templates/Broadway/BroadwayModern";
 
 const TicketTemplate = forwardRef(({ ticketInfo }, ref) => {
@@ -12,6 +13,7 @@ const TicketTemplate = forwardRef(({ ticketInfo }, ref) => {
 
     // Concerts templates
     "concerts-modern": ConcertsModern,
+    "concerts-classic": ConcertsClassic,
 
     // Broadway templates
     "broadway-modern": BroadwayModern,

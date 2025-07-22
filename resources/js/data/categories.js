@@ -22,6 +22,12 @@ export const CATEGORIES = [
         category_id: "concerts",
         supports_background_image: true,
       },
+      {
+        id: "concerts-classic",
+        name: "Classic",
+        category_id: "concerts",
+        supports_background_image: false,
+      },
     ],
   },
   {

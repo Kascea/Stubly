@@ -134,9 +134,8 @@ class TicketController extends Controller
     {
         return match ($categoryId) {
             'sports' => SportsTicket::create([
-                'sport_type' => $request->sport_type ?? null,
-                'team_home' => $request->team_home ?? null,
                 'team_away' => $request->team_away ?? null,
+                'sport_type' => $request->sport_type ?? null,
             ]),
             'concerts' => ConcertTicket::create([
                 'artist_name' => $request->artist_name ?? null,
@@ -200,24 +199,6 @@ class TicketController extends Controller
         }
 
         $request->validate($rules);
-    }
-
-    public function destroy(Ticket $ticket)
-    {
-        try {
-            // Delete the image file using the constructed path
-            Storage::disk('r2-perm')->delete($ticket->generated_ticket_path);
-
-            $ticket->delete();
-
-            return response()->json([
-                'message' => 'Ticket deleted successfully'
-            ]);
-        } catch (\Exception $e) {
-            return $this->handleSecureError($e, 'Ticket deletion', [
-                'ticket_id' => $ticket->ticket_id ?? 'unknown',
-            ]);
-        }
     }
 
     public function viewTicket(Ticket $ticket)
