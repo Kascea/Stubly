@@ -34,6 +34,9 @@ Route::middleware(['throttle:global'])->group(function () {
 
     // Viewing and deletion routes - use global rate limiting
     Route::get('/{ticket:ticket_id}', [TicketController::class, 'viewTicket'])->name('view');
+    Route::delete('/{ticket:ticket_id}', [TicketController::class, 'destroy'])
+      ->middleware(VerifyTicketAccess::class)
+      ->name('destroy');
   });
 
   // Cart routes (accessible to guests) with cart-specific rate limiting

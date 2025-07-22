@@ -1,15 +1,18 @@
 import React, { forwardRef } from "react";
 
 import SportsModern from "@/Components/Templates/Sports/SportsModern";
+import SportsClassic from "@/Components/Templates/Sports/SportsClassic";
 import ConcertsModern from "@/Components/Templates/Concerts/ConcertsModern";
 import ConcertsClassic from "@/Components/Templates/Concerts/ConcertsClassic";
 import BroadwayModern from "@/Components/Templates/Broadway/BroadwayModern";
+import BroadwayClassic from "@/Components/Templates/Broadway/BroadwayClassic";
 
 const TicketTemplate = forwardRef(({ ticketInfo }, ref) => {
-  // Organized by category with modern template options
+  // Organized by category with modern and classic template options
   const templates = {
     // Sports templates
     "sports-modern": SportsModern,
+    "sports-classic": SportsClassic,
 
     // Concerts templates
     "concerts-modern": ConcertsModern,
@@ -17,6 +20,7 @@ const TicketTemplate = forwardRef(({ ticketInfo }, ref) => {
 
     // Broadway templates
     "broadway-modern": BroadwayModern,
+    "broadway-classic": BroadwayClassic,
   };
 
   const Template = templates[ticketInfo.template] || templates["sports-modern"];

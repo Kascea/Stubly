@@ -10,6 +10,12 @@ export const CATEGORIES = [
         category_id: "sports",
         supports_background_image: true,
       },
+      {
+        id: "sports-classic",
+        name: "Classic",
+        category_id: "sports",
+        supports_background_image: false,
+      },
     ],
   },
   {
@@ -39,6 +45,12 @@ export const CATEGORIES = [
         name: "Modern",
         category_id: "broadway",
         supports_background_image: true,
+      },
+      {
+        id: "broadway-classic",
+        name: "Classic",
+        category_id: "broadway",
+        supports_background_image: false,
       },
     ],
   },

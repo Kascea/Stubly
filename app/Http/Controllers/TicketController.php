@@ -201,6 +201,25 @@ class TicketController extends Controller
         $request->validate($rules);
     }
 
+    public function destroy(Ticket $ticket)
+    {
+        try {
+            // Delete the image file using the constructed path
+            $path = $ticket->ticket_id . '.webp';
+            Storage::disk('r2-perm')->delete($path);
+
+            $ticket->delete();
+
+            return response()->json([
+                'message' => 'Ticket deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return $this->handleSecureError($e, 'Ticket deletion', [
+                'ticket_id' => $ticket->ticket_id ?? 'unknown',
+            ]);
+        }
+    }
+
     public function viewTicket(Ticket $ticket)
     {
         // Check if user has access to this ticket

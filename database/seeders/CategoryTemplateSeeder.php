@@ -37,12 +37,19 @@ class CategoryTemplateSeeder extends Seeder
      */
     private function createTemplatesForCategory(string $categoryId): void
     {
-        // Each category gets only a modern template
+        // Each category gets both modern and classic templates
         Template::create([
             'id' => "{$categoryId}-modern",
             'name' => 'Modern',
             'category_id' => $categoryId,
             'supports_background_image' => true,
+        ]);
+
+        Template::create([
+            'id' => "{$categoryId}-classic",
+            'name' => 'Classic',
+            'category_id' => $categoryId,
+            'supports_background_image' => false,
         ]);
     }
 }
