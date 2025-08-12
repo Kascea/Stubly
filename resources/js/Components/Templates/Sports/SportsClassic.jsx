@@ -13,18 +13,24 @@ const SportsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
       >
         {/* Ticket header */}
         <div
-          className="p-4 border-b-2 border-black"
+          className="py-6 px-4"
           style={{
             backgroundColor: ticketInfo?.accentColor || "#d22b2b",
           }}
         >
-          <h1 className="text-3xl font-bold tracking-wider text-center text-white uppercase font-mono">
+          <h1 className="text-2xl font-black tracking-widest text-center text-white uppercase font-sans leading-tight">
             {ticketInfo?.eventName || "EVENT NAME"}
           </h1>
         </div>
 
         {/* Team matchup with logos */}
-        <div className="bg-black px-3 pt-3 pb-2">
+        <div
+          className="px-4 py-4 border-b-2"
+          style={{
+            backgroundColor: ticketInfo?.accentColor || "#d22b2b",
+            borderColor: `rgba(255, 255, 255, 0.3)`,
+          }}
+        >
           <div className="flex items-center justify-center space-x-4">
             {/* Home Team */}
             <div className="flex flex-col items-center space-y-2 flex-1">
@@ -38,13 +44,15 @@ const SportsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
                   />
                 </div>
               ) : null}
-              <h2 className="text-sm font-bold text-center text-white uppercase font-mono tracking-wide">
+              <h2 className="text-sm font-semibold text-center text-white uppercase font-sans tracking-wider opacity-90">
                 {ticketInfo?.homeTeam || "HOME"}
               </h2>
             </div>
 
             {/* VS */}
-            <div className="text-white font-bold text-lg font-mono">VS</div>
+            <div className="text-white font-bold text-lg font-sans opacity-90">
+              VS
+            </div>
 
             {/* Away Team */}
             <div className="flex flex-col items-center space-y-2 flex-1">
@@ -58,7 +66,7 @@ const SportsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
                   />
                 </div>
               ) : null}
-              <h2 className="text-sm font-bold text-center text-white uppercase font-mono tracking-wide">
+              <h2 className="text-sm font-semibold text-center text-white uppercase font-sans tracking-wider opacity-90">
                 {ticketInfo?.awayTeam || "AWAY"}
               </h2>
             </div>
@@ -126,7 +134,7 @@ const SportsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
         </div>
 
         {/* Barcode section */}
-        <div className="p-4 bg-white border-b-2 border-black">
+        <div className="p-4 bg-white">
           <img
             src={generateBarcodePattern()}
             alt="Barcode"

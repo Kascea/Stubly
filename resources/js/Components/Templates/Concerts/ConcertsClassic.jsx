@@ -13,19 +13,25 @@ const ConcertsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
       >
         {/* Ticket header */}
         <div
-          className="p-4 border-b-2 border-black"
+          className="py-6 px-4"
           style={{
             backgroundColor: ticketInfo?.accentColor || "#d22b2b",
           }}
         >
-          <h1 className="text-3xl font-bold tracking-wider text-center text-white uppercase font-mono">
+          <h1 className="text-2xl font-black tracking-widest text-center text-white uppercase font-sans leading-tight">
             {ticketInfo?.artistName || "ARTIST NAME"}
           </h1>
         </div>
 
         {/* Tour name */}
-        <div className="bg-black p-2">
-          <h2 className="text-lg font-bold text-center text-white uppercase font-mono tracking-wide">
+        <div
+          className="px-4 py-3 border-b-2"
+          style={{
+            backgroundColor: ticketInfo?.accentColor || "#d22b2b",
+            borderColor: `rgba(255, 255, 255, 0.3)`,
+          }}
+        >
+          <h2 className="text-base font-semibold text-center text-white uppercase font-sans tracking-wider opacity-90">
             {ticketInfo?.tourName || "WORLD TOUR"}
           </h2>
         </div>
@@ -91,7 +97,7 @@ const ConcertsClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
         </div>
 
         {/* Barcode section */}
-        <div className="p-4 bg-white border-b-2 border-black">
+        <div className="p-4 bg-white">
           <img
             src={generateBarcodePattern()}
             alt="Barcode"

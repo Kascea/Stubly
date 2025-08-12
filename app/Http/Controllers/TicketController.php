@@ -69,6 +69,10 @@ class TicketController extends Controller
                 'message' => 'Ticket created successfully!',
                 'ticket' => $ticket
             ]);
+        } catch (ValidationException $e) {
+            // Re-throw validation exceptions so they're handled by Laravel's default handler
+            // This preserves the field-specific error messages for forms
+            throw $e;
         } catch (\Exception $e) {
             // Rollback the transaction in case of error
             DB::rollBack();
