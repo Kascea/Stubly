@@ -11,6 +11,7 @@ use App\Models\Ticket;
 use Illuminate\Support\Str;
 use App\Models\Order;
 use App\Notifications\ResetPasswordNotification;
+use App\Notifications\EmailVerificationNotification;
 use Laravel\Cashier\Billable;
 
 class User extends Authenticatable
@@ -75,6 +76,16 @@ class User extends Authenticatable
   public function sendPasswordResetNotification($token)
   {
     $this->notify(new ResetPasswordNotification($token));
+  }
+
+  /**
+   * Send the email verification notification.
+   *
+   * @return void
+   */
+  public function sendEmailVerificationNotification()
+  {
+    $this->notify(new EmailVerificationNotification);
   }
 
   // Relationship to social authentications
