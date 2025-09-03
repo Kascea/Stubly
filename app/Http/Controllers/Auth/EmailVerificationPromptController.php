@@ -15,8 +15,21 @@ class EmailVerificationPromptController extends Controller
      */
     public function __invoke(Request $request): RedirectResponse|Response
     {
-        return $request->user()->hasVerifiedEmail()
-            ? redirect()->intended(route('canvas', absolute: false))
-            : Inertia::render('Auth/VerifyEmail', ['status' => session('status')]);
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->intended(route('canvas', absolute: false));
+        }
+
+        // Automatically send verification email if not already sent recently
+        $lastSent = session('verification_last_sent');
+        $now = time();
+
+        // Only send if no email was sent in the last 60 seconds
+        if (!$lastSent || ($now - $lastSent) > 60) {
+            $request->user()->sendEmailVerificationNotification();
+            session(['verification_last_sent' => $now]);
+            session()->flash('status', 'verification-link-sent');
+        }
+
+        return Inertia::render('Auth/VerifyEmail', ['status' => session('status')]);
     }
 }

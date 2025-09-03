@@ -46,7 +46,11 @@ export default function VerifyEmail({ status, auth }) {
         </h1>
         <p className="text-sm text-sky-900/70">
           Thanks for signing up! Before getting started, we need to verify your
-          email address. We've sent a verification link to{" "}
+          email address.{" "}
+          {status === "verification-link-sent"
+            ? "We've just sent"
+            : "We've sent"}{" "}
+          a verification link to{" "}
           <span className="font-medium">{auth.user.email}</span>.
         </p>
       </div>
@@ -55,10 +59,10 @@ export default function VerifyEmail({ status, auth }) {
         <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700 flex items-start">
           <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-medium">Verification link sent!</p>
+            <p className="font-medium">Verification email sent!</p>
             <p>
-              A new verification link has been sent to your email address.
-              Please check your inbox and spam folder.
+              A verification link has been sent to your email address. Please
+              check your inbox and spam folder.
             </p>
           </div>
         </div>
@@ -81,7 +85,7 @@ export default function VerifyEmail({ status, auth }) {
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
             If you didn't receive the email, check your spam folder or click
-            below to request another.
+            below to send another verification email.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -93,8 +97,8 @@ export default function VerifyEmail({ status, auth }) {
               {processing
                 ? "Sending..."
                 : countdown > 0
-                ? `Resend in ${countdown}s`
-                : "Resend Verification Email"}
+                ? `Send another in ${countdown}s`
+                : "Send Another Email"}
             </Button>
 
             <Link
