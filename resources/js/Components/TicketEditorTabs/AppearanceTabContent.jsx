@@ -1,7 +1,8 @@
 import React from "react";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
-import { Palette, Image, CloudUpload, X } from "lucide-react";
+import { Palette, Image } from "lucide-react";
+import BackgroundImageDropzone from "@/Components/BackgroundImageDropzone";
 
 export default function AppearanceTabContent({
   supportsBackgroundImage,
@@ -11,24 +12,18 @@ export default function AppearanceTabContent({
   getInputProps,
   selectedCategory,
   handleChange,
+  onImageChange,
 }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center space-x-3">
         <Palette className="h-6 w-6 text-orange-500" />
         <h3 className="font-medium text-lg text-sky-900">Appearance Options</h3>
       </div>
 
-      <div className="bg-sky-50/50 rounded-lg p-3 text-sm text-sky-800 border-l-4 border-sky-500">
-        <p>
-          Customize the appearance of your ticket with these style options. All
-          appearance settings are optional.
-        </p>
-      </div>
-
       {/* Background Image Section */}
       {supportsBackgroundImage && (
-        <div className="space-y-4 border-b border-gray-100 pb-6">
+        <div className="space-y-3 border-b border-gray-100 pb-4">
           <h4 className="text-sm font-medium text-sky-900 flex items-center">
             <Image className="h-4 w-4 mr-2 text-orange-500" />
             Background Image
@@ -37,57 +32,50 @@ export default function AppearanceTabContent({
             </span>
           </h4>
 
-          <div
-            className="border-2 border-dashed border-orange-200 rounded-lg p-6 hover:bg-orange-50 transition-colors cursor-pointer flex flex-col items-center justify-center"
-            {...getRootProps()}
-            style={{ minHeight: "180px" }}
-          >
-            <input {...getInputProps()} />
-            {ticketInfo.backgroundImage ? (
-              <div className="text-center">
-                <div className="bg-white p-2 rounded-lg shadow-sm mb-3 inline-block">
-                  <img
-                    src={ticketInfo.backgroundImage}
-                    alt="Background preview"
-                    className="max-h-32 mx-auto rounded"
-                  />
-                </div>
-                <p className="text-xs text-sky-900/70 mb-2">
-                  Click or drag to replace
-                </p>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTicketInfo((prev) => ({
-                      ...prev,
-                      backgroundImage: null,
-                    }));
-                  }}
-                  className="mt-1 text-xs bg-white border border-orange-200 rounded-full px-3 py-1 text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center mx-auto transition-colors"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Remove Image
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="bg-orange-100 rounded-full p-4 mb-3">
-                  <CloudUpload className="h-8 w-8 text-orange-500" />
-                </div>
-                <p className="text-sm font-medium text-sky-900 mb-1">
-                  Upload Background Image
-                </p>
-                <p className="text-xs text-sky-900/70 text-center max-w-xs">
-                  Drag and drop an image here, or click to select from your
-                  device
-                </p>
-                <p className="text-xs text-gray-500 mt-3">
-                  Supports: JPG, PNG, GIF (Max 20MB)
-                </p>
-              </>
-            )}
-          </div>
+          <BackgroundImageDropzone
+            backgroundImage={ticketInfo.backgroundImage}
+            backgroundImagePosition={ticketInfo.backgroundImagePosition}
+            backgroundImageScale={ticketInfo.backgroundImageScale}
+            backgroundImageRotation={ticketInfo.backgroundImageRotation}
+            onImageChange={onImageChange}
+            onPositionChange={(newPosition) => {
+              setTicketInfo((prev) => ({
+                ...prev,
+                backgroundImagePosition: newPosition,
+              }));
+            }}
+            onScaleChange={(newScale) => {
+              setTicketInfo((prev) => ({
+                ...prev,
+                backgroundImageScale: newScale,
+              }));
+            }}
+            onRotationChange={(newRotation) => {
+              setTicketInfo((prev) => ({
+                ...prev,
+                backgroundImageRotation: newRotation,
+              }));
+            }}
+            onRemoveImage={() => {
+              setTicketInfo((prev) => ({
+                ...prev,
+                backgroundImage: null,
+                backgroundImagePosition: { x: 0, y: 0 },
+                backgroundImageScale: 1,
+                backgroundImageRotation: 0,
+              }));
+            }}
+            onResetTransform={() => {
+              setTicketInfo((prev) => ({
+                ...prev,
+                backgroundImagePosition: { x: 0, y: 0 },
+                backgroundImageScale: 1,
+                backgroundImageRotation: 0,
+              }));
+            }}
+            getRootProps={getRootProps}
+            getInputProps={getInputProps}
+          />
         </div>
       )}
 

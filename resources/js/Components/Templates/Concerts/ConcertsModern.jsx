@@ -14,7 +14,15 @@ const ConcertsModernTemplate = forwardRef(({ ticketInfo }, ref) => {
           <img
             src={ticketInfo.backgroundImage}
             alt="Background"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute"
+            style={{
+              transform: `translate(${
+                ticketInfo?.backgroundImagePosition?.x || 0
+              }px, ${ticketInfo?.backgroundImagePosition?.y || 0}px) scale(${
+                ticketInfo?.backgroundImageScale || 1
+              }) rotate(${ticketInfo?.backgroundImageRotation || 0}deg)`,
+              transformOrigin: "center center",
+            }}
             crossOrigin="anonymous"
           />
         ) : (

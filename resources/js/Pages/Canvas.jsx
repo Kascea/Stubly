@@ -33,6 +33,9 @@ export default function Canvas({ auth }) {
     accentColor: "#000000",
     homeTeamLogo: null,
     awayTeamLogo: null,
+    backgroundImagePosition: { x: 0, y: 0 },
+    backgroundImageScale: 1,
+    backgroundImageRotation: 0,
   });
   const ticketRef = useRef(null);
 

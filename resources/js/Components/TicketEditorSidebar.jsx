@@ -88,6 +88,18 @@ export default function TicketEditorSidebar({
     setTicketInfo((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Function to handle image changes (from dropzone or clipboard)
+  const handleImageChange = (imageDataUrl, filename) => {
+    setTicketInfo((prev) => ({
+      ...prev,
+      backgroundImage: imageDataUrl,
+      filename: filename,
+      backgroundImagePosition: { x: 0, y: 0 },
+      backgroundImageScale: 1,
+      backgroundImageRotation: 0,
+    }));
+  };
+
   // Main dropzone for background image
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: (acceptedFiles) => {
@@ -95,11 +107,7 @@ export default function TicketEditorSidebar({
       if (file) {
         const reader = new FileReader();
         reader.onloadend = () => {
-          setTicketInfo((prev) => ({
-            ...prev,
-            backgroundImage: reader.result,
-            filename: file.name,
-          }));
+          handleImageChange(reader.result, file.name);
         };
         reader.readAsDataURL(file);
       }
@@ -334,6 +342,7 @@ export default function TicketEditorSidebar({
                   getInputProps={getInputProps}
                   selectedCategory={selectedCategory}
                   handleChange={handleChange}
+                  onImageChange={handleImageChange}
                 />
               )}
             </div>
