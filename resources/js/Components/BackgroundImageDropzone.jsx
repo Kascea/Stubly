@@ -72,7 +72,7 @@ export default function BackgroundImageDropzone({
         <div className="bg-white border-2 border-orange-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <h5 className="text-sm font-medium text-sky-900">
-              Visible Background Area Preview
+              Background Image Preview
             </h5>
             <button
               type="button"
@@ -86,17 +86,15 @@ export default function BackgroundImageDropzone({
 
           <div className="flex justify-center">
             <div
-              className="relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200"
-              style={{ width: "150px", aspectRatio: "3/4.2" }}
+              className="relative border-2 border-dashed border-orange-200 rounded-lg bg-orange-50/30 overflow-hidden"
+              style={{ width: "280px", height: "180px" }}
             >
               <img
                 src={backgroundImage}
                 alt="Background preview"
-                className="absolute"
+                className="absolute inset-0 w-full h-full object-contain"
                 style={{
-                  transform: `translate(${backgroundImagePosition.x}px, ${
-                    backgroundImagePosition.y - 30
-                  }px) scale(${backgroundImageScale}) rotate(${backgroundImageRotation}deg)`,
+                  transform: `translate(${backgroundImagePosition.x}px, ${backgroundImagePosition.y}px) scale(${backgroundImageScale}) rotate(${backgroundImageRotation}deg)`,
                   transformOrigin: "center center",
                 }}
                 crossOrigin="anonymous"
@@ -106,13 +104,11 @@ export default function BackgroundImageDropzone({
                 alt="Background preview"
                 position={{
                   x: backgroundImagePosition.x,
-                  y: backgroundImagePosition.y - 30,
+                  y: backgroundImagePosition.y,
                 }}
                 scale={backgroundImageScale}
                 rotation={backgroundImageRotation}
-                onPositionChange={(newPosition) =>
-                  onPositionChange({ x: newPosition.x, y: newPosition.y + 30 })
-                }
+                onPositionChange={onPositionChange}
                 onScaleChange={onScaleChange}
                 onRotationChange={onRotationChange}
                 enabled={true}
@@ -161,7 +157,7 @@ export default function BackgroundImageDropzone({
             </div>
           </div>
           <p className="text-xs text-gray-500 text-center mt-1">
-            Shows visible area behind ticket content
+            Drag, scale, and rotate your background image
           </p>
         </div>
       </div>
