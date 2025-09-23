@@ -1,29 +1,11 @@
 import React from "react";
 import { Label } from "@/Components/ui/label";
-import {
-  LayoutGrid,
-  Image,
-  Check,
-  Users,
-  Music,
-  Clapperboard,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/Components/ui/select";
+import { LayoutGrid, Image, Check } from "lucide-react";
 
 export default function TemplatesTabContent({
-  selectedCategory,
-  handleCategoryChange,
-  categories,
   templates,
   ticketInfo,
   setTicketInfo,
-  formatTemplateName,
 }) {
   return (
     <div className="space-y-6">
@@ -34,45 +16,8 @@ export default function TemplatesTabContent({
 
       <div className="space-y-5">
         <div>
-          <Label className="text-sky-900 mb-2 block font-medium flex items-center">
-            <span className="bg-sky-100 text-sky-800 p-1 rounded-md mr-2 text-xs">
-              STEP 1
-            </span>
-            Select Category
-          </Label>
-          <div className="mb-3 text-xs text-sky-700 bg-sky-50 p-2 rounded border-l-2 border-sky-200">
-            Category determines which fields appear on your ticket (e.g., sports
-            shows team names, music shows artist details)
-          </div>
-          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full border-gray-300 focus:ring-orange-500 focus:border-orange-500">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center">
-                    {category.id === "sports" ? (
-                      <Users className="h-4 w-4 mr-2 text-orange-500" />
-                    ) : category.id === "broadway" ? (
-                      <Clapperboard className="h-4 w-4 mr-2 text-orange-500" />
-                    ) : (
-                      <Music className="h-4 w-4 mr-2 text-orange-500" />
-                    )}
-                    {category.id.charAt(0).toUpperCase() + category.id.slice(1)}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className="text-sky-900 mb-2 block font-medium flex items-center">
-            <span className="bg-sky-100 text-sky-800 p-1 rounded-md mr-2 text-xs">
-              STEP 2
-            </span>
-            Choose Template
+          <Label className="text-sky-900 mb-2 block font-medium">
+            Select Template Style
           </Label>
           <div className="mb-3 text-xs text-sky-700 bg-sky-50 p-2 rounded border-l-2 border-sky-200">
             Template controls the visual design - colors, fonts, layout, and
@@ -99,9 +44,7 @@ export default function TemplatesTabContent({
                 }
               >
                 <div className="flex-1 text-left">
-                  <div className="font-medium text-base">
-                    {formatTemplateName(template.id).split(" ").pop()}
-                  </div>
+                  <div className="font-medium text-base">{template.name}</div>
                   <div className="text-xs text-gray-500 mt-1 flex items-center">
                     {template.supports_background_image ? (
                       <>

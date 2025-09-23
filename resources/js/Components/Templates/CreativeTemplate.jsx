@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 import { generateBarcodePattern } from "@/utils/barcode";
 
-const SportsCreativeTemplate = forwardRef(({ ticketInfo }, ref) => {
+const CreativeTemplate = forwardRef(({ ticketInfo }, ref) => {
   // Helper function to create harmonious colors from accent color
   const getHarmoniousColors = (accentColor) => {
     const defaultAccent = "#6366f1";
@@ -68,49 +68,19 @@ const SportsCreativeTemplate = forwardRef(({ ticketInfo }, ref) => {
           </div>
 
           <div className="relative z-10 text-center">
-            <h1 className="text-3xl font-light text-white tracking-wide mb-4">
+            <h1 className="text-3xl font-light text-white tracking-wide mb-3">
               {ticketInfo?.eventName || "EVENT NAME"}
             </h1>
-
-            {/* Team matchup with logos */}
-            <div className="flex items-center justify-center space-x-3 mb-1">
-              {/* Home Team */}
-              <div className="flex flex-col items-center space-y-2">
-                {ticketInfo?.homeTeamLogo ? (
-                  <div className="w-10 h-10 flex items-center justify-center">
-                    <img
-                      src={ticketInfo.homeTeamLogo}
-                      alt="Home Team Logo"
-                      className="w-10 h-10 object-contain"
-                      crossOrigin="anonymous"
-                    />
-                  </div>
-                ) : null}
-                <p className="text-xs font-light text-white/90 uppercase tracking-wider">
-                  {ticketInfo?.homeTeam || "HOME"}
+            {ticketInfo?.subtitle && (
+              <div
+                className="inline-block bg-white/15 backdrop-blur-sm px-6 py-2 text-white/95"
+                style={{ borderRadius: "20px 5px 20px 5px" }}
+              >
+                <p className="text-sm font-medium uppercase tracking-widest">
+                  {ticketInfo.subtitle}
                 </p>
               </div>
-
-              {/* VS */}
-              <div className="text-white/90 font-light text-sm px-2">VS</div>
-
-              {/* Away Team */}
-              <div className="flex flex-col items-center space-y-2">
-                {ticketInfo?.awayTeamLogo ? (
-                  <div className="w-10 h-10 flex items-center justify-center">
-                    <img
-                      src={ticketInfo.awayTeamLogo}
-                      alt="Away Team Logo"
-                      className="w-10 h-10 object-contain"
-                      crossOrigin="anonymous"
-                    />
-                  </div>
-                ) : null}
-                <p className="text-xs font-light text-white/90 uppercase tracking-wider">
-                  {ticketInfo?.awayTeam || "AWAY"}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -128,9 +98,9 @@ const SportsCreativeTemplate = forwardRef(({ ticketInfo }, ref) => {
           </svg>
         </div>
 
-        {/* More traditional content layout with creative touches */}
+        {/* Creative content layout */}
         <div className="flex-grow p-6 space-y-5">
-          {/* Date and Time in a row - more traditional */}
+          {/* Date and Time in a row */}
           <div className="grid grid-cols-2 gap-4">
             <div
               className="p-4 transform -rotate-1"
@@ -212,16 +182,13 @@ const SportsCreativeTemplate = forwardRef(({ ticketInfo }, ref) => {
               <p className="text-xs uppercase tracking-wider opacity-70 mb-2">
                 Venue
               </p>
-              <p className="text-xl font-light leading-tight mb-1">
+              <p className="text-xl font-light leading-tight">
                 {ticketInfo?.eventLocation || "VENUE NAME"}
-              </p>
-              <p className="text-sm font-light opacity-80">
-                {ticketInfo?.eventAddress || "VENUE ADDRESS"}
               </p>
             </div>
           </div>
 
-          {/* Traditional seat information grid with creative touches */}
+          {/* Seat information grid with creative touches */}
           <div className="grid grid-cols-3 gap-3">
             <div
               className="p-4 text-center transform -rotate-1"
@@ -326,7 +293,7 @@ const SportsCreativeTemplate = forwardRef(({ ticketInfo }, ref) => {
           </div>
         </div>
 
-        {/* Larger barcode section */}
+        {/* Barcode section */}
         <div
           className="p-4 relative border-t"
           style={{
@@ -396,6 +363,6 @@ const SportsCreativeTemplate = forwardRef(({ ticketInfo }, ref) => {
   );
 });
 
-SportsCreativeTemplate.displayName = "SportsCreativeTemplate";
+CreativeTemplate.displayName = "CreativeTemplate";
 
-export default SportsCreativeTemplate;
+export default CreativeTemplate;

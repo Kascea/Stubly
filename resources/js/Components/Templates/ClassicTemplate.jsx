@@ -3,7 +3,7 @@
 import React, { forwardRef } from "react";
 import { generateBarcodePattern } from "@/utils/barcode";
 
-const BroadwayClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
+const ClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div
@@ -19,22 +19,24 @@ const BroadwayClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
           }}
         >
           <h1 className="text-2xl font-black tracking-widest text-center text-white uppercase font-sans leading-tight">
-            {ticketInfo?.playName || "PLAY NAME"}
+            {ticketInfo?.eventName || "EVENT NAME"}
           </h1>
         </div>
 
-        {/* Theater name */}
-        <div
-          className="px-4 py-3 border-b-2"
-          style={{
-            backgroundColor: ticketInfo?.accentColor || "#d22b2b",
-            borderColor: `rgba(255, 255, 255, 0.3)`,
-          }}
-        >
-          <h2 className="text-base font-semibold text-center text-white uppercase font-sans tracking-wider opacity-90">
-            {ticketInfo?.theaterName || "THEATER NAME"}
-          </h2>
-        </div>
+        {/* Subtitle section */}
+        {ticketInfo?.subtitle && (
+          <div
+            className="px-4 py-3 border-b-2"
+            style={{
+              backgroundColor: ticketInfo?.accentColor || "#d22b2b",
+              borderColor: `rgba(255, 255, 255, 0.3)`,
+            }}
+          >
+            <h2 className="text-base font-semibold text-center text-white uppercase font-sans tracking-wider opacity-90">
+              {ticketInfo.subtitle}
+            </h2>
+          </div>
+        )}
 
         {/* Ticket body - Make this flex-grow to fill available space */}
         <div className="flex-grow p-6 space-y-6 border-b border-black flex flex-col justify-center">
@@ -122,6 +124,6 @@ const BroadwayClassicTemplate = forwardRef(({ ticketInfo }, ref) => {
   );
 });
 
-BroadwayClassicTemplate.displayName = "BroadwayClassicTemplate";
+ClassicTemplate.displayName = "ClassicTemplate";
 
-export default BroadwayClassicTemplate;
+export default ClassicTemplate;

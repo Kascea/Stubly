@@ -117,30 +117,9 @@ export default function CartIndex({ cart: initialCart, auth }) {
       accentColor: originalTicket.accent_color || "#000000",
     };
 
-    // Add category-specific data based on ticketable data
-    if (originalTicket.ticketable) {
-      // Check if it's a sports ticket (has team_home and team_away)
-      if (
-        originalTicket.ticketable.team_home &&
-        originalTicket.ticketable.team_away
-      ) {
-        ticketInfo.homeTeam = originalTicket.ticketable.team_home;
-        ticketInfo.awayTeam = originalTicket.ticketable.team_away;
-
-        // Use the asset URLs from the API
-        if (assets.home_team_logo_url) {
-          ticketInfo.homeTeamLogo = assets.home_team_logo_url;
-        }
-        if (assets.away_team_logo_url) {
-          ticketInfo.awayTeamLogo = assets.away_team_logo_url;
-        }
-      }
-
-      // Check if it's a concert ticket (has artist_name)
-      if (originalTicket.ticketable.artist_name) {
-        ticketInfo.artistName = originalTicket.ticketable.artist_name;
-        ticketInfo.tourName = originalTicket.ticketable.tour_name;
-      }
+    // Add subtitle data from ticketable data
+    if (originalTicket.ticketable && originalTicket.ticketable.subtitle) {
+      ticketInfo.subtitle = originalTicket.ticketable.subtitle;
     }
 
     // Add background image if available

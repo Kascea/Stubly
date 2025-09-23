@@ -1,18 +1,10 @@
 import { useState, useEffect } from "react";
 import {
   Palette,
-  MapPin,
-  Calendar,
-  LayoutGrid,
-  Image,
-  Users,
-  Music,
-  Clapperboard,
   Type,
   ChevronRight,
   ChevronLeft,
-  Check,
-  Eye,
+  LayoutGrid,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
@@ -26,56 +18,23 @@ import AppearanceTabContent from "@/Components/TicketEditorTabs/AppearanceTabCon
 export default function TicketEditorSidebar({
   ticketInfo,
   setTicketInfo,
-  categories = [],
+  templates = [],
   onToggleExpand,
   isMobile = false,
 }) {
-  const [templates, setTemplates] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("templates");
   const [isPanelExpanded, setIsPanelExpanded] = useState(true);
 
-  // Initialize with provided categories
+  // Initialize with default template if none selected
   useEffect(() => {
-    if (categories && categories.length > 0) {
-      // Set default category
-      const defaultCategory = categories[0];
-
-      setSelectedCategory(defaultCategory.id);
-      setTemplates(defaultCategory.templates);
-
-      // Set default template if none selected
-      if (defaultCategory.templates.length > 0 && !ticketInfo.template) {
-        setTicketInfo((prev) => ({
-          ...prev,
-          template: defaultCategory.templates[0].id,
-          template_id: defaultCategory.templates[0].id,
-        }));
-      }
+    if (templates && templates.length > 0 && !ticketInfo.template) {
+      setTicketInfo((prev) => ({
+        ...prev,
+        template: templates[0].id,
+        template_id: templates[0].id,
+      }));
     }
-  }, [categories]);
-
-  // Update templates when category changes
-  const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
-    const category = categories.find((c) => c.id === categoryId);
-    if (category) {
-      setTemplates(category.templates);
-
-      // Set default template for this category
-      if (category.templates.length > 0) {
-        setTicketInfo((prev) => ({
-          ...prev,
-          template: category.templates[0].id,
-          template_id: category.templates[0].id,
-          // Clear background image if new template doesn't support it
-          backgroundImage: category.templates[0].supports_background_image
-            ? prev.backgroundImage
-            : null,
-        }));
-      }
-    }
-  };
+  }, [templates]);
 
   // Handle form field changes
   const handleChange = (e) => {
@@ -118,68 +77,12 @@ export default function TicketEditorSidebar({
     multiple: false,
   });
 
-  // Home team logo dropzone
-  const {
-    getRootProps: getHomeTeamLogoRootProps,
-    getInputProps: getHomeTeamLogoInputProps,
-  } = useDropzone({
-    onDrop: (acceptedFiles) => {
-      const file = acceptedFiles[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setTicketInfo((prev) => ({
-            ...prev,
-            homeTeamLogo: reader.result,
-          }));
-        };
-        reader.readAsDataURL(file);
-      }
-    },
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".gif"],
-    },
-    multiple: false,
-  });
-
-  // Away team logo dropzone
-  const {
-    getRootProps: getAwayTeamLogoRootProps,
-    getInputProps: getAwayTeamLogoInputProps,
-  } = useDropzone({
-    onDrop: (acceptedFiles) => {
-      const file = acceptedFiles[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setTicketInfo((prev) => ({
-            ...prev,
-            awayTeamLogo: reader.result,
-          }));
-        };
-        reader.readAsDataURL(file);
-      }
-    },
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png"],
-    },
-    multiple: false,
-  });
-
   // Get the current template object
   const currentTemplate = templates.find((t) => t.id === ticketInfo.template);
   const supportsBackgroundImage =
     currentTemplate?.supports_background_image || false;
 
-  // Format template name for display
-  const formatTemplateName = (templateId) => {
-    return templateId
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  // Define the tabs - reordered with templates first
+  // Define the tabs
   const tabs = [
     {
       id: "templates",
@@ -192,25 +95,9 @@ export default function TicketEditorSidebar({
       icon: <Type className="h-5 w-5" />,
     },
     {
-      id: "category",
-      label:
-        selectedCategory === "sports"
-          ? "Teams"
-          : selectedCategory === "concerts"
-          ? "Artist"
-          : selectedCategory === "broadway"
-          ? "Show"
-          : "Info",
-      icon:
-        selectedCategory === "sports" ? (
-          <Users className="h-5 w-5" />
-        ) : selectedCategory === "concerts" ? (
-          <Music className="h-5 w-5" />
-        ) : selectedCategory === "broadway" ? (
-          <Clapperboard className="h-5 w-5" />
-        ) : (
-          <Users className="h-5 w-5" />
-        ),
+      id: "subtitle",
+      label: "Subtitle",
+      icon: <Type className="h-5 w-5" />,
     },
     {
       id: "appearance",
@@ -300,13 +187,9 @@ export default function TicketEditorSidebar({
               {/* Templates Tab */}
               {activeTab === "templates" && (
                 <TemplatesTabContent
-                  selectedCategory={selectedCategory}
-                  handleCategoryChange={handleCategoryChange}
-                  categories={categories}
                   templates={templates}
                   ticketInfo={ticketInfo}
                   setTicketInfo={setTicketInfo}
-                  formatTemplateName={formatTemplateName}
                 />
               )}
 
@@ -319,16 +202,11 @@ export default function TicketEditorSidebar({
                 />
               )}
 
-              {/* Category-specific Content */}
-              {activeTab === "category" && (
+              {/* Subtitle Content */}
+              {activeTab === "subtitle" && (
                 <CategoryTabContent
-                  selectedCategory={selectedCategory}
                   ticketInfo={ticketInfo}
                   setTicketInfo={setTicketInfo}
-                  getHomeTeamLogoRootProps={getHomeTeamLogoRootProps}
-                  getHomeTeamLogoInputProps={getHomeTeamLogoInputProps}
-                  getAwayTeamLogoRootProps={getAwayTeamLogoRootProps}
-                  getAwayTeamLogoInputProps={getAwayTeamLogoInputProps}
                 />
               )}
 
@@ -340,7 +218,6 @@ export default function TicketEditorSidebar({
                   setTicketInfo={setTicketInfo}
                   getRootProps={getRootProps}
                   getInputProps={getInputProps}
-                  selectedCategory={selectedCategory}
                   handleChange={handleChange}
                   onImageChange={handleImageChange}
                 />

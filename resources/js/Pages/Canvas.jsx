@@ -8,7 +8,7 @@ import { CheckCircle2, Loader2, ShoppingCart } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import { domToWebp } from "modern-screenshot";
 import axios from "axios";
-import { CATEGORIES } from "@/data/categories";
+import { TEMPLATES } from "@/data/templates";
 
 export default function Canvas({ auth }) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -31,8 +31,7 @@ export default function Canvas({ auth }) {
     template: null,
     template_id: null,
     accentColor: "#000000",
-    homeTeamLogo: null,
-    awayTeamLogo: null,
+    subtitle: "",
     backgroundImagePosition: { x: 0, y: 0 },
     backgroundImageScale: 1,
     backgroundImageRotation: 0,
@@ -62,11 +61,6 @@ export default function Canvas({ auth }) {
         // Convert base64 data URL to binary blob
         const response = await fetch(dataUrl);
         const ticketBlob = await response.blob();
-
-        // Get the selected category
-        const selectedCategory = CATEGORIES.find((c) =>
-          c.templates.some((t) => t.id === ticketInfo.template)
-        )?.id;
 
         // Create FormData for binary upload
         const formData = new FormData();
@@ -99,30 +93,8 @@ export default function Canvas({ auth }) {
           formData.append("backgroundImage", bgBlob, "background.png");
         }
 
-        // Add category-specific fields and logos
-        if (selectedCategory === "sports") {
-          formData.append("team_home", ticketInfo.homeTeam || "");
-          formData.append("team_away", ticketInfo.awayTeam || "");
-
-          // Add team logos as binary if they exist
-          if (ticketInfo.homeTeamLogo) {
-            const homeLogoResponse = await fetch(ticketInfo.homeTeamLogo);
-            const homeLogoBlob = await homeLogoResponse.blob();
-            formData.append("homeTeamLogo", homeLogoBlob, "home-logo.png");
-          }
-
-          if (ticketInfo.awayTeamLogo) {
-            const awayLogoResponse = await fetch(ticketInfo.awayTeamLogo);
-            const awayLogoBlob = await awayLogoResponse.blob();
-            formData.append("awayTeamLogo", awayLogoBlob, "away-logo.png");
-          }
-        } else if (selectedCategory === "concerts") {
-          formData.append("artist_name", ticketInfo.artistName || "");
-          formData.append("tour_name", ticketInfo.tourName || "");
-        } else if (selectedCategory === "broadway") {
-          formData.append("play_name", ticketInfo.playName || "");
-          formData.append("theater_name", ticketInfo.theaterName || "");
-        }
+        // Add subtitle field
+        formData.append("subtitle", ticketInfo.subtitle || "");
 
         // Send FormData with binary data
         const ticketResponse = await axios.post(
@@ -172,7 +144,7 @@ export default function Canvas({ auth }) {
           <TicketEditorSidebar
             ticketInfo={ticketInfo}
             setTicketInfo={setTicketInfo}
-            categories={CATEGORIES}
+            templates={TEMPLATES}
           />
         </div>
 

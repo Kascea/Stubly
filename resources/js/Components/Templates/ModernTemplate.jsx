@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 import { generateBarcodePattern } from "@/utils/barcode";
 
-const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
+const ModernTemplate = forwardRef(({ ticketInfo }, ref) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div
@@ -32,35 +32,37 @@ const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
 
         {/* Content Container */}
         <div className="relative text-white h-full flex flex-col">
-          {/* Admit One Banner - Updated to be smaller and rounded */}
+          {/* Admit One Banner */}
           <div className="flex justify-center mt-2">
             <div className="bg-white/10 backdrop-blur-sm py-1 px-6 rounded inline-block">
               <p className="font-bold tracking-widest text-sm">ADMIT ONE</p>
             </div>
           </div>
 
-          {/* Main Content - Adjusted to take 60% of height */}
+          {/* Main Content */}
           <div
             className="flex-grow p-6 flex flex-col justify-end"
             style={{ height: "60%" }}
           >
-            {/* Play and Theater Names - Moved lower */}
+            {/* Event Title and Subtitle */}
             <div className="text-center mb-4 mt-auto">
               <h1 className="text-4xl font-bold mb-4 leading-tight drop-shadow-md">
-                {ticketInfo?.playName || "Play Name"}
+                {ticketInfo?.eventName || "Event Name"}
               </h1>
 
-              {/* Theater Name */}
-              <div className="flex items-center justify-center mt-4">
-                <div className="flex flex-col items-center">
-                  <div className="text-xl font-bold drop-shadow-md mb-2">
-                    {ticketInfo?.theaterName || "Theater Name"}
+              {/* Subtitle */}
+              {ticketInfo?.subtitle && (
+                <div className="flex items-center justify-center mt-4">
+                  <div className="bg-white/10 backdrop-blur-sm py-2 px-4 rounded">
+                    <div className="text-xl font-bold drop-shadow-md">
+                      {ticketInfo.subtitle}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Updated Event Information */}
+            {/* Event Information */}
             <div className="bg-white/10 backdrop-blur-sm p-4 rounded">
               <div className="flex flex-col space-y-3">
                 <div className="flex justify-between items-center">
@@ -99,7 +101,7 @@ const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
             </div>
           </div>
 
-          {/* Tear-off Section with Colored Divider and Location - Now 40% of height */}
+          {/* Tear-off Section with Colored Divider and Location */}
           <div className="relative" style={{ height: "40%" }}>
             {/* Colored Divider Line with Location */}
             <div
@@ -131,7 +133,7 @@ const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
               ))}
             </div>
 
-            {/* Stub Content - Now with white background and larger section/row/seat */}
+            {/* Stub Content */}
             <div className="bg-white p-4 text-gray-800 h-full flex flex-col">
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="flex flex-col items-center">
@@ -154,9 +156,10 @@ const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
                 </div>
               </div>
 
-              {/* Additional broadway details */}
+              {/* Additional event details */}
               <div className="text-xs text-center mb-3 text-gray-600 uppercase tracking-wider flex-shrink-0">
-                <p>{ticketInfo?.playName || "N/A"}</p>
+                <p>{ticketInfo?.eventName || "N/A"}</p>
+                {ticketInfo?.subtitle && <p>{ticketInfo.subtitle}</p>}
                 <p>
                   {ticketInfo?.date
                     ? new Date(ticketInfo.date).toLocaleDateString("en-US", {
@@ -168,7 +171,7 @@ const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
                     : "N/A"}
                 </p>
                 <p>
-                  Curtain Time:{" "}
+                  Event Time:{" "}
                   {ticketInfo?.time
                     ? new Date(`${ticketInfo.time}`).toLocaleTimeString(
                         "en-US",
@@ -205,6 +208,6 @@ const BroadwayModernTemplate = forwardRef(({ ticketInfo }, ref) => {
   );
 });
 
-BroadwayModernTemplate.displayName = "BroadwayModernTemplate";
+ModernTemplate.displayName = "ModernTemplate";
 
-export default BroadwayModernTemplate;
+export default ModernTemplate;

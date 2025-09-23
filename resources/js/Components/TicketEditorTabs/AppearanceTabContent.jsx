@@ -10,7 +10,6 @@ export default function AppearanceTabContent({
   setTicketInfo,
   getRootProps,
   getInputProps,
-  selectedCategory,
   handleChange,
   onImageChange,
 }) {
